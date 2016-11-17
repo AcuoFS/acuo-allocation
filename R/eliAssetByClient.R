@@ -9,12 +9,13 @@ eliAssetByClient <- function(cientId){
   # graph = startGraph("http://neo4j:7474/db/data")
   graph = startGraph("http://localhost:7474/db/data/")
   
-  file.url <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/Cypher/eliAssetByClient.cql'
+#  file.url <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/Cypher/eliAssetByClient.cql'
   
-  query <- readLoad(file.url)
-  
+#  query <- readLoad(file.url)
+  query <- readLoad("eliAssetByClient.cql")
   cypher(graph,query,clientId=clientId)
 }
 
 clientId <- 'c1'
 result <- eliAssetByClient(clientId)
+result
