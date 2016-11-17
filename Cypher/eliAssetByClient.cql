@@ -1,6 +1,6 @@
 MATCH (e:LegalEntity)<-[:MANAGES]-(c:Client)-[:POSSESSES]->(a:Asset)-[:IS_AVAILABLE_FOR]->(ag:Agreement)
 WHERE (e)-[:SIGNS]->(ag)
-AND c.id = clientId
+AND c.id = {clientId}
 
 RETURN 
  	a.id AS assetID,
