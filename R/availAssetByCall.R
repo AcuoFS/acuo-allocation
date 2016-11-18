@@ -19,5 +19,5 @@ file.url <-   'availAssetByCall.cql'
 callId <- c('mc1','mc2','mc3')
 order <- 'callId'
 result <- availAssetByCall(callId,order)
-result
+write.csv(file='../Result/availAssetByCall.csv',x=result)
 
