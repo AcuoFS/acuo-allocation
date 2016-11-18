@@ -18,4 +18,4 @@ eliAssetByClient <- function(cientId){
 
 clientId <- 'c1'
 result <- eliAssetByClient(clientId)
-result
+write.csv(file='../Result/eliAssetByClient.csv',x=result)

@@ -11,8 +11,8 @@ RETURN
     a.currency AS currency,
     p.quantities AS quantity,
     p.availableQuantities AS availableQuantities,
- //   p.pledgedQuantities AS pledgedQuantities,
- //   p.settledQuantities AS settledQuantities,
+    p.pledgedQuantities AS pledgedQuantities,
+    p.settledQuantities AS settledQuantities,
     p.internalCost AS internalCost,
     p.opptCost AS opptCost
 ORDER BY a.isdaType
