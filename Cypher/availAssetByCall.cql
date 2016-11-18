@@ -10,6 +10,7 @@ RETURN
     mc.id AS callId,
     mc.callType AS callType,
     mc.callAmount AS callAmount,
+    ca.id AS CustodianAccount,
     a.id AS assetID,
 //    a.name AS assetName,
     a.value AS value,
