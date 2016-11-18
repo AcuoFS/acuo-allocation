@@ -5,7 +5,7 @@ AND c.id = {clientId}
 WITH DISTINCT a,p
 RETURN
 	a.isdaType AS isdaType,
- 	a.id AS assetID,
+ 	a.id AS assetId,
     a.name AS assetName,
     a.value AS value,
     a.currency AS currency,
