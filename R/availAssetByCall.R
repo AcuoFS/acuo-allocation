@@ -10,7 +10,7 @@ availAssetByCall <- function(callId,order){
   graph = startGraph("http://localhost:7474/db/data/")
   
   file.url <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/Cypher/availAssetByCall.cql'
-  
+file.url <-   'availAssetByCall.cql'
   query <- readLoad(file.url)
   
   cypher(graph,query,callId=callId,order=order)
@@ -20,3 +20,4 @@ callId <- c('mc1','mc2','mc3')
 order <- 'callId'
 result <- availAssetByCall(callId,order)
 result
+
