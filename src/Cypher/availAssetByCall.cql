@@ -7,7 +7,7 @@ AND (e)-[:SIGNS]-(ag)
 WITH *
 MATCH (c)-[p:POSSESSES]->(a)
 
-RETURN 
+RETURN DISTINCT
 //    c.id AS client,
 //    ag.id AS agreementId,
     mc.id AS callId,
