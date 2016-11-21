@@ -62,5 +62,6 @@ test.OW168_3 <- function(){
   source('src/eliAssetByClient.R')
   clientId <- c('c1','c2')
   result <- eliAssetByClient(clientId)
-  checkTrue(is.null(result))
+  checkEquals(length(result),0)
 }
+

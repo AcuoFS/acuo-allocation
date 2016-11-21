@@ -1,6 +1,6 @@
 library('RNeo4j')
 
-eliAssetByClient <- function(cientId){
+eliAssetByClient <- function(clientId){
   readLoad <- function(path) {
     query = paste(readLines(path), collapse="\n")
     return (query)
