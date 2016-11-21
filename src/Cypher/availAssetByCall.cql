@@ -12,6 +12,7 @@ RETURN
     mc.callAmount AS callAmount,
     ca.id AS CustodianAccount,
     a.id AS assetId,
+    a.isdaType AS isdaType,
 //    a.name AS assetName,
     a.value AS value,
     a.currency AS currency,
