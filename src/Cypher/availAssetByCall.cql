@@ -34,6 +34,7 @@ RETURN
 ORDER BY
 CASE 
 WHEN 'assetType' IN {order} THEN a.type
+WHEN 'assetId' IN {order} THEN a.assetId
 WHEN 'isdaType' IN {order} THEN a.isdaType
 WHEN 'callId' IN {order} THEN mc.id
 WHEN 'callType' IN {order} THEN mc.type
