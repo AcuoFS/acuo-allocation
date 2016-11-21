@@ -33,8 +33,8 @@ RETURN DISTINCT
 
 ORDER BY
 CASE 
-WHEN 'assetId' IN {order} THEN a.id
-WHEN 'isdaType' IN {order} THEN a.isdaType
-WHEN 'callId' IN {order} THEN mc.id
-WHEN 'callType' IN {order} THEN mc.type
+WHEN 'assetId' IN {order} THEN assetId
+WHEN 'isdaType' IN {order} THEN isdaType
+WHEN 'callId' IN {order} THEN callId
+WHEN 'callType' IN {order} THEN callType
 END
