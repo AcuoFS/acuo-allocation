@@ -1,6 +1,6 @@
 library('RNeo4j')
 
-availAssetByCall <- function(callId,order){
+availAssetByCall <- function(callId,order='assetId'){
   readLoad <- function(path) {
     query = paste(readLines(path), collapse="\n")
     return (query)
