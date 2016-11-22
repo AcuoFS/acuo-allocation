@@ -8,6 +8,9 @@ allocation <- function(callId='mc1',order='assetId',pref=c(0,0,1,0)){
   input.list <- modelInput(callId,order)
   
   assetId <- input.list$assetId
+  assetInfo <- input.list$assetInfo
+  assetInfo <- assetInfo[match(assetId,assetInfo$id),]
+  
   call.num <- length(callId)
   asset.num <- length(assetId)
   
@@ -51,10 +54,11 @@ allocation <- function(callId='mc1',order='assetId',pref=c(0,0,1,0)){
         reserve.list[[callId[i]]]<- assetId[sortCost[2,]] # 
         
         select.asset.idx <- sortCost[2,1]
+        select.asset.name <- assetInfo$name[select.asset.idx]
         select.asset.NetAmount <- call.mat[i,1]
         select.asset.Amount <- select.asset.NetAmount/(1-haircut.mat[i,select.asset.idx])
-        select.asset.df <- data.frame(assetId[select.asset.idx],select.asset.NetAmount,select.asset.Amount)
-          colnames(select.asset.df)<- c('Asset','NetAmount','Amount')
+        select.asset.df <- data.frame(assetId[select.asset.idx],select.asset.name,select.asset.NetAmount,select.asset.Amount)
+          colnames(select.asset.df)<- c('Asset','Name','NetAmount','Amount')
         
         select.list[[callId[i]]] <- select.asset.df       
       }
