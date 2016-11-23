@@ -4,7 +4,7 @@ source('src/opti.R')
 
 callId <- c('mc1','mc2','mc3','mc5')
 
-############## Modify the quantity in DB to simulate the scenario OW-170 #################
+############## Modify the quantity in DB to simulate the scenario OW-171 #################
 readLoad <- function(path) {
   query = paste(readLines(path), collapse="\n")
   return (query)
