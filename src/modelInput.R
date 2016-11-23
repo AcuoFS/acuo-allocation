@@ -12,6 +12,7 @@ modelInput = function(callId,order='assetId'){
   call.num <- length(callId)
   
   assetInfo <- assetInfoById(assetId)
+  assetInfo <- assetInfo[match(assetId,assetInfo$id),]
   
   ###############################################
   # elegibility matrix: 1-eligible, 0-ineligible
