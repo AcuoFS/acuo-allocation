@@ -1,0 +1,35 @@
+LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/OW171_custodianAsset.csv' 
+AS line 
+
+MATCH (custac:CustodianAccount {id:line.accountId})-[h:HOLDS]->(a{id:line.assetId})
+SET
+	h.oriQuantities = h.quantities,
+	h.oriAvailableQuantities = h.availableQuantities,
+	h.oriPledgedQuantities = h.pledgedQuantities,
+	h.oriSettledQuantities = h.settledQuantities,
+	h.quantities=TOFLOAT(line.quantities),
+	h.availableQuantities=TOFLOAT(line.availableQuantities),
+	h.pledgedQuantities=TOFLOAT(line.pledgedQuantities),
+	h.settledQuantities=TOFLOAT(line.settledQuantities)
+
+WITH DISTINCT a
+
+MATCH path1 = (custac:CustodianAccount)-[h:HOLDS]->(a)<-[p:POSSESSES]-(c:Client)
+WHERE (c)-[*3]->(custac)
+
+SET 
+	p.oriQuantities = p.quantities,
+	p.oriAvailableQuantities = p.availableQuantities,
+	p.oriPledgedQuantities = p.pledgedQuantities,
+	p.oriSettledQuantities = p.settledQuantities,
+	
+	p.quantities = 0,
+	p.availableQuantities = 0,
+    p.pledgedQuantities = 0,
+    p.settledQuantities = 0,
+
+	p.quantities = p.quantities+h.quantities,
+	p.availableQuantities = p.availableQuantities+h.availableQuantities,
+    p.pledgedQuantities = p.pledgedQuantities+h.pledgedQuantities,
+    p.settledQuantities = p.settledQuantities+h.settledQuantities
+
