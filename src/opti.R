@@ -26,23 +26,22 @@ allocation <- function(callId='mc1',order='assetId',pref=c(0,0,1,0)){
 
 ############### Asset Sufficientcy #########################
 # suff.mat.1: mat[2,1]=1--asset 1 sufficient for margin call 2
-# suff.mat.2: mat[1,3]=1--asset 3 sufficient for all margin calls(available)
-# two ways to compute sufficientcy
-# 1. Amount equivalent if use up an asset > call amount
-# 2. quantity needed of an asset < quantity of asset
-# prefer 2, it can deal with the sum sufficiency
+# suff.mat.2: mat[1,3]=1--asset 3 sufficient for all margin calls(count only calls it is available and eligible to fulfill)
+
   suff.mat.1 <- ele.mat*(call.mat/(1-haircut.mat)/value.mat < quantity.mat)
   suff.mat.2 <- 1*(apply(ele.mat*call.mat/(1-haircut.mat)/value.mat,2,sum) < quantity.mat[1,])
 
 ############# Algorithm ####################################
-  # In case of OW-171,173,174, pref=(0,0,1,0)
-  if(all(pref==c(0,0,1,0))){
+  
+  if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
     
-    # In case of OW-170, all assets are sufficient
-    if(!is.element(0,suff.mat.2)){
-      cost.mat<-call.mat/(1-haircut.mat)*cost.percent.mat
-      reserve.list <-list()
-      select.list  <-list()
+    if(!is.element(0,suff.mat.2)){ # In case of OW-171, all assets are sufficient
+      
+      cost.mat<-call.mat/(1-haircut.mat)*cost.percent.mat  # cost amount
+      
+      reserve.list <-list()    # store all available assets for each call, list by callId
+      select.list  <-list()    # store selected assets for each call, list by callId
+      
       for (i in 1:call.num){
         idx1 <- which(ele.mat[i,]!=0)  # return elegible asset idx for mc[i]
         temp <- rbind(cost.mat[i,idx1],idx1,deparse.level = 0)
@@ -63,11 +62,12 @@ allocation <- function(callId='mc1',order='assetId',pref=c(0,0,1,0)){
         select.list[[callId[i]]] <- select.asset.df       
       }
       
+      output.list<- select.list
     }
-      
+    
+     
   }
   
-  output.list<- select.list
   return(output.list)
 }
 
