@@ -1,13 +1,13 @@
 library('RUnit')
 
-test.OW201_1 <- function(){ 
+testFunctionCallInfoByCallId <- function(){ 
   
   # test input: a list of margin call ids
   callId <- c("mc1","mc2","mc3","mc4","mc5","mc6","mc7","mc8","mc9","mc10","mc11")
   
   # test function: callInfoByCallId(callId)
-  source('src/callInfoById.R')
-  result <- callInfoById(callId) # function output
+  source('src/callInfoByCallId.R')
+  result <- callInfoByCallId(callId) # function output
 
   # check whether all info from the output is correct
   checkTrue(is.element('mc1',callId))

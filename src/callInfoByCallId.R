@@ -1,6 +1,6 @@
 library('RNeo4j')
 
-callInfoById <- function(callId){
+callInfoByCallId <- function(callId){
   readLoad <- function(path) {
     query = paste(readLines(path), collapse="\n")
     return (query)
