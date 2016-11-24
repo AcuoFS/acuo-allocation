@@ -2,7 +2,8 @@
 
 ## Getting started
 
-In order to run the allocation algorithm, please clone the repo to your local machine or Rstudio server. 
+In order to run the allocation algorithm, please clone the repo to your local machine or 
+directly go to Rstudio server: https://rstudio.acuo.com/
 
 ## Run the Allocation Algo
 
