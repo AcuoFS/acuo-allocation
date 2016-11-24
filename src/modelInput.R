@@ -4,6 +4,7 @@ modelInput = function(callId,order='assetId'){
   
   source('src/availAssetByCall.R')
   source('src/assetInfoById.R')
+  source('src/callInfoById.R')
   
   result <- availAssetByCall(callId,order)
   
@@ -13,6 +14,9 @@ modelInput = function(callId,order='assetId'){
   
   assetInfo <- assetInfoById(assetId)
   assetInfo <- assetInfo[match(assetId,assetInfo$id),]
+  
+  callInfo <- callInfoById(callId)
+  callInfo <- callInfo[match(callId,callInfo$id),]
   
   ###############################################
   # elegibility matrix: 1-eligible, 0-ineligible
@@ -34,7 +38,7 @@ modelInput = function(callId,order='assetId'){
   call.mat <- base.mat
   
   # fill in matrixes with the data from result
-  call.mat[callId,] <- as.numeric(unique(cbind(result$callId,result$callAmount))[,2])
+  call.mat[callId,] <- matrix(rep(callInfo$callAmount,asset.num),nrow=call.num,byrow=F)
   quantity.mat[,]<- matrix(rep(as.numeric(unique(cbind(result$assetId,result$quantity))[,2]),call.num),nrow=call.num,byrow=T)
   value.mat[,]<-matrix(rep(as.numeric(unique(cbind(result$assetId,result$value/result$FXRate))[,2]),call.num),nrow=call.num,byrow=T)
   
@@ -52,7 +56,7 @@ modelInput = function(callId,order='assetId'){
   quantity.mat <- quantity.mat[keep.row,keep.col]
   value.mat <- value.mat[keep.row,keep.col]
   
-  output.list <- list(assetId=assetId,assetInfo=assetInfo,
+  output.list <- list(assetId=assetId,assetInfo=assetInfo,callInfo=callInfo,
                       ele.mat=ele.mat,haircut.mat=haircut.mat,
                       cost.mat = cost.mat,
                       quantity.mat=quantity.mat, value.mat=value.mat,
