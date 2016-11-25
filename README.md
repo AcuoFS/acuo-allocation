@@ -39,9 +39,9 @@ Functions:
 * allocationInputData(callId,clientId)
 
 ###4. R file, call the R function(3), run the allocation algorithm, return allocation result.
-Location:
-* **src/allocationFunction.R ** *
-Functions:
+####Location:
+* src/allocationFunction.R
+####Functions:
 * allocationAlgo(callId,clientId)
 
 ###5. R file, contain several allocation examples functions, call the R function(4), allocation examples given sample input parameters, return allocation result.
