@@ -17,6 +17,8 @@ existentCallIdToClient1Group3 <- c("mc1","mc2","mc3","mc4","mc5","mc6","mc7","mc
 
 prefForCostOnlyNoConstraintAllocationAlgo <- c(0,0,1,0)
 
+
+###### TEST FUNCTIONS ##############################################
 testCostOnlyNoConstraintAllocationAlgoByPassingAExistentClientIdAndAListOfExistentCallIdsWhichDirectToTheClient<-function(){
   # test input: a existent client id; a list of existent margin call ids, which direct to the client
   callId <- existentCallIdToClient1Group2
