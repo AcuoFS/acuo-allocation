@@ -14,8 +14,8 @@ The algorithm is at testing stage. To see some sample allocation result, go to t
 To do unit testing, please go to the folder 'test', run 'testAll.R'
 
 
-## Layers
-From inner to outer
+## Layers(From inner to outer)
+
 1. Cypher query, resquest the database, return the data.
   1. Location:
     1. src/Cypher/availAssetByCallIdAndClient.cql 
