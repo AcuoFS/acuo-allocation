@@ -12,8 +12,8 @@ assetInfoByAssetIdCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-a
 executeCypher <- function(path,...){
   params <- list(...)
   query = paste(readLines(path), collapse="\n")
-  graph = startGraph(neo4jUrl)
-  #graph = startGraph(neo4jLocalUrl)
+  #graph = startGraph(neo4jUrl)
+  graph = startGraph(neo4jLocalUrl)
   cypher(graph,query,params)
 }
   
