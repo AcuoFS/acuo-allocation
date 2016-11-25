@@ -1,0 +1,32 @@
+LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/OW174_custodianAsset.csv' 
+AS line 
+
+MATCH (custac:CustodianAccount {id:line.accountId})-[h:HOLDS]-(a:Asset {id:line.assetId})
+SET
+	h.quantities=h.oriQuantities,
+	h.availableQuantities=h.oriAvailableQuantities,
+	h.pledgedQuantities=h.oriPledgedQuantities,
+	h.settledQuantities=h.oriSettledQuantities
+REMOVE 
+	h.oriQuantities,
+	h.oriAvailableQuantities,
+	h.oriPledgedQuantities,
+	h.oriSettledQuantities
+
+WITH DISTINCT a
+
+MATCH path1 = (custac:CustodianAccount)-[h:HOLDS]->(a)<-[p:POSSESSES]-(c:Client)
+WHERE (c)-[*3]->(custac)
+WITH DISTINCT p
+SET 
+	p.quantities=p.oriQuantities,
+	p.availableQuantities=p.oriAvailableQuantities,
+	p.pledgedQuantities=p.oriPledgedQuantities,
+	p.settledQuantities=p.oriSettledQuantities
+
+REMOVE 
+	p.oriQuantities,
+	p.oriAvailableQuantities,
+	p.oriPledgedQuantities,
+	p.oriSettledQuantities
+
