@@ -40,7 +40,7 @@ Functions:
 
 ###4. R file, call the R function(3), run the allocation algorithm, return allocation result.
 Location:
-* src/allocationFunction.R 
+* **src/allocationFunction.R ** *
 Functions:
 * allocationAlgo(callId,clientId)
 
