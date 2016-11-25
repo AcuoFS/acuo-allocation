@@ -1,7 +1,7 @@
 library("RNeo4j")
 
 allocationInputData = function(callId,order='assetId'){
-  source('src/FunctionsOfDBRequestByExecutingCypher.R')
+  source('src/functionsOfDBRequestByExecutingCypher.R')
   
   result <- availAssetByCall(callId,order)
   
