@@ -30,5 +30,5 @@ eliAssetByClientId <- function(clientId){
 }
 
 availAssetByCallIdAndClientId <- function(callId,clientId,order='assetId') {
-  executeCypher(path=availAssetByCallIdCypherPath, callId=callId,clientId=clientId, order=order)
+  executeCypher(path=availAssetByCallIdAndClientIdCypherPath, callId=callId,clientId=clientId, order=order)
 }
