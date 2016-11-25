@@ -1,8 +1,0 @@
-"","isdaType","assetID","assetName","value","currency","quantity","availableQuantities","internalCost","opptCost"
-"1","Cash","USD","US dollar",1,"USD",2e+07,2e+07,0.03,0.04
-"2","Cash","GBP","British Pound",1,"GBP",1e+05,1e+05,0.01,0.05
-"3","Cash","CAD","Canadian dollar",1,"CAD",4e+07,4e+07,0.01,0.01
-"4","Cash","JPY","Japanese yen",1,"JPY",5e+06,5e+06,0.01,0.02
-"5","Coporate Equity","46625H100","JPM US Equity",65,"USD",2e+05,2e+05,0.02,0.02
-"6","Coporate Equity","37833100","APPL INC",117,"USD",5e+05,5e+05,0.02,0.02
-"7","MM Instruments","US912796HW25","U.S. Treasury Bills",100,"USD",5e+05,5e+05,0.03,0.01
