@@ -65,7 +65,9 @@ allocation <- function(callId='mc1',order='assetId',pref=c(0,0,1,0)){
       output.list<- select.list
     }
     
-     
+    else if(1){
+      
+    }
   }
   
   return(output.list)
