@@ -16,11 +16,11 @@ To do unit testing, please go to the folder 'test', run 'testAll.R'
 
 ## Layers
 From inner to outer
-###1. Cypher query, resquest the database, return the data.
-1. Location:
-* src/Cypher/availAssetByCallIdAndClient.cql 
-* src/Cypher/assetInfoByAssetId.cql 
-* src/Cypher/callInfoByCallId.cql 
+1. Cypher query, resquest the database, return the data.
+  1. Location:
+    1. src/Cypher/availAssetByCallIdAndClient.cql 
+    2. src/Cypher/assetInfoByAssetId.cql 
+    3. src/Cypher/callInfoByCallId.cql 
 
 ###2. R file, contains several R functions, call the Cypher query(1), generate raw data, return raw data.
 1. Location:
