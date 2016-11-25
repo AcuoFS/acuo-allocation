@@ -1,11 +1,11 @@
 library("RNeo4j")
 
-allocation <- function(callId='mc1',order='assetId',pref=c(0,0,1,0)){
+allocationAlgo <- function(callId='mc1',order='assetId',pref=c(0,0,1,0)){
   
 ########### Load model input from modelInput.R ##############
-  source('src/modelInput.R')
+  source('src/allocationInputData.R')
   
-  input.list <- modelInput(callId,order)
+  input.list <- optimizationInputData(callId,order)
   
   assetId <- input.list$assetId
   assetInfo <- input.list$assetInfo

@@ -1,10 +1,7 @@
 library("RNeo4j")
 
-modelInput = function(callId,order='assetId'){
-  
-  source('src/availAssetByCall.R')
-  source('src/assetInfoById.R')
-  source('src/callInfoById.R')
+allocationInputData = function(callId,order='assetId'){
+  source('src/FunctionsOfDBRequestByExecutingCypher.R')
   
   result <- availAssetByCall(callId,order)
   
