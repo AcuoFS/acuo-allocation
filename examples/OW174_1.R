@@ -1,6 +1,6 @@
 library("RNeo4j")
 
-OW171.ex1 <- function(){
+OW174.ex1 <- function(){
   source('src/opti.R')
   
   callId <- c('mc1','mc2','mc3','mc5')
@@ -11,10 +11,10 @@ OW171.ex1 <- function(){
     return (query)
   }
   
-  graph = startGraph("http://neo4j:7474/db/data")
-  #graph = startGraph("http://localhost:7474/db/data/")
+  #graph = startGraph("http://neo4j:7474/db/data")
+  graph = startGraph("http://localhost:7474/db/data/")
   
-  file.url <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/OW171_custodianAsset.load'
+  file.url <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/OW174_custodianAsset.load'
   query <- readLoad(file.url)
   cypher(graph,query)
   
@@ -22,7 +22,7 @@ OW171.ex1 <- function(){
   allocation.result <- allocation(callId)
   
   ############### Restore the DB to the status before modification ##################
-  file.url <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/OW171_custodianAsset_restore.load'
+  file.url <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/OW174_custodianAsset_restore.load'
   query <- readLoad(file.url)
   cypher(graph,query)
   
