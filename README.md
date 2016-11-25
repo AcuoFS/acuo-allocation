@@ -27,7 +27,7 @@ From inner to outer
 ###3. R file, contains allocation function, call the R function(2), convert raw data to certain format, return formalized data.
 * src/allocationInputData.R 
 
-###4. R function(file), call the R function(3), run the allocation algorithm, return allocation result.
+###4. R file, call the R function(3), run the allocation algorithm, return allocation result.
 * src/allocationFunction.R 
 
 ###5. R file, contain several allocation examples functions, call the R function(4), allocation exaples given sample input parameters, return allocation result.
