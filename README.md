@@ -24,36 +24,36 @@ To do unit testing, please go to the folder 'test', run 'testAll.R'
 
 ###2. R file, contains several R functions, call the Cypher query(1), generate raw data, return raw data.
 1. Location:
-* src/functionsOfDBRequestByExecutingCypher.R 
+  1. src/functionsOfDBRequestByExecutingCypher.R 
 2. Functions:
-* executeCypher(path,...)
-* callInfoByCallId(callId)
-* assetInfoByAssetId(assetId)
-* eliAssetByClientId(clientId)
-* availAssetByCallIdAndClientId(callId,clientId)
+  1. executeCypher(path,...)
+  2. callInfoByCallId(callId)
+  3. assetInfoByAssetId(assetId)
+  4. eliAssetByClientId(clientId)
+  5. availAssetByCallIdAndClientId(callId,clientId)
 
 ###3. R file, contains allocation function, call the R function(2), convert raw data to certain format, return formalized data.
 1. Location:
-* src/allocationInputData.R 
+  1. src/allocationInputData.R 
 2. Functions:
-* allocationInputData(callId,clientId)
+  1. allocationInputData(callId,clientId)
 
 ###4. R file, call the R function(3), run the allocation algorithm, return allocation result.
 1. Location:
-* src/allocationFunction.R
+  1. src/allocationFunction.R
 2.Functions:
-* allocationAlgo(callId,clientId)
+  1. allocationAlgo(callId,clientId)
 
 ###5. R file, contain several allocation examples functions, call the R function(4), allocation examples given sample input parameters, return allocation result.
 1. Location:
-* examples/costOnlyNoConstraintAllocationAlgoExamples.R 
+  1. examples/costOnlyNoConstraintAllocationAlgoExamples.R 
 2. Functions:
-* costOnlyNoConstraintAllocationAlgoEx1()
-* costOnlyNoConstraintAllocationAlgoEx2()
+  1. costOnlyNoConstraintAllocationAlgoEx1()
+  2. costOnlyNoConstraintAllocationAlgoEx2()
 
 ###6. R file, test all examples by processing each step.
 1. Location:
-* test/testAll.R 
+  1. test/testAll.R 
 2. Test Functions Location:
-* test/testFunctions/
+  1. test/testFunctions/
 
