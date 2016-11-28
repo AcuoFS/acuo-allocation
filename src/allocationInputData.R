@@ -53,10 +53,18 @@ allocationInputData = function(callId,clientId,order='assetId'){
   quantity.mat <- quantity.mat[keep.row,keep.col]
   value.mat <- value.mat[keep.row,keep.col]
   
+  ele.vec <- as.vector(t(ele.mat))
+  haircut.vec <- as.vector(t(haircut.mat))
+  cost.vec <- as.vector(t(cost.mat))
+  quantity.vec <- as.vector(t(quantity.mat))
+  value.vec <- as.vector(t(value.mat))
+  
   output.list <- list(assetId=assetId,assetInfo=assetInfo,callInfo=callInfo,
-                      ele.mat=ele.mat,haircut.mat=haircut.mat,
-                      cost.mat = cost.mat,
-                      quantity.mat=quantity.mat, value.mat=value.mat,
+                      ele.mat=ele.mat, ele.vec = ele.vec,
+                      haircut.mat=haircut.mat, haircut.vec=haircut.vec,
+                      cost.mat = cost.mat, cost.vec = cost.vec,
+                      quantity.mat=quantity.mat, quantity.vec=quantity.vec,
+                      value.mat=value.mat,value.vec=value.vec,
                       call.mat = call.mat
                       )
   
