@@ -16,7 +16,7 @@ allocationInputData = function(callId,clientId,order='assetId'){
   callInfo <- callInfo[match(callId,callInfo$id),]
   
   ###############################################
-  # elegibility matrix: 1-eligible, 0-ineligible
+  # eligibility matrix: 1-eligible, 0-ineligible
   # haircut matrix: haircut+FX haircut
   # quantity matrix
   # value matrix: value/FX rate
@@ -27,7 +27,7 @@ allocationInputData = function(callId,clientId,order='assetId'){
 
   base.mat <- matrix(0,nrow=call.num,ncol=asset.num, dimnames = list(callId,assetId))
   
-  ele.mat <- base.mat
+  eli.mat <- base.mat
   haircut.mat <- base.mat
   cost.mat <- base.mat
   quantity.mat <- base.mat
@@ -39,28 +39,28 @@ allocationInputData = function(callId,clientId,order='assetId'){
   quantity.mat[,]<- matrix(rep(as.numeric(unique(cbind(result$assetId,result$quantity))[,2]),call.num),nrow=call.num,byrow=T)
   value.mat[,]<-matrix(rep(as.numeric(unique(cbind(result$assetId,result$value/result$FXRate))[,2]),call.num),nrow=call.num,byrow=T)
   
-  ele.mat[cbind(result$callId,result$assetId)]<-1
+  eli.mat[cbind(result$callId,result$assetId)]<-1
   haircut.mat[cbind(result$callId,result$assetId)]<- result$haircut+result$FXHaircut
   cost.mat[cbind(result$callId,result$assetId)]<- result$internalCost+result$externalCost+result$opptCost-result$interestRate
 
   
-  keep.row <- which(apply(ele.mat,1,sum)!=0)   # keep the rows with eligible assets
-  keep.col <- which(apply(ele.mat,2,sum)!=0)   # keep the cols with eligible assets
+  keep.row <- which(apply(eli.mat,1,sum)!=0)   # keep the rows with eligible assets
+  keep.col <- which(apply(eli.mat,2,sum)!=0)   # keep the cols with eligible assets
   
-  ele.mat <- ele.mat[keep.row,keep.col]
+  eli.mat <- eli.mat[keep.row,keep.col]
   haircut.mat <- haircut.mat[keep.row,keep.col]
   cost.mat <- cost.mat[keep.row,keep.col]
   quantity.mat <- quantity.mat[keep.row,keep.col]
   value.mat <- value.mat[keep.row,keep.col]
   
-  ele.vec <- as.vector(t(ele.mat))
+  eli.vec <- as.vector(t(eli.mat))
   haircut.vec <- as.vector(t(haircut.mat))
   cost.vec <- as.vector(t(cost.mat))
   quantity.vec <- as.vector(t(quantity.mat))
   value.vec <- as.vector(t(value.mat))
   
   output.list <- list(assetId=assetId,assetInfo=assetInfo,callInfo=callInfo,
-                      ele.mat=ele.mat, ele.vec = ele.vec,
+                      eli.mat=eli.mat, eli.vec = eli.vec,
                       haircut.mat=haircut.mat, haircut.vec=haircut.vec,
                       cost.mat = cost.mat, cost.vec = cost.vec,
                       quantity.mat=quantity.mat, quantity.vec=quantity.vec,
