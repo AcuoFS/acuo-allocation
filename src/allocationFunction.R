@@ -14,7 +14,7 @@ allocationAlgo <- function(callId='mc1',clientId='c1',order='assetId',pref=c(0,0
   call.num <- length(callId)
   asset.num <- length(assetId)
   
-  ele.mat <- input.list$ele.mat
+  eli.mat <- input.list$eli.mat
   haircut.mat<-input.list$haircut.mat
   quantity.mat<- input.list$quantity.mat
   value.mat<-input.list$value.mat
@@ -24,12 +24,26 @@ allocationAlgo <- function(callId='mc1',clientId='c1',order='assetId',pref=c(0,0
 ############### Output Format ###########################
   output.list <- list()
 
+# A list, each element is the allocation result(dataframe) for one margin call
+#------------------------------------------------------------------------------------------
+# $callId1
+#  Asset(assetId)   Name(assetName)   NetAmount(afterHaircut)   Amount        quantity
+# 1  a1              asset1             numeric value         numeric value  numeric value
+# 2  a2              asset2             numeric value         numeric value  numeric value
+#  
+# $callId2
+#  Asset(assetId)   Name(assetName)   NetAmount(afterHaircut)   Amount        quantity
+# 1  a2              asset2             numeric value         numeric value  numeric value
+# 2  a3              asset3             numeric value         numeric value  numeric value
+# 3  a4              asset4             numeric value         numeric value  numeric value
+#------------------------------------------------------------------------------------------
+
 ############### Asset Sufficientcy #########################
 # suff.mat.1: mat[2,1]=1--asset 1 sufficient for margin call 2
 # suff.mat.2: mat[1,3]=1--asset 3 sufficient for all margin calls(count only calls it is available and eligible to fulfill)
 
-  suff.mat.1 <- ele.mat*(call.mat/(1-haircut.mat)/value.mat < quantity.mat)
-  suff.mat.2 <- 1*(apply(ele.mat*call.mat/(1-haircut.mat)/value.mat,2,sum) < quantity.mat[1,])
+  suff.mat.1 <- eli.mat*(call.mat/(1-haircut.mat)/value.mat < quantity.mat)
+  suff.mat.2 <- 1*(apply(eli.mat*call.mat/(1-haircut.mat)/value.mat,2,sum) < quantity.mat[1,])
 
 ############# Algorithm ####################################
   
@@ -43,7 +57,7 @@ allocationAlgo <- function(callId='mc1',clientId='c1',order='assetId',pref=c(0,0
       select.list  <-list()    # store selected assets for each call, list by callId
       
       for (i in 1:call.num){
-        idx1 <- which(ele.mat[i,]!=0)  # return elegible asset idx for mc[i]
+        idx1 <- which(eli.mat[i,]!=0)  # return elegible asset idx for mc[i]
         temp <- rbind(cost.mat[i,idx1],idx1,deparse.level = 0)
         if(length(temp[1,])==1){
           sortCost=temp
@@ -56,8 +70,9 @@ allocationAlgo <- function(callId='mc1',clientId='c1',order='assetId',pref=c(0,0
         select.asset.name <- assetInfo$name[select.asset.idx]
         select.asset.NetAmount <- call.mat[i,1]
         select.asset.Amount <- select.asset.NetAmount/(1-haircut.mat[i,select.asset.idx])
-        select.asset.df <- data.frame(assetId[select.asset.idx],select.asset.name,select.asset.NetAmount,select.asset.Amount)
-          colnames(select.asset.df)<- c('Asset','Name','NetAmount','Amount')
+        select.asset.quantity <- select.asset.Amount/value.mat[i,select.asset.idx]
+        select.asset.df <- data.frame(assetId[select.asset.idx],select.asset.name,select.asset.NetAmount,select.asset.Amount,select.asset.quantity)
+          colnames(select.asset.df)<- c('Asset','Name','NetAmount','Amount','quantity')
         
         select.list[[callId[i]]] <- select.asset.df       
       }
