@@ -48,7 +48,7 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
   
   reserve.list <-list()    # store all available assets for each call, list by callId
   select.list  <-list()    # store selected assets for each call, list by callId
-  leastCostAsset <- matrix(c(callId,rep('',3)),nrow=call.num,ncol=2,dimnames = list(callId,c('callId','assetId')))
+  leastCostAsset <- matrix(c(callId,rep('', call.num)),nrow=call.num,ncol=2,dimnames = list(callId,c('callId','assetId')))
   
   for (i in 1:call.num){
     idx1 <- which(eli.mat[i,]!=0)  # return elegible asset idx for mc[i]
@@ -65,8 +65,8 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
   ############# LEAST COST ASSET SUFFICIENCY #####################
   suff.qty.1 <- call.mat/(1-haircut.mat)/value.mat # quantity needed for a single asset to fulfill each call
   
-  select.temp.unique <- unique(leastCostAsset[,2])
-  suff.select.unique <- rep(0,call.num)
+  select.temp.unique <- unique(leastCostAsset[,2]) ; 
+  suff.select.unique <- rep(0,length(select.temp.unique))
   for(i in 1:length(select.temp.unique)){
     id <- select.temp.unique[i]
     idx.temp <- leastCostAsset[which(leastCostAsset[,2]==id),1] # calls have the least cost assetId=id
@@ -75,8 +75,8 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
   
   if(!is.element(0,suff.select.unique)){ # In case of OW-171, least cost assets are sufficient
     
-    for(i in 1:call.num)
-      select.asset.idx <- sortCost[2,1]
+    for(i in 1:call.num){
+      select.asset.idx <- which(assetInfo$id==reserve.list[[i]][1])
       select.asset.name <- assetInfo$name[select.asset.idx]
       select.asset.NetAmount <- call.mat[i,1]
       select.asset.Amount <- select.asset.NetAmount/(1-haircut.mat[i,select.asset.idx])
