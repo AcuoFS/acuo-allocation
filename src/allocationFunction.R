@@ -45,7 +45,7 @@ allocationAlgo <- function(callId='mc1',clientId='c1',order='assetId',pref=c(0,0
   suff.mat.1 <- eli.mat*(call.mat/(1-haircut.mat)/value.mat < quantity.mat)
   suff.mat.2 <- 1*(apply(eli.mat*call.mat/(1-haircut.mat)/value.mat,2,sum) < quantity.mat[1,])
 
-############# Algorithm ####################################
+############# Algorithm #######################################
   
   if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
     
