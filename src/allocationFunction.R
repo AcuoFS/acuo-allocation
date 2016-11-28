@@ -43,6 +43,13 @@ allocationAlgo <- function(callId='mc1',clientId='c1',order='assetId',pref=c(0,0
   
 if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
   
+  ######### CHECK WHETHER ASSET POOL IS SUFFICIENT #############
+  suffPerCall <- all(apply(eli.mat*(quantity.mat*value.mat*(1-haircut.mat)),1,sum) > call.mat[,1])
+  suffAllCall <- sum(quantity.mat[1,]*value.mat[1,]*(1-apply(haircut.mat,2,max)))>sum(call.mat[,1])
+  if(!(suffPerCall&suffAllCall)){
+    errorMsg <- 'Asset inventoty is not sufficient!'
+    return(errorMsg)
+  }
   ######### SORT ASSET PER CALL BY COST ########################
   cost.mat<-call.mat/(1-haircut.mat)*cost.percent.mat  # cost amount
   
@@ -63,14 +70,14 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
   }
   
   ############# LEAST COST ASSET SUFFICIENCY #####################
-  suff.qty.1 <- call.mat/(1-haircut.mat)/value.mat # quantity needed for a single asset to fulfill each call
+  leastCost.suff.qty <- call.mat/(1-haircut.mat)/value.mat # quantity needed for a single asset to fulfill each call
   
   select.temp.unique <- unique(leastCostAsset[,2]) ; 
   suff.select.unique <- rep(0,length(select.temp.unique))
   for(i in 1:length(select.temp.unique)){
     id <- select.temp.unique[i]
     idx.temp <- leastCostAsset[which(leastCostAsset[,2]==id),1] # calls have the least cost assetId=id
-    suff.select.unique[i] <- 1*(sum(suff.qty.1[idx.temp,id]) < quantity.mat[1,id])
+    suff.select.unique[i] <- 1*(sum(leastCost.suff.qty[idx.temp,id]) < quantity.mat[1,id])
   }
   
   if(!is.element(0,suff.select.unique)){ # In case of OW-171, least cost assets are sufficient
