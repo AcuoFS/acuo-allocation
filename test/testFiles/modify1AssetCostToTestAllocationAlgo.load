@@ -11,5 +11,5 @@ SET
 	is.oriExternalCost = is.externalCost,
 
 	p.internalCost = TOFLOAT(line.internalCost),
-	p.opptCost = TOFLOAT(line.opptCost)}],
+	p.opptCost = TOFLOAT(line.opptCost),
 	is.externalCost = TOFLOAT(line.externalCost)
