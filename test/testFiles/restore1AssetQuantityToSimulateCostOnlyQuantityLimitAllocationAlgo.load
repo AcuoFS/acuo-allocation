@@ -1,4 +1,4 @@
-LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/OW174_custodianAsset.csv' 
+LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/modify1AssetQuantityToSimulateCostOnlyQuantityLimitAllocationAlgo.csv' 
 AS line 
 
 MATCH (custac:CustodianAccount {id:line.accountId})-[h:HOLDS]-(a:Asset {id:line.assetId})
