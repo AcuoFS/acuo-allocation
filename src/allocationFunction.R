@@ -103,6 +103,8 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
     # variables: x[1:(call.num*asset.num)] qunatity used of each asset for each margin call
     # objective function: minimize  x*value/(1-haircut)*cost
     # constraints: 
+    # 0. quantity used of an asset should be a non-negative value
+    #    quantity used >= 0
     # 1. quantity limit of each asset for one margin call (call.num*asset.num)
     #    quantity used <= quantity limit; 0 for non-eligible
     # 2. quantity limit of each asset for all margin calls(asset.num)
@@ -114,6 +116,11 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
     var.num <- length(idx.eli)
     
   #  old.var.num <- call.num*asset.num
+    
+    f.con.0 <- matrix(0,nrow=var.num,ncol=var.num)
+    f.con.0[cbind(1:var.num,1:var.num)] <- 1
+    f.dir.0 <- rep('>=',var.num)
+    f.rhs.0 <- rep(0,var.num)
     
     f.con.1 <- matrix(0,nrow=var.num,ncol=var.num)
     f.con.1[cbind(1:var.num,1:var.num)] <- 1
@@ -139,9 +146,9 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
     f.rhs.3 <- call.mat[,1]
     
     f.obj <-  value.vec[idx.eli]/(1-haircut.vec[idx.eli])*cost.vec[idx.eli]
-    f.con <- rbind(f.con.1,f.con.2,f.con.3)
-    f.dir <- c(f.dir.1,f.dir.2,f.dir.3)
-    f.rhs <- c(f.rhs.1,f.rhs.2,f.rhs.3)
+    f.con <- rbind(f.con.0,f.con.1,f.con.2,f.con.3)
+    f.dir <- c(f.dir.0,f.dir.1,f.dir.2,f.dir.3)
+    f.rhs <- c(f.rhs.0,f.rhs.1,f.rhs.2,f.rhs.3)
     
     temp <- lp('min', f.obj, f.con, f.dir, f.rhs)
     result.mat <- matrix(0,nrow=call.num,ncol=asset.num,dimnames=list(callId,assetId))
@@ -161,7 +168,7 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
       
       select.list[[callId[i]]] <- select.asset.df       
     }
-    
+    output.list <- select.list
   }
 }
   
