@@ -12,4 +12,4 @@ SET
 REMOVE
 	p.oriInternalCost,
 	p.oriOpptCost,
-	p.externalCost
+	p.orExternalCost
