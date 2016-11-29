@@ -7,7 +7,7 @@ MATCH (c:Client {id:line.clientId})-[p:POSSESSES]->(a:Asset {id: line.id})-[is:I
 
 SET
 	p.internalCost = p.oriInternalCost,
-	p.opptCost = p.oriOpptCost
+	p.opptCost = p.oriOpptCost,
 	is.externalCost = is.oriExternalCost
 REMOVE
 	p.oriInternalCost,
