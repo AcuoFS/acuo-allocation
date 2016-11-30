@@ -190,7 +190,7 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
   }
 }
   
-  return(list(input.list,output.list))
+  return(list(input=input.list,output=output.list))
 }
 
 
