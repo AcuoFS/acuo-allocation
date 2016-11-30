@@ -101,7 +101,7 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
   
   ##### In case of OW-174, all assets have quantity limits #######
   else if(1){ 
-    ###### USE THE LIBRARY 'lpSolve' #######################
+    ###### USE THE PACKAGE 'linprog', FUNCTION 'solveLP' ################
     # variables: x[1:(call.num*asset.num)] qunatity used of each asset for each margin call
     # objective function: minimize  x*value/(1-haircut)*cost
     # constraints: 
