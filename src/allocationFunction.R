@@ -1,6 +1,6 @@
-library("RNeo4j")
-
-allocationAlgo <- function(callId='mc1',clientId='c1',order='assetId',pref=c(0,0,1,0)){
+library('RNeo4j')
+library('lpSolve')
+allocationAlgo <- function(callId='mc1',clientId='c1',pref=c(0,0,1,0)){
   
 ########### Load model input from modelInput.R ##############
   source('src/allocationInputData.R')
@@ -80,9 +80,9 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
     idx.temp <- leastCostAsset[which(leastCostAsset[,2]==id),1] # calls have the least cost assetId=id
     suff.select.unique[i] <- 1*(sum(leastCost.suff.qty[idx.temp,id]) < quantity.mat[1,id])
   }
-  
-  if(!is.element(0,suff.select.unique)){ # In case of OW-171, least cost assets are sufficient
-    
+
+  #### In case of OW-171, least cost assets are sufficient ########
+  if(!is.element(0,suff.select.unique)){ 
     for(i in 1:call.num){
       select.asset.idx <- which(assetInfo$id==reserve.list[[i]][1])
       select.asset.name <- assetInfo$name[select.asset.idx]
@@ -98,7 +98,8 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
     output.list<- select.list
   }
   
-  else if(1){ #In case of OW-174, all assets have quantity limits
+  ##### In case of OW-174, all assets have quantity limits #######
+  else if(1){ 
     ###### USE THE LIBRARY 'lpSolve' #######################
     # variables: x[1:(call.num*asset.num)] qunatity used of each asset for each margin call
     # objective function: minimize  x*value/(1-haircut)*cost
@@ -142,7 +143,7 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
     idx.con.3 <- match(idx.con.3,idx.eli)
   #  old.f.con.3[cbind(rep(c(1:call.num),rep(asset.num,call.num)),idx.con.3)]<- value.vec
     f.con.3[na.omit(cbind(rep(c(1:call.num),rep(asset.num,call.num)),idx.con.3))] <- value.vec[idx.eli]*(1-haircut.vec[idx.eli])
-    f.dir.3 <- rep('>=',call.num)
+    f.dir.3 <- rep('=',call.num)
     f.rhs.3 <- call.mat[,1]
     
     f.obj <-  value.vec[idx.eli]/(1-haircut.vec[idx.eli])*cost.vec[idx.eli]
@@ -150,11 +151,27 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
     f.dir <- c(f.dir.0,f.dir.1,f.dir.2,f.dir.3)
     f.rhs <- c(f.rhs.0,f.rhs.1,f.rhs.2,f.rhs.3)
     
-    temp <- lp('min', f.obj, f.con, f.dir, f.rhs)
+ #   f.int.vec <- c(1:var.num)
+    
+    temp <- lp('min', f.obj, f.con, f.dir, f.rhs) #,int.vec=f.int.vec)
     result.mat <- matrix(0,nrow=call.num,ncol=asset.num,dimnames=list(callId,assetId))
     result.mat <- t(result.mat)
     result.mat[idx.eli]<-temp$solution
     result.mat <- t(result.mat)
+    
+    ##### CHECK ALLOCATION RESULT #############################
+    # 1. whether all variables are non-negative
+    # If negative, change to 0.
+    
+    result.mat[which(result.mat<0)] <- 0
+    
+    for(i in 1:call.num){
+      select.asset.idx <- which(result.mat[i,]!=0)
+      
+      select.asset.id <- assetId[select.asset.idx]
+      
+    }
+    
     
     for(i in 1:call.num){
       select.asset.idx <- which(result.mat[i,]!=0)
@@ -168,11 +185,12 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
       
       select.list[[callId[i]]] <- select.asset.df       
     }
+    
     output.list <- select.list
   }
 }
   
-  return(list(input.list=input.list,output.list=output.list))
+  return(list(input.list,output.list=output.list))
 }
 
 
