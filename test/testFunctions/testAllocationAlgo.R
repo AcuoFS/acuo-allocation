@@ -30,25 +30,25 @@ testCostOnlyNoConstraintAllocationAlgoByPassingAExistentClientIdAndAListOfExiste
   
   # test output:
   # check whether each margin call has been fulfilled with the correct asset and amount
-  checkEquals(result[[existentCallIdToClient1Group2[1]]]$Asset,'CAD')
-  checkEquals(result[[existentCallIdToClient1Group2[1]]]$Name,'Canadian dollar')
-  checkEquals(result[[existentCallIdToClient1Group2[1]]]$NetAmount,10000)
-  checkEquals(round(result[[existentCallIdToClient1Group2[1]]]$Amount,0),10526)
+  checkEquals(result$output[[existentCallIdToClient1Group2[1]]]$Asset,'CAD')
+  checkEquals(result$output[[existentCallIdToClient1Group2[1]]]$Name,'Canadian dollar')
+  checkEquals(result$output[[existentCallIdToClient1Group2[1]]]$NetAmount,10000)
+  checkEquals(round(result$output[[existentCallIdToClient1Group2[1]]]$Amount,0),10526)
   
-  checkEquals(result[[existentCallIdToClient1Group2[2]]]$Asset,'JPY')
-  checkEquals(result[[existentCallIdToClient1Group2[2]]]$Name,'Japanese yen')
-  checkEquals(result[[existentCallIdToClient1Group2[2]]]$NetAmount,15000)
-  checkEquals(round(result[[existentCallIdToClient1Group2[2]]]$Amount,0),15000)
+  checkEquals(result$output[[existentCallIdToClient1Group2[2]]]$Asset,'JPY')
+  checkEquals(result$output[[existentCallIdToClient1Group2[2]]]$Name,'Japanese yen')
+  checkEquals(result$output[[existentCallIdToClient1Group2[2]]]$NetAmount,15000)
+  checkEquals(round(result$output[[existentCallIdToClient1Group2[2]]]$Amount,0),15000)
   
-  checkEquals(result[[existentCallIdToClient1Group2[3]]]$Asset,'JPY')
-  checkEquals(result[[existentCallIdToClient1Group2[3]]]$Name,'Japanese yen')
-  checkEquals(result[[existentCallIdToClient1Group2[3]]]$NetAmount,20000)
-  checkEquals(round(result[[existentCallIdToClient1Group2[3]]]$Amount,0),20000)
+  checkEquals(result$output[[existentCallIdToClient1Group2[3]]]$Asset,'JPY')
+  checkEquals(result$output[[existentCallIdToClient1Group2[3]]]$Name,'Japanese yen')
+  checkEquals(result$output[[existentCallIdToClient1Group2[3]]]$NetAmount,20000)
+  checkEquals(round(result$output[[existentCallIdToClient1Group2[3]]]$Amount,0),20000)
   
-  checkEquals(result[[existentCallIdToClient1Group2[4]]]$Asset,'37833100')
-  checkEquals(result[[existentCallIdToClient1Group2[4]]]$Name,'APPL INC')
-  checkEquals(result[[existentCallIdToClient1Group2[4]]]$NetAmount,30000)
-  checkEquals(round(result[[existentCallIdToClient1Group2[4]]]$Amount,0),42857)
+  checkEquals(result$output[[existentCallIdToClient1Group2[4]]]$Asset,'37833100')
+  checkEquals(result$output[[existentCallIdToClient1Group2[4]]]$Name,'APPL INC')
+  checkEquals(result$output[[existentCallIdToClient1Group2[4]]]$NetAmount,30000)
+  checkEquals(round(result$output[[existentCallIdToClient1Group2[4]]]$Amount,0),42857)
   
 }
 
