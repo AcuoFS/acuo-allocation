@@ -102,22 +102,28 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
   ##### In case of OW-174, all assets have quantity limits #######
   else if(1){ 
     ###### USE THE PACKAGE 'linprog', FUNCTION 'solveLP' ################
-    # variables: x[1:(call.num*asset.num)] qunatity used of each asset for each margin call
-    # objective function: minimize  x*value/(1-haircut)*cost
-    # constraints: 
+    # variables: x, qunatity used of each asset for each margin call
+    # 
+    # objective function: f.obj, minimize  x*value/(1-haircut)*cost
+    # 
+    # constraints: A*x (direction) b
+    # A-- constraint matrix: f.con;
+    # b-- constraint value: f.rhs;
+    # direction -- constraint direction: f.dir.
+    #
+    # Constraints are specified below:
     # 0. quantity used of an asset should be a non-negative value
     #    quantity used >= 0
     # 1. quantity limit of each asset for one margin call (call.num*asset.num)
     #    quantity used <= quantity limit; 0 for non-eligible
     # 2. quantity limit of each asset for all margin calls(asset.num)
-    # total quantity used <= total quantity (for an asset)
+    #    total quantity used <= total quantity (for an asset)
     # 3. margin call requirement (call.num)
-    # total net amount of assets for one margin call >= call amount
+    #    total net amount of assets for one margin call >= call amount
+    # 
     
-    idx.eli <- which(eli.vec==1)
-    var.num <- length(idx.eli)
-    
-  #  old.var.num <- call.num*asset.num
+    idx.eli <- which(eli.vec==1)  # Exclude the non-eligible asset variable for each margin call
+    var.num <- length(idx.eli)    # variable numbers
     
     f.con.0 <- matrix(0,nrow=var.num,ncol=var.num)
     f.con.0[cbind(1:var.num,1:var.num)] <- 1
@@ -127,14 +133,12 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
     f.con.1 <- matrix(0,nrow=var.num,ncol=var.num)
     f.con.1[cbind(1:var.num,1:var.num)] <- 1
     f.dir.1 <- rep('<=',var.num)
-  #  old.f.dir.1[which(eli.vec==0)] <- '='
     f.rhs.1 <- eli.vec[idx.eli]*quantity.vec[idx.eli]
     
     f.con.2 <- matrix(0,nrow=asset.num,ncol=var.num)
     temp1 <- 1+(0:(call.num-1))*asset.num
     idx.con.2 <- rep(temp1,asset.num)+rep(c(0:(asset.num-1)),rep(call.num,asset.num))
     idx.con.2 <- match(idx.con.2,idx.eli)
-  #  old.f.con.2[cbind(rep(c(1:asset.num),rep(call.num,asset.num)),idx.con.2)]<-1
     f.con.2[na.omit(cbind(rep(c(1:asset.num),rep(call.num,asset.num)),idx.con.2))]<-1
     f.dir.2 <- rep('<=',asset.num)
     f.rhs.2 <- quantity.mat[1,]
@@ -142,11 +146,11 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
     f.con.3 <- matrix(0,nrow=call.num,ncol=var.num)
     idx.con.3 <- 1:(asset.num*call.num)
     idx.con.3 <- match(idx.con.3,idx.eli)
-  #  old.f.con.3[cbind(rep(c(1:call.num),rep(asset.num,call.num)),idx.con.3)]<- value.vec
     f.con.3[na.omit(cbind(rep(c(1:call.num),rep(asset.num,call.num)),idx.con.3))] <- value.vec[idx.eli]*(1-haircut.vec[idx.eli])
     f.dir.3 <- rep('>=',call.num)
     f.rhs.3 <- call.mat[,1]
     
+    # objective & constraints (must have names)
     f.obj <-  value.vec[idx.eli]/(1-haircut.vec[idx.eli])*cost.vec[idx.eli]
     names(f.obj) <- paste('var',1:var.num)
     
@@ -158,8 +162,8 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
     colnames(f.con)<- names(f.obj)
     
     f.dir <- c(f.dir.0,f.dir.1,f.dir.2,f.dir.3)
- #   f.int.vec <- c(1:var.num)
     
+    # run the 'solveLP'
     linprog.result <- solveLP(maximum=FALSE,cvec=f.obj,bvec=f.rhs,Amat=f.con,const.dir=f.dir,
                               tol=0.000001,zero=0.000000001,maxiter=1000)
     
