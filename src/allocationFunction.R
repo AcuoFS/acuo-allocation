@@ -104,7 +104,7 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
     ###### USE THE PACKAGE 'linprog', FUNCTION 'solveLP' ################
     # variables: x, qunatity used of each asset for each margin call
     # 
-    # objective function: f.obj, minimize  x*value/(1-haircut)*cost
+    # objective function: f.obj, minimize  x*value*cost
     # 
     # constraints: A*x (direction) b
     # A-- constraint matrix: f.con;
@@ -120,7 +120,7 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
     #    total quantity used <= total quantity (for an asset)
     # 3. margin call requirement (call.num)
     #    total net amount of assets for one margin call >= call amount
-    # 
+    ######
     
     idx.eli <- which(eli.vec==1)  # Exclude the non-eligible asset variable for each margin call
     var.num <- length(idx.eli)    # variable numbers
@@ -151,7 +151,7 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
     f.rhs.3 <- call.mat[,1]
     
     # objective & constraints (must have names)
-    f.obj <-  value.vec[idx.eli]/(1-haircut.vec[idx.eli])*cost.vec[idx.eli]
+    f.obj <-  value.vec[idx.eli]*cost.vec[idx.eli]
     names(f.obj) <- paste('var',1:var.num)
     
     f.rhs <- c(f.rhs.0,f.rhs.1,f.rhs.2,f.rhs.3)
