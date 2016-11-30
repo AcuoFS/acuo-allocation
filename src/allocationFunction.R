@@ -1,5 +1,6 @@
 library('RNeo4j')
 library('lpSolve')
+library('linprog')
 allocationAlgo <- function(callId='mc1',clientId='c1',pref=c(0,0,1,0)){
   
 ########### Load model input from modelInput.R ##############
@@ -47,7 +48,7 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
   suffPerCall <- all(apply(eli.mat*(quantity.mat*value.mat*(1-haircut.mat)),1,sum) > call.mat[,1])
   suffAllCall <- sum(quantity.mat[1,]*value.mat[1,]*(1-apply(haircut.mat,2,max)))>sum(call.mat[,1])
   if(!(suffPerCall&suffAllCall)){
-    errorMsg <- 'Asset inventoty is not sufficient!'
+    errorMsg <- 'Asset inventory is not sufficient!'
     return(errorMsg)
   }
   
@@ -143,36 +144,40 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
     idx.con.3 <- match(idx.con.3,idx.eli)
   #  old.f.con.3[cbind(rep(c(1:call.num),rep(asset.num,call.num)),idx.con.3)]<- value.vec
     f.con.3[na.omit(cbind(rep(c(1:call.num),rep(asset.num,call.num)),idx.con.3))] <- value.vec[idx.eli]*(1-haircut.vec[idx.eli])
-    f.dir.3 <- rep('=',call.num)
+    f.dir.3 <- rep('>=',call.num)
     f.rhs.3 <- call.mat[,1]
     
     f.obj <-  value.vec[idx.eli]/(1-haircut.vec[idx.eli])*cost.vec[idx.eli]
-    f.con <- rbind(f.con.0,f.con.1,f.con.2,f.con.3)
-    f.dir <- c(f.dir.0,f.dir.1,f.dir.2,f.dir.3)
-    f.rhs <- c(f.rhs.0,f.rhs.1,f.rhs.2,f.rhs.3)
+    names(f.obj) <- paste('var',1:var.num)
     
+    f.rhs <- c(f.rhs.0,f.rhs.1,f.rhs.2,f.rhs.3)
+    names(f.rhs) <- paste('constraint',1:length(f.rhs))
+    
+    f.con <- rbind(f.con.0,f.con.1,f.con.2,f.con.3)
+    rownames(f.con)<- names(f.rhs)
+    colnames(f.con)<- names(f.obj)
+    
+    f.dir <- c(f.dir.0,f.dir.1,f.dir.2,f.dir.3)
  #   f.int.vec <- c(1:var.num)
     
-    temp <- lp('min', f.obj, f.con, f.dir, f.rhs) #,int.vec=f.int.vec)
+    linprog.result <- solveLP(maximum=FALSE,cvec=f.obj,bvec=f.rhs,Amat=f.con,const.dir=f.dir,
+                              tol=0.000001,zero=0.000000001,maxiter=1000)
+    
     result.mat <- matrix(0,nrow=call.num,ncol=asset.num,dimnames=list(callId,assetId))
     result.mat <- t(result.mat)
-    result.mat[idx.eli]<-temp$solution
+    result.mat[idx.eli]<-linprog.result$solution
     result.mat <- t(result.mat)
     
     ##### CHECK ALLOCATION RESULT #############################
+    # 
+    # STATUS: UNDEVELOPPED
+    #
     # 1. whether all variables are non-negative
-    # If negative, change to 0.
-    
-    result.mat[which(result.mat<0)] <- 0
-    
-    for(i in 1:call.num){
-      select.asset.idx <- which(result.mat[i,]!=0)
-      
-      select.asset.id <- assetId[select.asset.idx]
-      
-    }
-    
-    
+    # 2. whether statisfy the quantity limits
+    # 3. whether meet all margin call requirements
+    #
+    ##########################################################
+
     for(i in 1:call.num){
       select.asset.idx <- which(result.mat[i,]!=0)
       select.asset.name <- assetInfo$name[select.asset.idx]
