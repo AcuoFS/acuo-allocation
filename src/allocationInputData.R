@@ -21,7 +21,10 @@ allocationInputData = function(callId,clientId,order='assetId'){
   # quantity matrix
   # value matrix: value/FX rate
   # cost matrix: internal+external+opptunity-yield(interestRate)
-  # call amount vector
+  # call amount matrix: duplicate the column
+  # minUnit matrix: minUnit[i,j]=x, asset j for margin call i has a minimum denomination x,
+  #     which means we can only allocate the integral multiples quantity of A_j to MC_i.
+  #     To start with, we use 1 for non-cash securities; 0.0001 for cash, apply to all margin calls.
   ############################################
   
 
@@ -33,6 +36,7 @@ allocationInputData = function(callId,clientId,order='assetId'){
   quantity.mat <- base.mat
   value.mat<- base.mat
   call.mat <- base.mat
+  minUnit.mat <- base.mat  
   
   # fill in matrixes with the data from result
   call.mat[callId,] <- matrix(rep(callInfo$callAmount,asset.num),nrow=call.num,byrow=F)
@@ -42,22 +46,26 @@ allocationInputData = function(callId,clientId,order='assetId'){
   eli.mat[cbind(result$callId,result$assetId)]<-1
   haircut.mat[cbind(result$callId,result$assetId)]<- result$haircut+result$FXHaircut
   cost.mat[cbind(result$callId,result$assetId)]<- result$internalCost+result$externalCost+result$opptCost-result$interestRate
-
   
-  keep.row <- which(apply(eli.mat,1,sum)!=0)   # keep the rows with eligible assets
-  keep.col <- which(apply(eli.mat,2,sum)!=0)   # keep the cols with eligible assets
+  minUnit.mat[] <- 1
+  minUnit.mat[,which(assetInfo$isdaType=='Cash')]<- 0.0001
   
-  eli.mat <- eli.mat[keep.row,keep.col]
-  haircut.mat <- haircut.mat[keep.row,keep.col]
-  cost.mat <- cost.mat[keep.row,keep.col]
-  quantity.mat <- quantity.mat[keep.row,keep.col]
-  value.mat <- value.mat[keep.row,keep.col]
+#  keep.row <- which(apply(eli.mat,1,sum)!=0)   # keep the rows with eligible assets
+#  keep.col <- which(apply(eli.mat,2,sum)!=0)   # keep the cols with eligible assets
+  
+#  eli.mat <- eli.mat[keep.row,keep.col]
+#  haircut.mat <- haircut.mat[keep.row,keep.col]
+#  cost.mat <- cost.mat[keep.row,keep.col]
+#  quantity.mat <- quantity.mat[keep.row,keep.col]
+#  value.mat <- value.mat[keep.row,keep.col]
+  
   
   eli.vec <- as.vector(t(eli.mat))
   haircut.vec <- as.vector(t(haircut.mat))
   cost.vec <- as.vector(t(cost.mat))
   quantity.vec <- as.vector(t(quantity.mat))
   value.vec <- as.vector(t(value.mat))
+  minUnit.vec <- as.vector(t(minUnit.mat))
   
   output.list <- list(assetId=assetId,assetInfo=assetInfo,callInfo=callInfo,
                       eli.mat=eli.mat, eli.vec = eli.vec,
@@ -65,10 +73,10 @@ allocationInputData = function(callId,clientId,order='assetId'){
                       cost.mat = cost.mat, cost.vec = cost.vec,
                       quantity.mat=quantity.mat, quantity.vec=quantity.vec,
                       value.mat=value.mat,value.vec=value.vec,
+                      minUnit.mat=minUnit.mat, minUnit.vec=minUnit.vec,
                       call.mat = call.mat
                       )
   
   return (output.list)
 }
-options("scipen"=100, "digits"=4) # show decimal number
 
