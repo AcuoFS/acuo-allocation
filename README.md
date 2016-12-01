@@ -34,14 +34,14 @@ To do unit testing, please go to the folder 'test', run 'testAll.R'
 
 3. R file, contains allocation function, call the R function(2), convert raw data to certain format, return formalized data.
   1. Location:
-    1. src/allocationInputData.R 
+    1. src/allocationInputData.R
   2. Functions:
     1. allocationInputData(callId,clientId)
 
 4. R file, call the R function(3), run the allocation algorithm, return allocation result.
   1. Location:
     1. src/allocationFunction.R
-  2.Functions:
+  2. Functions:
     1. allocationAlgo(callId,clientId)
 
 5. R file, contain several allocation examples functions, call the R function(4), allocation examples given sample input parameters, return allocation result.
