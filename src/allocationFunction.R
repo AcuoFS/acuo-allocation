@@ -1,6 +1,9 @@
 library('RNeo4j')
 library('lpSolve')
 library('linprog')
+
+
+
 allocationAlgo <- function(callId='mc1',clientId='c1',pref=c(0,0,1,0)){
   
 ########### Load model input from modelInput.R ##############
@@ -21,6 +24,7 @@ allocationAlgo <- function(callId='mc1',clientId='c1',pref=c(0,0,1,0)){
   value.mat<-input.list$value.mat; value.vec <- input.list$value.vec
   call.mat <- input.list$call.mat;
   cost.percent.mat <- input.list$cost.mat; cost.vec <- input.list$cost.vec
+  minUnit.mat <- input.list$minUnit.mat; minUnit.vec <- input.list$minUnit.vec
 
 ############### Output Format ###########################
   output.list <- list()
@@ -101,8 +105,11 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
   
   ##### In case of OW-174, all assets have quantity limits #######
   else if(1){ 
-    ###### USE THE PACKAGE 'linprog', FUNCTION 'solveLP' ################
-    # variables: x, qunatity used of each asset for each margin call
+    idx.eli <- which(eli.vec==1)  # Exclude the non-eligible asset variable for each margin call
+    var.num <- length(idx.eli)    # variable numbers
+    
+    ############# MODEL SETUP ###########################################
+    # decision variables: x, qunatity used of each asset for each margin call
     # 
     # objective function: f.obj, minimize  x*value*cost
     # 
@@ -120,10 +127,10 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
     #    total quantity used <= total quantity (for an asset)
     # 3. margin call requirement (call.num)
     #    total net amount of assets for one margin call >= call amount
+    #
+    # variable lower and upper bounds: 
+    #   specified by constraint 0 and 1. 
     ######
-    
-    idx.eli <- which(eli.vec==1)  # Exclude the non-eligible asset variable for each margin call
-    var.num <- length(idx.eli)    # variable numbers
     
     f.con.0 <- matrix(0,nrow=var.num,ncol=var.num)
     f.con.0[cbind(1:var.num,1:var.num)] <- 1
@@ -150,27 +157,74 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
     f.dir.3 <- rep('>=',call.num)
     f.rhs.3 <- call.mat[,1]
     
-    # objective & constraints (must have names)
     f.obj <-  value.vec[idx.eli]*cost.vec[idx.eli]
     names(f.obj) <- paste('var',1:var.num)
     
-    f.rhs <- c(f.rhs.0,f.rhs.1,f.rhs.2,f.rhs.3)
-    names(f.rhs) <- paste('constraint',1:length(f.rhs))
+    ###### USE THE PACKAGE 'linprog', FUNCTION 'solveLP' ################
+    # CANNOT handle integer variables, use as alternative
+    # objective & constraints (must have names)
+ 
+    #f.rhs <- c(f.rhs.0,f.rhs.1,f.rhs.2,f.rhs.3)
+    #names(f.rhs) <- paste('constraint',1:length(f.rhs))
     
-    f.con <- rbind(f.con.0,f.con.1,f.con.2,f.con.3)
-    rownames(f.con)<- names(f.rhs)
-    colnames(f.con)<- names(f.obj)
+    #f.con <- rbind(f.con.0,f.con.1,f.con.2,f.con.3)
+    #rownames(f.con)<- names(f.rhs)
+    #colnames(f.con)<- names(f.obj)
     
-    f.dir <- c(f.dir.0,f.dir.1,f.dir.2,f.dir.3)
+    #f.dir <- c(f.dir.0,f.dir.1,f.dir.2,f.dir.3)
     
     # run the 'solveLP'
-    linprog.result <- solveLP(maximum=FALSE,cvec=f.obj,bvec=f.rhs,Amat=f.con,const.dir=f.dir,
-                              tol=0.000001,zero=0.000000001,maxiter=1000)
+    #linprog.result <- solveLP(maximum=FALSE,cvec=f.obj,bvec=f.rhs,Amat=f.con,const.dir=f.dir,
+    #                          tol=0.000001,zero=0.000000001,maxiter=1000)
+    #
+    ############### 'linprog' END ##################################
     
+    ###### USE THE PACKAGE 'lpSolveAPI' #############################
+    # decision variables: x, qunatity used of each asset for each margin call
+    # 
+    # objective function: f.obj, minimize  x*value*cost
+    # 
+    # variable bounds: a < x < x_quantity
+    # variable kind: semi-continuous, value below 'a' will automately set to 0
+    #
+    # constraints: A*x (direction) b
+    # A-- constraint matrix: lp.con;
+    # b-- constraint value: lp.rhs;
+    # direction -- constraint direction: lp.dir.
+    #
+    # Constraints are specified below:
+    # 1. quantity limit of each asset for all margin calls(asset.num)
+    #    total quantity used <= total quantity (for an asset)
+    # 2. margin call requirement (call.num)
+    #    total net amount of assets for one margin call >= call amount
+    ######
+    
+    # constraints
+    lp.con <- rbind(f.con.2,f.con.3)
+    lp.dir <- c(f.dir.2,f.dir.3)
+    lp.rhs <- c(f.rhs.2,f.rhs.3)
+    
+    lps.model <- make.lp(length(lp.con),var.num)  # make model
+    set.objfn(lps.model,f.obj)                    # set objective
+    
+    for (i in 1:length(lp.con[,1])){              # set constraints
+      add.constraint(lps.model,lp.con[i,],lp.dir[i],lp.rhs[i])
+    }
+    
+    idx.int <- sort(na.omit(match(which(minUnit.vec==1),idx.eli)))
+    set.type(lps.model,idx.int,type='integer')    # set integer variables
+    set.semicont(lps.model,1:var.num,TRUE)        # set semi-continuous variables
+    set.bounds(lps.model,lower=rep(10,var.num),upper=quantity.vec[idx.eli])
+                                                  # set variables lower/upper bounds
+    lp.control(lps.model,epsb=1e-30,epsd=1e-30)   # modify tolerance
+    solve(lps.model)                              # solve model
+    #get.objective(lps.model) 
+    lpSolveAPI.solution <- get.variables(lps.model)
+                                                  # get solution
     result.mat <- matrix(0,nrow=call.num,ncol=asset.num,dimnames=list(callId,assetId))
     result.mat <- t(result.mat)
-    result.mat[idx.eli]<-linprog.result$solution
-    result.mat <- t(result.mat)
+    result.mat[idx.eli]<-lpSolveAPI.solution
+    result.mat <- t(result.mat)                   # convert solution into matrix format
     
     ##### CHECK ALLOCATION RESULT #############################
     # 
@@ -182,7 +236,7 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
     #
     ##########################################################
 
-    for(i in 1:call.num){
+    for(i in 1:call.num){                          # store the result into select list
       select.asset.idx <- which(result.mat[i,]!=0)
       select.asset.name <- assetInfo$name[select.asset.idx]
       select.asset.quantity <- result.mat[i,select.asset.idx]
