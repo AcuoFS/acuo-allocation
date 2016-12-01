@@ -128,8 +128,10 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
     # 3. margin call requirement (call.num)
     #    total net amount of assets for one margin call >= call amount
     #
-    # variable lower and upper bounds: 
-    #   specified by constraint 0 and 1. 
+    # variable bounds: a < x < x_quantity
+    #    specified by constraint 0 and 1. 
+    # variable kind: semi-continuous, value below 'a' will automately set to 0
+    #
     ######
     
     f.con.0 <- matrix(0,nrow=var.num,ncol=var.num)
@@ -160,25 +162,7 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
     f.obj <-  value.vec[idx.eli]*cost.vec[idx.eli]
     names(f.obj) <- paste('var',1:var.num)
     
-    ###### USE THE PACKAGE 'linprog', FUNCTION 'solveLP' ################
-    # CANNOT handle integer variables, use as alternative
-    # objective & constraints (must have names)
- 
-    #f.rhs <- c(f.rhs.0,f.rhs.1,f.rhs.2,f.rhs.3)
-    #names(f.rhs) <- paste('constraint',1:length(f.rhs))
-    
-    #f.con <- rbind(f.con.0,f.con.1,f.con.2,f.con.3)
-    #rownames(f.con)<- names(f.rhs)
-    #colnames(f.con)<- names(f.obj)
-    
-    #f.dir <- c(f.dir.0,f.dir.1,f.dir.2,f.dir.3)
-    
-    # run the 'solveLP'
-    #linprog.result <- solveLP(maximum=FALSE,cvec=f.obj,bvec=f.rhs,Amat=f.con,const.dir=f.dir,
-    #                          tol=0.000001,zero=0.000000001,maxiter=1000)
-    #
-    ############### 'linprog' END ##################################
-    
+
     ###### USE THE PACKAGE 'lpSolveAPI' #############################
     # decision variables: x, qunatity used of each asset for each margin call
     # 
