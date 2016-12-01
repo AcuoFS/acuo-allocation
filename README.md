@@ -50,6 +50,8 @@ To do unit testing, please go to the folder 'test', run 'testAll.R'
   2. Functions:
     1. costOnlyNoConstraintAllocationAlgoEx1()
     2. costOnlyNoConstraintAllocationAlgoEx2()
+    3. costOnlyQuantityLimitAllocationAlgoEx1()
+    4. costOnlyQuantityLimitAllocationAlgoEx2()
 
 6. R file, test all examples by processing each step.
   1. Location:
