@@ -1,7 +1,5 @@
 library('RNeo4j')
 library('lpSolveAPI')
-library('linprog')
-
 
 
 allocationAlgo <- function(callId='mc1',clientId='c1',pref=c(0,0,1,0)){
