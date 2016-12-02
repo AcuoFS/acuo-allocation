@@ -11,20 +11,20 @@ allocationAlgo <- function(callId='mc1',clientId='c1',pref=c(0,0,1,0)){
   
   input.list <- allocationInputData(callId,clientId)
   
-  assetId <- input.list$assetId
-  assetInfo <- input.list$assetInfo
-  assetInfo <- assetInfo[match(assetId,assetInfo$id),]
+  assetId <- input.list$assetId         # all eligible asset ids
+  assetInfo <- input.list$assetInfo     # eligible asset information
+  assetInfo <- assetInfo[match(assetId,assetInfo$id),]  # sort the assetInfo in the assetId order
   
-  call.num <- length(callId)
-  asset.num <- length(assetId)
+  call.num <- length(callId)            # total margin call number
+  asset.num <- length(assetId)          # total asset number
   
-  eli.mat <- input.list$eli.mat; eli.vec <- input.list$eli.vec
-  haircut.mat<-input.list$haircut.mat; haircut.vec <- input.list$haircut.vec
-  quantity.mat<- input.list$quantity.mat; quantity.vec <- input.list$quantity.vec
-  value.mat<-input.list$value.mat; value.vec <- input.list$value.vec
-  call.mat <- input.list$call.mat;
-  cost.percent.mat <- input.list$cost.mat; cost.vec <- input.list$cost.vec
-  minUnit.mat <- input.list$minUnit.mat; minUnit.vec <- input.list$minUnit.vec
+  eli.mat <- input.list$eli.mat; eli.vec <- input.list$eli.vec               # eligibility matrix & vector
+  haircut.mat<-input.list$haircut.mat; haircut.vec <- input.list$haircut.vec # haircut mat & vec
+  quantity.mat<- input.list$quantity.mat; quantity.vec <- input.list$quantity.vec # asset quantity mat & vec
+  value.mat<-input.list$value.mat; value.vec <- input.list$value.vec         # asset value mat & vec
+  call.mat <- input.list$call.mat;                                           # margin call amount mat
+  cost.percent.mat <- input.list$cost.mat; cost.vec <- input.list$cost.vec   # cost mat & vec
+  minUnit.mat <- input.list$minUnit.mat; minUnit.vec <- input.list$minUnit.vec   # minimum denomination mat & vec
 
 ############### Output Format ###########################
   output.list <- list()
