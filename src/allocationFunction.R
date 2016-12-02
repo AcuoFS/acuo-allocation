@@ -1,5 +1,5 @@
 library('RNeo4j')
-library('lpSolve')
+library('lpSolveAPI')
 library('linprog')
 
 
