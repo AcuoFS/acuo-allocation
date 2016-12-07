@@ -48,7 +48,7 @@ allocationAlgo <- function(callId='mc1',clientId='c1',pref=c(0,0,1,0)){
 
 ############# ALGORITHM #######################################
   
-if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
+if(all(pref==c(0,0,1))){  # In case of OW-171,173,174, pref=(0,0,1,0)
   
   ######### CHECK WHETHER ASSET POOL IS SUFFICIENT #############
   suffPerCall <- all(apply(eli.mat*(minUnitQuantity.mat*minUnitValue.mat*(1-haircut.mat)),1,sum) > call.mat[,1])
