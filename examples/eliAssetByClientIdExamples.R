@@ -6,13 +6,13 @@ clientId1 <- 'c1'
 clientId2 <- 'c2'
 
 #### EXAMPLE FUNCTIONS ##################
-eleAssetByClientIdEx1<-function(){
+eliAssetByClientIdEx1<-function(){
   eliAssetByClientId(clientId1)
 }
-eleAssetByClientIdEx2<-function(){
+eliAssetByClientIdEx2<-function(){
   eliAssetByClientId(clientId2)
 }
 
 #### EXAMPLES RESULTS ####################
-eleAssetByClientIdEx1()
-eleAssetByClientIdEx2()
+eliAssetByClientIdEx1()
+eliAssetByClientIdEx2()
