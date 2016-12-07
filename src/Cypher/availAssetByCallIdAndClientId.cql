@@ -2,6 +2,7 @@ MATCH (ca:CustodianAccount)-[h:HOLDS]-(a:Asset)-[is:IS_AVAILABLE_FOR]->(ag:Agree
     (c:Client)-[:MANAGES]-(e:LegalEntity)-[:HAS]-(acc:Account)
 WHERE mc.id IN {callId}
 AND c.id = {clientId}
+AND mc.callType IN is.callType
 AND (acc)-[:ACCESSES]->(ca)
 AND (e)-[:SIGNS]-(ag)
 
@@ -9,21 +10,20 @@ WITH *
 MATCH (c)-[p:POSSESSES]->(a)
 
 RETURN DISTINCT
-//    c.id AS client,
 //    ag.id AS agreementId,
     mc.id AS callId,
     mc.callType AS callType,
     mc.callAmount AS callAmount,
     ca.id AS CustodianAccount,
     a.id AS assetId,
-    a.isdaType AS isdaType,
+    a.ACUOCategory AS ACUOCategory,
 //    a.name AS assetName,
-    a.value AS value,
+    a.parValue AS unitValue,
+    a.minUnit AS minUnit,
+    a.minUnitValue AS minUnitValue,
     a.currency AS currency,
  //   h.quantities AS quantity,
     h.availableQuantities AS quantity,
- //   h.pledgedQuantities AS pledgedQuantities,
- //   h.settledQuantities AS settledQuantities,
     p.internalCost AS internalCost,
     p.opptCost AS opptCost,
     is.haircut AS haircut,
@@ -35,7 +35,7 @@ RETURN DISTINCT
 ORDER BY
 CASE 
 WHEN 'assetId' IN {order} THEN assetId
-WHEN 'isdaType' IN {order} THEN isdaType
+WHEN 'ACUOCategory' IN {order} THEN ACUOCategory
 WHEN 'callId' IN {order} THEN callId
 WHEN 'callType' IN {order} THEN callType
 END
