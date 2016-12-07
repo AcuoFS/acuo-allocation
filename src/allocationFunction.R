@@ -16,13 +16,17 @@ allocationAlgo <- function(callId='mc1',clientId='c1',pref=c(0,0,1,0)){
   call.num <- length(callId)            # total margin call number
   asset.num <- length(assetId)          # total asset number
   
-  eli.mat <- input.list$eli.mat; eli.vec <- input.list$eli.vec               # eligibility matrix & vector
-  haircut.mat<-input.list$haircut.mat; haircut.vec <- input.list$haircut.vec # haircut mat & vec
+  eli.mat <- input.list$eli.mat; eli.vec <- input.list$eli.vec                    # eligibility matrix & vector
+  haircut.mat<-input.list$haircut.mat; haircut.vec <- input.list$haircut.vec      # haircut mat & vec
   quantity.mat<- input.list$quantity.mat; quantity.vec <- input.list$quantity.vec # asset quantity mat & vec
-  value.mat<-input.list$value.mat; value.vec <- input.list$value.vec         # asset value mat & vec
-  call.mat <- input.list$call.mat;                                           # margin call amount mat
-  cost.percent.mat <- input.list$cost.mat; cost.vec <- input.list$cost.vec   # cost mat & vec
-  minUnit.mat <- input.list$minUnit.mat; minUnit.vec <- input.list$minUnit.vec   # minimum denomination mat & vec
+  minUnitQuantity.mat<- input.list$minUnitQuantity.mat; minUnitQuantity.vec <- input.list$minUnitQuantity.vec
+  
+  unitValue.mat<-input.list$unitValue.mat; unitValue.vec <- input.list$unitValue.vec         # asset unit value mat & vec
+  minUnit.mat <- input.list$minUnit.mat; minUnit.vec <- input.list$minUnit.vec;
+  minUnitValue.mat <- input.list$minUnitValue.mat; minUnitValue.vec <- input.list$minUnitValue.vec;
+  
+  call.mat <- input.list$call.mat;                                                # margin call amount mat
+  cost.percent.mat <- input.list$cost.mat; cost.vec <- input.list$cost.vec        # cost mat & vec
 
 ############### Output Format ###########################
   output.list <- list()
@@ -47,8 +51,8 @@ allocationAlgo <- function(callId='mc1',clientId='c1',pref=c(0,0,1,0)){
 if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
   
   ######### CHECK WHETHER ASSET POOL IS SUFFICIENT #############
-  suffPerCall <- all(apply(eli.mat*(quantity.mat*value.mat*(1-haircut.mat)),1,sum) > call.mat[,1])
-  suffAllCall <- sum(quantity.mat[1,]*value.mat[1,]*(1-apply(haircut.mat,2,max)))>sum(call.mat[,1])
+  suffPerCall <- all(apply(eli.mat*(minUnitQuantity.mat*minUnitValue.mat*(1-haircut.mat)),1,sum) > call.mat[,1])
+  suffAllCall <- sum(minUnitQuantity.mat[1,]*minUnitValue.mat[1,]*(1-apply(haircut.mat,2,max)))>sum(call.mat[,1])
   if(!(suffPerCall&suffAllCall)){
     errorMsg <- 'Asset inventory is not sufficient!'
     return(errorMsg)
@@ -74,14 +78,14 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
   }
   
   ############# LEAST COST ASSET SUFFICIENCY #####################
-  leastCost.suff.qty <- call.mat/(1-haircut.mat)/value.mat # quantity needed for a single asset to fulfill each call
+  leastCost.suff.qty <- call.mat/(1-haircut.mat)/minUnitValue.mat # quantity needed for a single asset to fulfill each call
   
   select.temp.unique <- unique(leastCostAsset[,2]) ; 
   suff.select.unique <- rep(0,length(select.temp.unique))
   for(i in 1:length(select.temp.unique)){
     id <- select.temp.unique[i]
     idx.temp <- leastCostAsset[which(leastCostAsset[,2]==id),1] # calls have the least cost assetId=id
-    suff.select.unique[i] <- 1*(sum(leastCost.suff.qty[idx.temp,id]) < quantity.mat[1,id])
+    suff.select.unique[i] <- 1*(sum(leastCost.suff.qty[idx.temp,id]) < minUnitQuantity.mat[1,id])
   }
 
   #### In case of OW-171, least cost assets are sufficient ########
@@ -91,7 +95,7 @@ if(all(pref==c(0,0,1,0))){  # In case of OW-171,173,174, pref=(0,0,1,0)
       select.asset.name <- assetInfo$name[select.asset.idx]
       select.asset.NetAmount <- call.mat[i,1]
       select.asset.Amount <- select.asset.NetAmount/(1-haircut.mat[i,select.asset.idx])
-      select.asset.quantity <- select.asset.Amount/value.mat[i,select.asset.idx]
+      select.asset.quantity <- select.asset.Amount/unitValue.mat[i,select.asset.idx]
       select.asset.df <- data.frame(assetId[select.asset.idx],select.asset.name,select.asset.NetAmount,select.asset.Amount,select.asset.quantity)
         colnames(select.asset.df)<- c('Asset','Name','NetAmount','Amount','quantity')
       
