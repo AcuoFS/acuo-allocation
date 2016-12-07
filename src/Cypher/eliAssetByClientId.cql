@@ -4,15 +4,21 @@ AND c.id = {clientId}
 
 WITH DISTINCT a,p
 RETURN
-	a.isdaType AS isdaType,
+	a.ACUOCategory AS ACUOCategory,
+    a.type AS type,
  	a.id AS assetId,
+    a.idType AS idType,
     a.name AS assetName,
-    a.value AS value,
     a.currency AS currency,
+    a.parValue AS unitValue,
+    a.minUnit AS minUnit,
+    a.minUnitValue AS minUnitValue,
     p.quantities AS quantity,
     p.availableQuantities AS availableQuantities,
-    p.pledgedQuantities AS pledgedQuantities,
-    p.settledQuantities AS settledQuantities,
+    p.deployedQuantities AS deployedQuantities,
+    p.departingQuantities AS departingQuantities,
+    p.arrivingQuantities AS arrivingQuantities,
+    p.earmarkedQuantities AS earmarkedQuantities,
     p.internalCost AS internalCost,
     p.opptCost AS opptCost
 ORDER BY a.isdaType
