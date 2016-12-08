@@ -1,0 +1,11 @@
+LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/modify1AssetInternalCostToTestAllocationAlgo.csv' 
+AS line
+WITH line
+WHERE line.clientId IS NOT NULL
+
+MATCH (c:Client {id:line.clientId})-[p:POSSESSES]->(a:Asset {id: line.id})
+WITH DISTINCT is
+SET
+	is.internalCost = is.oriInternalCost
+REMOVE
+	is.oriInternalCost
