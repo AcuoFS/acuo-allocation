@@ -97,7 +97,7 @@ if(all(pref==c(0,0,1))){  # In case of OW-171,173,174, pref=(0,0,1,0)
       select.asset.Amount <- select.asset.NetAmount/(1-haircut.mat[i,select.asset.idx])
       select.asset.quantity <- select.asset.Amount/unitValue.mat[i,select.asset.idx]
       select.asset.df <- data.frame(assetId[select.asset.idx],select.asset.name,select.asset.NetAmount,select.asset.Amount,select.asset.quantity)
-        colnames(select.asset.df)<- c('Asset','Name','NetAmount','Amount','quantity')
+        colnames(select.asset.df)<- c('Asset','Name','NetAmount','Amount','Quantity')
       
       select.list[[callId[i]]] <- select.asset.df       
     }
