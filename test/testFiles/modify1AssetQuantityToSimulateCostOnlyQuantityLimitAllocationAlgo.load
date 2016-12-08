@@ -16,7 +16,7 @@ WHERE (c)-[*3]->(custac)
 WITH DISTINCT p, SUM(h.quantities) AS hQ, SUM(h.availableQuantities) AS hAQ
 SET 
 	p.oriQuantities = p.quantities,
-	p.oriAvailableQuantities = p.availableQuantities
+	p.oriAvailableQuantities = p.availableQuantities,
 
 	p.quantities = hQ,
 	p.availableQuantities = hAQ
