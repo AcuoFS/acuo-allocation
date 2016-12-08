@@ -112,6 +112,7 @@ if(all(pref==c(0,0,1))){  # In case of OW-171,173,174, pref=(0,0,1,0)
     
     ############# MODEL SETUP ###########################################
     # decision variables: x, qunatity used of each asset for each margin call
+    #                 quantity or minUnitQuantity
     # 
     # objective function: f.obj, minimize  x*value*cost
     # 
@@ -124,9 +125,9 @@ if(all(pref==c(0,0,1))){  # In case of OW-171,173,174, pref=(0,0,1,0)
     # 0. quantity used of an asset should be a non-negative value
     #    quantity used >= 0
     # 1. quantity limit of each asset for one margin call (call.num*asset.num)
-    #    quantity used <= quantity limit; 0 for non-eligible
+    #    quantity used <= quantity limit; (quantity or minUnitQuantity)
     # 2. quantity limit of each asset for all margin calls(asset.num)
-    #    total quantity used <= total quantity (for an asset)
+    #    total quantity used <= total quantity (for an asset) (quantity or minUnitQuantity)
     # 3. margin call requirement (call.num)
     #    total net amount of assets for one margin call >= call amount
     #
@@ -144,7 +145,7 @@ if(all(pref==c(0,0,1))){  # In case of OW-171,173,174, pref=(0,0,1,0)
     f.con.1 <- matrix(0,nrow=var.num,ncol=var.num)
     f.con.1[cbind(1:var.num,1:var.num)] <- 1
     f.dir.1 <- rep('<=',var.num)
-    f.rhs.1 <- eli.vec[idx.eli]*quantity.vec[idx.eli]
+    f.rhs.1 <- eli.vec[idx.eli]*minUnitQuantity.vec[idx.eli]
     
     f.con.2 <- matrix(0,nrow=asset.num,ncol=var.num)
     temp1 <- 1+(0:(call.num-1))*asset.num
@@ -152,16 +153,16 @@ if(all(pref==c(0,0,1))){  # In case of OW-171,173,174, pref=(0,0,1,0)
     idx.con.2 <- match(idx.con.2,idx.eli)
     f.con.2[na.omit(cbind(rep(c(1:asset.num),rep(call.num,asset.num)),idx.con.2))]<-1
     f.dir.2 <- rep('<=',asset.num)
-    f.rhs.2 <- quantity.mat[1,]
+    f.rhs.2 <- minUnitQuantity.mat[1,]
     
     f.con.3 <- matrix(0,nrow=call.num,ncol=var.num)
     idx.con.3 <- 1:(asset.num*call.num)
     idx.con.3 <- match(idx.con.3,idx.eli)
-    f.con.3[na.omit(cbind(rep(c(1:call.num),rep(asset.num,call.num)),idx.con.3))] <- value.vec[idx.eli]*(1-haircut.vec[idx.eli])
+    f.con.3[na.omit(cbind(rep(c(1:call.num),rep(asset.num,call.num)),idx.con.3))] <- minUnitValue.vec[idx.eli]*(1-haircut.vec[idx.eli])
     f.dir.3 <- rep('>=',call.num)
     f.rhs.3 <- call.mat[,1]
     
-    f.obj <-  value.vec[idx.eli]*cost.vec[idx.eli]
+    f.obj <-  minUnitValue.vec[idx.eli]*cost.vec[idx.eli]
     names(f.obj) <- paste('var',1:var.num)
     
 
@@ -197,10 +198,11 @@ if(all(pref==c(0,0,1))){  # In case of OW-171,173,174, pref=(0,0,1,0)
       add.constraint(lps.model,lp.con[i,],lp.dir[i],lp.rhs[i])
     }
     
-    idx.int <- sort(na.omit(match(which(minUnit.vec==1),idx.eli)))
+    #idx.int <- sort(na.omit(match(which(minUnit.vec==1),idx.eli)))
+    idx.int <- 1:var.num
     set.type(lps.model,idx.int,type='integer')    # set integer variables
     set.semicont(lps.model,1:var.num,TRUE)        # set semi-continuous variables
-    set.bounds(lps.model,lower=rep(10,var.num),upper=quantity.vec[idx.eli])
+    set.bounds(lps.model,lower=rep(10,var.num),upper=minUnitQuantity.vec[idx.eli])
                                                   # set variables lower/upper bounds
     lp.control(lps.model,epsb=1e-30,epsd=1e-30)   # modify tolerance
     solve(lps.model)                              # solve model
@@ -225,10 +227,12 @@ if(all(pref==c(0,0,1))){  # In case of OW-171,173,174, pref=(0,0,1,0)
     for(i in 1:call.num){                          # store the result into select list
       select.asset.idx <- which(result.mat[i,]!=0)
       select.asset.name <- assetInfo$name[select.asset.idx]
-      select.asset.quantity <- result.mat[i,select.asset.idx]
-      select.asset.value <- value.mat[i,select.asset.idx]
-      select.asset.Amount <- select.asset.quantity*select.asset.value
+      select.asset.quantity <- result.mat[i,select.asset.idx]*minUnit.mat[i,select.asset.idx]
+      select.asset.unitValue <- unitValue.mat[i,select.asset.idx]
+      select.asset.Amount <- select.asset.quantity*select.asset.unitValue
       select.asset.NetAmount <- select.asset.Amount*(1-haircut.mat[i,select.asset.idx])
+      #subTotal <- sum(select.asset.NetAmount)
+      
       select.asset.df <- data.frame(assetId[select.asset.idx],select.asset.name,select.asset.NetAmount,select.asset.Amount,select.asset.quantity)
       colnames(select.asset.df)<- c('Asset','Name','NetAmount','Amount','quantity')
       
