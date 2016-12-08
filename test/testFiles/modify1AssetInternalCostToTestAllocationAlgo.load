@@ -4,7 +4,7 @@ WITH line
 WHERE line.clientId IS NOT NULL
 
 MATCH (c:Client {id:line.clientId})-[p:POSSESSES]->(a:Asset {id: line.id})
-WITH DISTINCT is, line
+WITH DISTINCT p, line
 SET
-	is.oriInternalCost = is.internalCost,
-	is.internalCost = TOFLOAT(line.internalCost)
+	p.oriInternalCost = p.internalCost,
+	p.internalCost = TOFLOAT(line.internalCost)
