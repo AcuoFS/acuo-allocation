@@ -4,14 +4,10 @@ AS line
 MATCH (custac:CustodianAccount {id:line.accountId})-[h:HOLDS]-(a:Asset {id:line.assetId})
 SET
 	h.quantities=h.oriQuantities,
-	h.availableQuantities=h.oriAvailableQuantities,
-	h.pledgedQuantities=h.oriPledgedQuantities,
-	h.settledQuantities=h.oriSettledQuantities
+	h.availableQuantities=h.oriAvailableQuantities
 REMOVE 
 	h.oriQuantities,
-	h.oriAvailableQuantities,
-	h.oriPledgedQuantities,
-	h.oriSettledQuantities
+	h.oriAvailableQuantities
 
 WITH DISTINCT a
 
@@ -20,13 +16,9 @@ WHERE (c)-[*3]->(custac)
 WITH DISTINCT p
 SET 
 	p.quantities=p.oriQuantities,
-	p.availableQuantities=p.oriAvailableQuantities,
-	p.pledgedQuantities=p.oriPledgedQuantities,
-	p.settledQuantities=p.oriSettledQuantities
+	p.availableQuantities=p.oriAvailableQuantities
 
 REMOVE 
 	p.oriQuantities,
-	p.oriAvailableQuantities,
-	p.oriPledgedQuantities,
-	p.oriSettledQuantities
+	p.oriAvailableQuantities
 

@@ -5,26 +5,18 @@ MATCH (custac:CustodianAccount {id:line.accountId})-[h:HOLDS]->(a{id:line.assetI
 SET
 	h.oriQuantities = h.quantities,
 	h.oriAvailableQuantities = h.availableQuantities,
-	h.oriPledgedQuantities = h.pledgedQuantities,
-	h.oriSettledQuantities = h.settledQuantities,
 	h.quantities=TOFLOAT(line.quantities),
-	h.availableQuantities=TOFLOAT(line.availableQuantities),
-	h.pledgedQuantities=TOFLOAT(line.pledgedQuantities),
-	h.settledQuantities=TOFLOAT(line.settledQuantities)
+	h.availableQuantities=TOFLOAT(line.availableQuantities)
 
 WITH DISTINCT a
 
 MATCH path1 = (custac:CustodianAccount)-[h:HOLDS]->(a)<-[p:POSSESSES]-(c:Client)
 WHERE (c)-[*3]->(custac)
 
-WITH DISTINCT p, SUM(h.quantities) AS hQ, SUM(h.availableQuantities) AS hAQ, SUM(p.pledgedQuantities) AS hPQ, SUM(h.settledQuantities) AS hSQ
+WITH DISTINCT p, SUM(h.quantities) AS hQ, SUM(h.availableQuantities) AS hAQ
 SET 
 	p.oriQuantities = p.quantities,
-	p.oriAvailableQuantities = p.availableQuantities,
-	p.oriPledgedQuantities = p.pledgedQuantities,
-	p.oriSettledQuantities = p.settledQuantities,
+	p.oriAvailableQuantities = p.availableQuantities
 
 	p.quantities = hQ,
-	p.availableQuantities = hAQ,
-    p.pledgedQuantities = hPQ,
-    p.settledQuantities = hSQ
+	p.availableQuantities = hAQ
