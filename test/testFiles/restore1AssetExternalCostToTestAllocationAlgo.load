@@ -1,0 +1,11 @@
+LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/modify1AssetExternalCostToTestAllocationAlgo.csv' 
+AS line
+WITH line
+WHERE line.clientId IS NOT NULL
+
+MATCH (c:Client {id:line.clientId})-[p:POSSESSES]->(a:Asset {id: line.id})-[is:IS_AVAILABLE_FOR]->(ag:Agreement {id:line.agreementId})
+WITH DISTINCT is
+SET
+	is.externalCost = is.oriExternalCost
+REMOVE
+	is.oriExternalCost 
