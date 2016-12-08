@@ -14,9 +14,9 @@ nonexistentCallIdGroup1 <- c('asdd','null','adhajk')
 nonexistentCallIdGroup2 <- c('mc001d','mc01010')
 existentCallIdToClient1Group1 <- c("mc1","mc2")
 existentCallIdToClient1Group2 <- c('mc1','mc2','mc3','mc5')
-existentCallIdToClient1Group3 <- c("mc1","mc2","mc3","mc4","mc5","mc6","mc7","mc8")
+existentCallIdToClient1Group3 <- c("mc1","mc2","mc3","mc4","mc5","mc8","mc9","mc10")
 
-prefForCostOnlyAllocationAlgo <- c(0,0,1,0)
+prefForCostOnlyAllocationAlgo <- c(0,0,1)
 
 modifyDBToSimulateCostOnlyNoConstraintAllocationAlgoCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/modifyAssetQuantityToSimulateCostOnlyNoConstraintAllocationAlgo.load'
 restoreDBDueToSimulateCostOnlyNoConstraintAllocationAlgoCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/restoreAssetQuantityDueToSimulateCostOnlyNoConstraintAllocationAlgo.load'
@@ -47,28 +47,32 @@ testCostOnlyNoConstraintAllocationAlgoByPassingAExistentClientIdAndAListOfExiste
   
   # test output:
   # check whether each margin call has been fulfilled with the correct asset and amount
-  checkEquals(result[[existentCallIdToClient1Group2[1]]]$Asset,'CAD')
-  checkEquals(result[[existentCallIdToClient1Group2[1]]]$Name,'Canadian dollar')
-  checkEquals(result[[existentCallIdToClient1Group2[1]]]$NetAmount,10000)
-  checkEquals(round(result[[existentCallIdToClient1Group2[1]]]$Amount,0),10526)
+  checkEquals(result[[existentCallIdToClient1Group2[1]]]$Asset,'GBP')
+  checkEquals(result[[existentCallIdToClient1Group2[1]]]$Name,'British Pound')
+  checkEquals(result[[existentCallIdToClient1Group2[1]]]$NetAmount,1000000)
+  checkEquals(round(result[[existentCallIdToClient1Group2[1]]]$Amount,0),1052632)
+  checkEquals(round(result[[existentCallIdToClient1Group2[1]]]$Quantity,0),821053)
   
-  checkEquals(result[[existentCallIdToClient1Group2[2]]]$Asset,'JPY')
-  checkEquals(result[[existentCallIdToClient1Group2[2]]]$Name,'Japanese yen')
-  checkEquals(result[[existentCallIdToClient1Group2[2]]]$NetAmount,15000)
-  checkEquals(round(result[[existentCallIdToClient1Group2[2]]]$Amount,0),15000)
+  checkEquals(result[[existentCallIdToClient1Group2[2]]]$Asset,'GBP')
+  checkEquals(result[[existentCallIdToClient1Group2[2]]]$Name,'British Pound')
+  checkEquals(result[[existentCallIdToClient1Group2[2]]]$NetAmount,1500000)
+  checkEquals(round(result[[existentCallIdToClient1Group2[2]]]$Amount,0),1578947)
+  checkEquals(round(result[[existentCallIdToClient1Group2[2]]]$Quantity,0),1231579)
   
-  checkEquals(result[[existentCallIdToClient1Group2[3]]]$Asset,'JPY')
-  checkEquals(result[[existentCallIdToClient1Group2[3]]]$Name,'Japanese yen')
-  checkEquals(result[[existentCallIdToClient1Group2[3]]]$NetAmount,20000)
-  checkEquals(round(result[[existentCallIdToClient1Group2[3]]]$Amount,0),20000)
+  checkEquals(result[[existentCallIdToClient1Group2[3]]]$Asset,'CAD')
+  checkEquals(result[[existentCallIdToClient1Group2[3]]]$Name,'Canadian Dollar')
+  checkEquals(result[[existentCallIdToClient1Group2[3]]]$NetAmount,2000000)
+  checkEquals(round(result[[existentCallIdToClient1Group2[3]]]$Amount,0),2105263)
+  checkEquals(round(result[[existentCallIdToClient1Group2[3]]]$Quantity,0),2800000)
   
-  checkEquals(result[[existentCallIdToClient1Group2[4]]]$Asset,'37833100')
-  checkEquals(result[[existentCallIdToClient1Group2[4]]]$Name,'APPL INC')
-  checkEquals(result[[existentCallIdToClient1Group2[4]]]$NetAmount,30000)
-  checkEquals(round(result[[existentCallIdToClient1Group2[4]]]$Amount,0),42857)
+  checkEquals(result[[existentCallIdToClient1Group2[4]]]$Asset,'GBP')
+  checkEquals(result[[existentCallIdToClient1Group2[4]]]$Name,'British Pound')
+  checkEquals(result[[existentCallIdToClient1Group2[4]]]$NetAmount,3000000)
+  checkEquals(round(result[[existentCallIdToClient1Group2[4]]]$Amount,0),3157895)
+  checkEquals(round(result[[existentCallIdToClient1Group2[4]]]$Quantity,0),2463158)
   
 }
-
+if(0){
 testCostOnlyQuantityLimitAllocationAlgoByPassingAExistentClientIdAndAListOfExistentCallIdsWhichDirectToTheClient<-function(){
   # test input: a existent client id; a list of existent margin call ids, which direct to the client
   callId <- existentCallIdToClient1Group3
@@ -160,4 +164,5 @@ testCostOnlyQuantityLimitAllocationAlgoByPassingAExistentClientIdAndAListOfExist
   checkEquals(result[[existentCallIdToClient1Group3[8]]]$NetAmount[assetIdCall8=='USD'],10000)
   checkEquals(round(result[[existentCallIdToClient1Group3[8]]]$Amount[assetIdCall8=='USD'],0),10000)
   checkEquals(round(result[[existentCallIdToClient1Group3[8]]]$quantity[assetIdCall8=='USD'],0),10000)
+}
 }
