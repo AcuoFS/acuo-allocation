@@ -48,16 +48,16 @@ allocationAlgo <- function(callId='mc1',clientId='c1',pref=c(0,0,1,0)){
 
 
 ############# ALGORITHM ############################################
-  
+
+######### CHECK WHETHER ASSET POOL IS SUFFICIENT #############
+suffPerCall <- all(apply(eli.mat*(minUnitQuantity.mat*minUnitValue.mat*(1-haircut.mat)),1,sum) > call.mat[,1])
+suffAllCall <- sum(minUnitQuantity.mat[1,]*minUnitValue.mat[1,]*(1-apply(haircut.mat,2,max)))>sum(call.mat[,1])
+if(!(suffPerCall&suffAllCall)){
+  errorMsg <- 'Asset inventory is not sufficient!'
+  return(errorMsg)
+}
+
 if(all(pref==c(0,0,1))){  # In case of OW-171,173,174, pref=(0,0,1,0)
-  
-  ######### CHECK WHETHER ASSET POOL IS SUFFICIENT #############
-  suffPerCall <- all(apply(eli.mat*(minUnitQuantity.mat*minUnitValue.mat*(1-haircut.mat)),1,sum) > call.mat[,1])
-  suffAllCall <- sum(minUnitQuantity.mat[1,]*minUnitValue.mat[1,]*(1-apply(haircut.mat,2,max)))>sum(call.mat[,1])
-  if(!(suffPerCall&suffAllCall)){
-    errorMsg <- 'Asset inventory is not sufficient!'
-    return(errorMsg)
-  }
   
   ######### SORT ASSET PER CALL BY COST ########################
   cost.mat<-call.mat/(1-haircut.mat)*cost.percent.mat  # cost amount
@@ -204,9 +204,9 @@ if(all(pref==c(0,0,1))){  # In case of OW-171,173,174, pref=(0,0,1,0)
       add.constraint(lps.model,lp.con[i,],lp.dir[i],lp.rhs[i])
     }
     
-    #idx.int <- sort(na.omit(match(which(minUnit.vec==1),idx.eli)))
+    
   #  idx.int <- 1:var.num
- #   set.type(lps.model,idx.int,type='integer')    # set integer variables
+  #  set.type(lps.model,idx.int,type='integer')    # set integer variables
     set.semicont(lps.model,1:var.num,TRUE)        # set semi-continuous variables
     set.bounds(lps.model,lower=rep(0,var.num),upper=minUnitQuantity.vec[idx.eli])
                                                   # set variables lower/upper bounds
