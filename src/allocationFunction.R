@@ -2,7 +2,7 @@ library('RNeo4j')
 library('lpSolveAPI')
 
 
-allocationAlgo <- function(callId='mc1',clientId='c1',pref=c(0,0,1,0)){
+allocationAlgo <- function(callId='mc1',clientId='c1',pref=c(0,0,1)){
   
 ########### Load model input from modelInput.R ########################
   source('src/allocationInputData.R')
