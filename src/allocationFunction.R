@@ -33,18 +33,18 @@ allocationAlgo <- function(callId='mc1',clientId='c1',pref=c(0,0,1,0)){
   output.list <- list()
 
 # A list, each element is the allocation result(dataframe) for one margin call
-#-----------------------------------------------------------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------------------------------------------------------------
 # $callId1
-#  Asset(assetId)   Name(assetName)   ACUOCategory   NetAmount(USD)(afterHaircut)      Amount      currency    quantity        value       custodianAccount
-# 1  a1              asset1            category1         numeric value         numeric value    CCY1    numeric value  numeric value     custac1
-# 2  a2              asset2            category2         numeric value         numeric value    CCY2    numeric value  numeric value     custac2
+#  Asset(assetId)   Name(assetName)   NetAmount(USD)(afterHaircut)    Amount      currency    quantity        value       custodianAccount
+# 1  a1              asset1               numeric value           numeric value    CCY1    numeric value  numeric value     custac1
+# 2  a2              asset2               numeric value           numeric value    CCY2    numeric value  numeric value     custac2
 #  
 # $callId2
-#  Asset(assetId)   Name(assetName)   ACUOCategory   NetAmount(USD)(afterHaircut)      Amount      currency    quantity        value       custodianAccount
-# 1  a2              asset2             category2        numeric value         numeric value    CCY2    numeric value  numeric value     custac2
-# 2  a3              asset3             category1        numeric value         numeric value    CCY1    numeric value  numeric value     custac1
-# 3  a4              asset4             category1        numeric value         numeric value    CCY3    numeric value  numeric value     custac3
-#-----------------------------------------------------------------------------------------------------------------------------------------------------
+#  Asset(assetId)   Name(assetName)   NetAmount(USD)(afterHaircut)   Amount      currency    quantity        value       custodianAccount
+# 1  a2              asset2               numeric value          numeric value     CCY2    numeric value  numeric value     custac2
+# 2  a3              asset3               numeric value          numeric value     CCY1    numeric value  numeric value     custac1
+# 3  a4              asset4               numeric value          numeric value     CCY3    numeric value  numeric value     custac3
+#------------------------------------------------------------------------------------------------------------------------------------------
 
 
 ############# ALGORITHM ############################################
@@ -252,7 +252,10 @@ if(all(pref==c(0,0,1))){  # In case of OW-171,173,174, pref=(0,0,1,0)
     output.list <- select.list
   }
 }
+
+else if(all(pref==c(0,1,0)){
   
+}
   return(list(input=input.list,output=output.list))
 }
 
