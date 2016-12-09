@@ -4,7 +4,7 @@ WHERE mc.id IN {callId}
 AND c.id = {clientId}
 AND mc.callType IN is.callType
 AND (acc)-[:ACCESSES]->(ca)
-AND (e)-[:SIGNS]-(ag)
+AND (e)-[:CLIENT_SIGNS]-(ag)
 
 WITH *
 MATCH (c)-[p:POSSESSES]->(a)
