@@ -1,5 +1,5 @@
 MATCH path=(e:LegalEntity)<-[:MANAGES]-(c:Client)-[p:POSSESSES]->(a:Asset)-[:IS_AVAILABLE_FOR]->(ag:Agreement)
-WHERE (e)-[:SIGNS]->(ag)
+WHERE (e)-[:CLIENT_SIGNS]->(ag)
 AND c.id = {clientId}
 
 WITH DISTINCT a,p
