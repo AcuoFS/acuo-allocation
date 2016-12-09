@@ -50,7 +50,7 @@ allocationInputData = function(callId,clientId,order='assetId'){
   cost.mat[cbind(result$callId,result$assetId)]<- result$internalCost+result$externalCost+result$opptCost-result$interestRate
   
   unitValue.mat[cbind(result$callId,result$assetId)] <- result$unitValue/result$FXRate
-  minUnit.mat[,]<- matrix(rep(assetInfo$minUnit,call.num),nrow=call.num)
+  minUnit.mat[,]<- matrix(rep(assetInfo$minUnit,call.num),nrow=call.num,byrow=TRUE)
   minUnitValue.mat[cbind(result$callId,result$assetId)]<- result$minUnitValue/result$FXRate
   
   minUnitQuantity.mat[,]<- floor(quantity.mat/minUnit.mat) # round to the nearest integer smaller
