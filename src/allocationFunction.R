@@ -35,12 +35,12 @@ allocationAlgo <- function(callId='mc1',clientId='c1',pref=c(0,0,1,0)){
 # A list, each element is the allocation result(dataframe) for one margin call
 #-----------------------------------------------------------------------------------------------------------------------------------------------------
 # $callId1
-#  Asset(assetId)   Name(assetName)   ACUOCategory   NetAmount(afterHaircut)      Amount      currency    quantity        value       custodianAccount
+#  Asset(assetId)   Name(assetName)   ACUOCategory   NetAmount(USD)(afterHaircut)      Amount      currency    quantity        value       custodianAccount
 # 1  a1              asset1            category1         numeric value         numeric value    CCY1    numeric value  numeric value     custac1
 # 2  a2              asset2            category2         numeric value         numeric value    CCY2    numeric value  numeric value     custac2
 #  
 # $callId2
-#  Asset(assetId)   Name(assetName)   ACUOCategory   NetAmount(afterHaircut)      Amount      currency    quantity        value       custodianAccount
+#  Asset(assetId)   Name(assetName)   ACUOCategory   NetAmount(USD)(afterHaircut)      Amount      currency    quantity        value       custodianAccount
 # 1  a2              asset2             category2        numeric value         numeric value    CCY2    numeric value  numeric value     custac2
 # 2  a3              asset3             category1        numeric value         numeric value    CCY1    numeric value  numeric value     custac1
 # 3  a4              asset4             category1        numeric value         numeric value    CCY3    numeric value  numeric value     custac3
@@ -103,7 +103,7 @@ if(all(pref==c(0,0,1))){  # In case of OW-171,173,174, pref=(0,0,1,0)
       select.asset.currency <- assetInfo$currency[select.asset.idx]
       select.asset.quantity <- select.asset.Amount/unitValue.mat[i,select.asset.idx]
       select.asset.df <- data.frame(select.asset.id,select.asset.name,select.asset.NetAmount,select.asset.haircut,select.asset.Amount,select.asset.currency,select.asset.quantity,select.asset.custodianAccount)
-      colnames(select.asset.df)<- c('Asset','Name','NetAmount','Haircut','Amount','Currency','Quantity','CustodianAccount')
+      colnames(select.asset.df)<- c('Asset','Name','NetAmount(USD)','Haircut','Amount','Currency','Quantity','CustodianAccount')
       
       select.list[[callId[i]]] <- select.asset.df       
     }
@@ -205,10 +205,10 @@ if(all(pref==c(0,0,1))){  # In case of OW-171,173,174, pref=(0,0,1,0)
     }
     
     #idx.int <- sort(na.omit(match(which(minUnit.vec==1),idx.eli)))
-    idx.int <- 1:var.num
-    set.type(lps.model,idx.int,type='integer')    # set integer variables
+  #  idx.int <- 1:var.num
+ #   set.type(lps.model,idx.int,type='integer')    # set integer variables
     set.semicont(lps.model,1:var.num,TRUE)        # set semi-continuous variables
-    set.bounds(lps.model,lower=rep(10,var.num),upper=minUnitQuantity.vec[idx.eli])
+    set.bounds(lps.model,lower=rep(0,var.num),upper=minUnitQuantity.vec[idx.eli])
                                                   # set variables lower/upper bounds
     lp.control(lps.model,epsb=1e-30,epsd=1e-30)   # modify tolerance
     solve(lps.model)                              # solve model
@@ -241,10 +241,10 @@ if(all(pref==c(0,0,1))){  # In case of OW-171,173,174, pref=(0,0,1,0)
       select.asset.unitValue <- unitValue.mat[i,select.asset.idx]
       select.asset.Amount <- select.asset.quantity*select.asset.unitValue
       select.asset.NetAmount <- select.asset.Amount*(1-haircut.mat[i,select.asset.idx])
-      #subTotal <- sum(select.asset.NetAmount)
+      #subTotal <- sum(select.asset.NetAmount
       
       select.asset.df <- data.frame(select.asset.id,select.asset.name,select.asset.NetAmount,select.asset.haircut,select.asset.Amount,select.asset.currency,select.asset.quantity,select.asset.custodianAccount)
-      colnames(select.asset.df)<- c('Asset','Name','NetAmount','Haircut','Amount','Currency','Quantity','CustodianAccount')
+      colnames(select.asset.df)<- c('Asset','Name','NetAmount(USD)','Haircut','Amount','Currency','Quantity','CustodianAccount')
       
       select.list[[callId[i]]] <- select.asset.df       
     }
