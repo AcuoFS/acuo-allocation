@@ -210,7 +210,7 @@ if(all(pref==c(0,0,1))){  # In case of OW-171,173,174, pref=(0,0,1,0)
   #  idx.int <- 1:var.num
   #  set.type(lps.model,idx.int,type='integer')    # set integer variables
     set.semicont(lps.model,1:var.num,TRUE)        # set semi-continuous variables
-    set.bounds(lps.model,lower=rep(0,var.num),upper=minUnitQuantity.vec[idx.eli])
+    set.bounds(lps.model,lower=rep(1,var.num),upper=minUnitQuantity.vec[idx.eli])
                                                   # set variables lower/upper bounds
     lp.control(lps.model,epsb=1e-30,epsd=1e-30)   # modify tolerance
     solve(lps.model)                              # solve model
