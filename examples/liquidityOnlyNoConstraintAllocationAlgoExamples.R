@@ -10,9 +10,6 @@ callId3 <- c('mc2','mc3','mc8','mc12','mc16') ; clientId3 <- 'c1'
 modifyDBToSimulateLiquidityOnlyNoConstraintAllocationAlgoCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/modifyAssetQuantityToSimulateLiquidityOnlyNoConstraintAllocationAlgo.load'
 restoreDBDueToSimulateLiquidityOnlyNoConstraintAllocationAlgoCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/restoreAssetQuantityDueToSimulateLiquidityOnlyNoConstraintAllocationAlgo.load'
 
-modifyAssetQuantityCypherPath1 <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/modify1AssetQuantityToSimulateLiquidityOnlyQuantityLimitAllocationAlgo.load'
-restoreAssetQuantityCypherPath1 <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/restore1AssetQuantityDueToSimulateLiquidityOnlyQuantityLimitAllocationAlgo.load'
-
 
 #### EXAMPLE FUNCTIONS ##################
 liquidityOnlyNoConstraintAllocationAlgoEx1 <- function(){
