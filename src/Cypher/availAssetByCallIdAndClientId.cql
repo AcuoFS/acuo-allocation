@@ -24,6 +24,7 @@ RETURN DISTINCT
     a.currency AS currency,
  //   h.quantities AS quantity,
     h.availableQuantities AS quantity,
+    h.quantities AS totalQuantity,
     p.internalCost AS internalCost,
     p.opptCost AS opptCost,
     is.haircut AS haircut,
