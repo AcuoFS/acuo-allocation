@@ -18,9 +18,14 @@ existentCallIdToClient1Group3 <- c('mc1','mc2','mc3','mc4','mc5','mc8')
 existentCallIdToClient1Group4 <- c('mc4','mc8','mc12','mc13','mc16')
 
 prefForCostOnlyAllocationAlgo <- c(0,0,1)
+prefForLiquidityOnlyAllocationAlgo <- c(0,1,0)
 
 modifyDBToSimulateCostOnlyNoConstraintAllocationAlgoCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/modifyAssetQuantityToSimulateCostOnlyNoConstraintAllocationAlgo.load'
 restoreDBDueToSimulateCostOnlyNoConstraintAllocationAlgoCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/restoreAssetQuantityDueToSimulateCostOnlyNoConstraintAllocationAlgo.load'
+
+modifyDBToSimulateLiquidityOnlyNoConstraintAllocationAlgoCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/modifyAssetQuantityToSimulateLiquidityOnlyNoConstraintAllocationAlgo.load'
+restoreDBDueToSimulateLiquidityOnlyNoConstraintAllocationAlgoCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/restoreAssetQuantityDueToSimulateLiquidityOnlyNoConstraintAllocationAlgo.load'
+
 
 modifyAssetQuantityCypherPath1 <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/modify1AssetQuantityToSimulateCostOnlyQuantityLimitAllocationAlgo.load'
 restoreAssetQuantityCypherPath1 <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/restore1AssetQuantityDueToSimulateCostOnlyQuantityLimitAllocationAlgo.load'
@@ -381,5 +386,126 @@ testCostOnlyQuantityLimitAllocationAlgoByPassingAExistentClientIdAndAListOfExist
   checkEquals(result[[existentCallIdToClient1Group4[5]]]$CustodianAccount[assetIdCall5=='US46625H1005'],'custac3')
   checkEquals(result[[existentCallIdToClient1Group4[5]]]$CustodianAccount[assetIdCall5=='US5801351017'],'custac3')
   
+}
+
+testLiquidityOnlyNoConstraintAllocationAlgoByPassingAExistentClientIdAndAListOfExistentCallIdsGroup2<-function(){
+  # test input: a existent client id; a list of existent margin call ids, which direct to the client
+  callId <- existentCallIdToClient1Group2
+  clientId <- existentClientId1
+  pref <- prefForLiquidityOnlyAllocationAlgo
+  
+  # modify the database before running allocation function
+  executeCypher(path=modifyDBToSimulateLiquidityOnlyNoConstraintAllocationAlgoCypherPath)
+  
+  # test function: allocationAlgo(callId,clientId,pref)
+  input <- allocationAlgo(callId=callId,clientId=clientId,pref=pref)$input
+  result <- allocationAlgo(callId=callId,clientId=clientId,pref=pref)$output
+  
+  # restore the database after getting the result from allocation funciton
+  executeCypher(path=restoreDBDueToSimulateLiquidityOnlyNoConstraintAllocationAlgoCypherPath)
+  
+  # test output:
+  # check whether each margin call has been fulfilled with the correct asset and amount
+  checkEquals(result[[existentCallIdToClient1Group2[1]]]$Asset,'GBP')
+  checkEquals(result[[existentCallIdToClient1Group2[1]]]$Name,'British Pound')
+  checkEquals(round(result[[existentCallIdToClient1Group2[1]]]$`NetAmount(USD)`,2),1000000)
+  checkEquals(round(result[[existentCallIdToClient1Group2[1]]]$Amount,2),1052631.58)
+  checkEquals(round(result[[existentCallIdToClient1Group2[1]]]$Quantity,2),821052.63)
+  checkEquals(result[[existentCallIdToClient1Group2[1]]]$Haircut,0.05)
+  checkEquals(result[[existentCallIdToClient1Group2[1]]]$Currency,'GBP')
+  checkEquals(result[[existentCallIdToClient1Group2[1]]]$CustodianAccount,'custac4')
+  
+  checkEquals(result[[existentCallIdToClient1Group2[2]]]$Asset,'GBP')
+  checkEquals(result[[existentCallIdToClient1Group2[2]]]$Name,'British Pound')
+  checkEquals(round(result[[existentCallIdToClient1Group2[2]]]$`NetAmount(USD)`,2),1500000)
+  checkEquals(round(result[[existentCallIdToClient1Group2[2]]]$Amount,2),1578947.37)
+  checkEquals(round(result[[existentCallIdToClient1Group2[2]]]$Quantity,2),1231578.95)
+  checkEquals(result[[existentCallIdToClient1Group2[2]]]$Haircut,0.05)
+  checkEquals(result[[existentCallIdToClient1Group2[2]]]$Currency,'GBP')
+  checkEquals(result[[existentCallIdToClient1Group2[2]]]$CustodianAccount,'custac4')
+  
+  checkEquals(result[[existentCallIdToClient1Group2[3]]]$Asset,'CAD')
+  checkEquals(result[[existentCallIdToClient1Group2[3]]]$Name,'Canadian Dollar')
+  checkEquals(round(result[[existentCallIdToClient1Group2[3]]]$`NetAmount(USD)`,2),2000000)
+  checkEquals(round(result[[existentCallIdToClient1Group2[3]]]$Amount,2),2105263.16)
+  checkEquals(round(result[[existentCallIdToClient1Group2[3]]]$Quantity,2),2800000)
+  checkEquals(result[[existentCallIdToClient1Group2[3]]]$Haircut,0.05)
+  checkEquals(result[[existentCallIdToClient1Group2[3]]]$Currency,'CAD')
+  checkEquals(result[[existentCallIdToClient1Group2[3]]]$CustodianAccount,'custac5')
+  
+  checkEquals(result[[existentCallIdToClient1Group2[4]]]$Asset,'GBP')
+  checkEquals(result[[existentCallIdToClient1Group2[4]]]$Name,'British Pound')
+  checkEquals(round(result[[existentCallIdToClient1Group2[4]]]$`NetAmount(USD)`,2),3000000)
+  checkEquals(round(result[[existentCallIdToClient1Group2[4]]]$Amount,2),3157894.74)
+  checkEquals(round(result[[existentCallIdToClient1Group2[4]]]$Quantity,2),2463157.90)
+  checkEquals(result[[existentCallIdToClient1Group2[4]]]$Haircut,0.05)
+  checkEquals(result[[existentCallIdToClient1Group2[4]]]$Currency,'GBP')
+  checkEquals(result[[existentCallIdToClient1Group2[4]]]$CustodianAccount,'custac4')
+  
+}
+
+testLiquidityOnlyNoConstraintAllocationAlgoByPassingAExistentClientIdAndAListOfExistentCallIdsGroup4<-function(){
+  # test input: a existent client id; a list of existent margin call ids, which direct to the client
+  callId <- existentCallIdToClient1Group4
+  clientId <- existentClientId1
+  pref <- prefForLiquidityOnlyAllocationAlgo
+  
+  # modify the database before running allocation function
+  executeCypher(path=modifyDBToSimulateLiquidityOnlyNoConstraintAllocationAlgoCypherPath)
+  
+  # test function: allocationAlgo(callId,clientId,pref)
+  input <- allocationAlgo(callId=callId,clientId=clientId,pref=pref)$input
+  result <- allocationAlgo(callId=callId,clientId=clientId,pref=pref)$output
+  
+  # restore the database after getting the result from allocation funciton
+  executeCypher(path=restoreDBDueToSimulateLiquidityOnlyNoConstraintAllocationAlgoCypherPath)
+  
+  # test output:
+  # check whether each margin call has been fulfilled with the correct asset and amount
+  
+  checkEquals(result[[existentCallIdToClient1Group4[1]]]$Asset,'CAD')
+  checkEquals(result[[existentCallIdToClient1Group4[1]]]$Name,'Canadian Dollar')
+  checkEquals(round(result[[existentCallIdToClient1Group4[1]]]$`NetAmount(USD)`,2),250)
+  checkEquals(round(result[[existentCallIdToClient1Group4[1]]]$Amount,2),263.16)
+  checkEquals(round(result[[existentCallIdToClient1Group4[1]]]$Quantity,2),350)
+  checkEquals(result[[existentCallIdToClient1Group4[1]]]$Haircut,0.05)
+  checkEquals(result[[existentCallIdToClient1Group4[1]]]$Currency,'CAD')
+  checkEquals(result[[existentCallIdToClient1Group4[1]]]$CustodianAccount,'custac5')
+  
+  checkEquals(result[[existentCallIdToClient1Group4[2]]]$Asset,'GBP')
+  checkEquals(result[[existentCallIdToClient1Group4[2]]]$Name,'British Pound')
+  checkEquals(round(result[[existentCallIdToClient1Group4[2]]]$`NetAmount(USD)`,2),1000000)
+  checkEquals(round(result[[existentCallIdToClient1Group4[2]]]$Amount,2),1052631.58)
+  checkEquals(round(result[[existentCallIdToClient1Group4[2]]]$Quantity,2),821052.63)
+  checkEquals(result[[existentCallIdToClient1Group4[2]]]$Haircut,0.05)
+  checkEquals(result[[existentCallIdToClient1Group4[2]]]$Currency,'GBP')
+  checkEquals(result[[existentCallIdToClient1Group4[2]]]$CustodianAccount,'custac4')
+  
+  checkEquals(result[[existentCallIdToClient1Group4[3]]]$Asset,'US30231G1022')
+  checkEquals(result[[existentCallIdToClient1Group4[3]]]$Name,'EXXON MOBIL CORP')
+  checkEquals(round(result[[existentCallIdToClient1Group4[3]]]$`NetAmount(USD)`,2),500000)
+  checkEquals(round(result[[existentCallIdToClient1Group4[3]]]$Amount,2),714285.71)
+  checkEquals(round(result[[existentCallIdToClient1Group4[3]]]$Quantity,2),8542.04)
+  checkEquals(result[[existentCallIdToClient1Group4[3]]]$Haircut,0.3)
+  checkEquals(result[[existentCallIdToClient1Group4[3]]]$Currency,'USD')
+  checkEquals(result[[existentCallIdToClient1Group4[3]]]$CustodianAccount,'custac3')
+  
+  checkEquals(result[[existentCallIdToClient1Group4[4]]]$Asset,'US30231G1022')
+  checkEquals(result[[existentCallIdToClient1Group4[4]]]$Name,'EXXON MOBIL CORP')
+  checkEquals(round(result[[existentCallIdToClient1Group4[4]]]$`NetAmount(USD)`,2),700000)
+  checkEquals(round(result[[existentCallIdToClient1Group4[4]]]$Amount,2),1000000)
+  checkEquals(round(result[[existentCallIdToClient1Group4[4]]]$Quantity,2),11958.86)
+  checkEquals(result[[existentCallIdToClient1Group4[4]]]$Haircut,0.3)
+  checkEquals(result[[existentCallIdToClient1Group4[4]]]$Currency,'USD')
+  checkEquals(result[[existentCallIdToClient1Group4[4]]]$CustodianAccount,'custac3')
+  
+  checkEquals(result[[existentCallIdToClient1Group4[5]]]$Asset,'US30231G1022')
+  checkEquals(result[[existentCallIdToClient1Group4[5]]]$Name,'EXXON MOBIL CORP')
+  checkEquals(result[[existentCallIdToClient1Group4[5]]]$`NetAmount(USD)`,1000000)
+  checkEquals(round(result[[existentCallIdToClient1Group4[5]]]$Amount,2),1428571.43)
+  checkEquals(round(result[[existentCallIdToClient1Group4[5]]]$Quantity,2),17084.09)
+  checkEquals(result[[existentCallIdToClient1Group4[5]]]$Haircut,0.3)
+  checkEquals(result[[existentCallIdToClient1Group4[5]]]$Currency,'USD')
+  checkEquals(result[[existentCallIdToClient1Group4[5]]]$CustodianAccount,'custac3')
 }
 
