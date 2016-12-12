@@ -13,9 +13,6 @@ restoreDBDueToSimulateCostOnlyNoConstraintAllocationAlgoCypherPath <- 'https://r
 modifyAssetQuantityCypherPath1 <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/modify1AssetQuantityToSimulateCostOnlyQuantityLimitAllocationAlgo.load'
 restoreAssetQuantityCypherPath1 <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/restore1AssetQuantityDueToSimulateCostOnlyQuantityLimitAllocationAlgo.load'
 
-modifyAssetCostCypherPath1 <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/modify1AssetCostToTestAllocationAlgo.load'
-restoreAssetCostCypherPath1 <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/restore1AssetCostToTestAllocationAlgo.load'
-
 #### EXAMPLE FUNCTIONS ##################
 costOnlyNoConstraintAllocationAlgoEx1 <- function(){
 
