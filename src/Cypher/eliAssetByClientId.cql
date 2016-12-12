@@ -13,7 +13,7 @@ RETURN
     a.parValue AS unitValue,
     a.minUnit AS minUnit,
     a.minUnitValue AS minUnitValue,
-    p.quantities AS quantity,
+    p.quantities AS totalQuantity,
     p.availableQuantities AS availableQuantities,
     p.deployedQuantities AS deployedQuantities,
     p.departingQuantities AS departingQuantities,
