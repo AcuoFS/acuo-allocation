@@ -266,6 +266,8 @@ else if(all(pref==c(0,1,0))){
   
   least.liquid.idx <- which(asset.liquid.sort==min(asset.liquid.sort)) # least liquid asset(s) index(es)
   
+  cost.mat<-call.mat/(1-haircut.mat)*cost.percent.mat  # cost amount
+  
   for (i in 1:call.num){
     idx1 <- which(eli.mat[i,]!=0)   # return elegible asset idx for mc[i]
     temp1 <- rbind(asset.liquid[idx1],idx1,deparse.level = 0) # combine the asset liquidity and index together
