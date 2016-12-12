@@ -225,45 +225,39 @@ testClientEliAssetDetailsByPassingAExistentClientIdc1 <- function(){
   
   # result should has unitValue specified below
   checkTrue(is.element('USD',assetId))
-  checkEquals(result$internalCost[which(assetId=='USD')],0.004)
-  checkEquals(result$opptCost[which(assetId=='USD')],0.004)
+  checkEquals(result$internalCost[which(assetId=='USD')],0.01)
+  checkEquals(result$opptCost[which(assetId=='USD')],0.01)
   checkEquals(result$unitValue[which(assetId=='USD')],1)
   checkEquals(result$currency[which(assetId=='USD')],'USD')
-  checkEquals(result$quantity[which(assetId=='USD')],5000000)
-  checkEquals(result$availableQuantities[which(assetId=='USD')],5000000)
+  checkEquals(result$totalQuantity[which(assetId=='USD')],5000000)
   
   checkTrue(is.element('GBP',assetId))
-  checkEquals(result$internalCost[which(assetId=='GBP')],0.002)
-  checkEquals(result$opptCost[which(assetId=='GBP')],0.002)
-  checkEquals(result$quantity[which(assetId=='GBP')],5000000)
-  checkEquals(result$availableQuantities[which(assetId=='GBP')],5000000)
+  checkEquals(result$internalCost[which(assetId=='GBP')],0.006)
+  checkEquals(result$opptCost[which(assetId=='GBP')],0.006)
+  checkEquals(result$totalQuantity[which(assetId=='GBP')],5000000)
   
   checkTrue(is.element('JPY',assetId))
-  checkEquals(result$internalCost[which(assetId=='JPY')],0.002)
+  checkEquals(result$internalCost[which(assetId=='JPY')],0.006)
   checkEquals(result$unitValue[which(assetId=='JPY')],1)
   checkEquals(result$currency[which(assetId=='JPY')],'JPY')
-  checkEquals(result$quantity[which(assetId=='JPY')],5000000)
-  checkEquals(result$availableQuantities[which(assetId=='JPY')],5000000)
+  checkEquals(result$totalQuantity[which(assetId=='JPY')],5000000)
   
   checkTrue(is.element('CAD',assetId))
-  checkEquals(result$internalCost[which(assetId=='CAD')],0.004)
+  checkEquals(result$internalCost[which(assetId=='CAD')],0.01)
   checkEquals(result$currency[which(assetId=='CAD')],'CAD')
-  checkEquals(result$quantity[which(assetId=='CAD')],5000000)
-  checkEquals(result$availableQuantities[which(assetId=='CAD')],5000000)
+  checkEquals(result$totalQuantity[which(assetId=='CAD')],5000000)
   
   checkTrue(is.element('US46625H1005',assetId))
-  checkEquals(result$internalCost[which(assetId=='US46625H1005')],0.002)
+  checkEquals(result$internalCost[which(assetId=='US46625H1005')],0.001)
   checkEquals(result$unitValue[which(assetId=='US46625H1005')],60.46)
-  checkEquals(result$quantity[which(assetId=='US46625H1005')],1000)
-  checkEquals(result$availableQuantities[which(assetId=='US46625H1005')],1000)
+  checkEquals(result$totalQuantity[which(assetId=='US46625H1005')],1000)
   
   checkTrue(is.element('US912796JE09',assetId))
   checkEquals(result$internalCost[which(assetId=='US912796JE09')],0.002)
   checkEquals(result$opptCost[which(assetId=='US912796JE09')],0.002)
   checkEquals(result$unitValue[which(assetId=='US912796JE09')],100)
   checkEquals(result$currency[which(assetId=='US912796JE09')],'USD')
-  checkEquals(result$quantity[which(assetId=='US912796JE09')],10000)
-  checkEquals(result$availableQuantities[which(assetId=='US912796JE09')],10000)
+  checkEquals(result$totalQuantity[which(assetId=='US912796JE09')],10000)
   
 }
 
@@ -380,40 +374,40 @@ testClientAvailAssetDetailsByPassingAExistentClientIdAndAListOfExistentCallIdsWh
   checkTrue(setequal(result$CustodianAccount[callId=='mc16'],c('custac3','custac4')))
   
   # check whether the same asset from the same custodian account 
-  # and available for different margin calls has the same quantity and other properties
-  checkTrue(setequal(result$quantity[assetId=='USD' & custAccount=='custac4'],5000000))
-  checkTrue(setequal(result$internalCost[assetId=='USD' & custAccount=='custac4'],0.004))
-  checkTrue(setequal(result$opptCost[assetId=='USD' & custAccount=='custac4'],0.004))
+  # and available for different margin calls has the same totalQuantity and other properties
+  checkTrue(setequal(result$totalQuantity[assetId=='USD' & custAccount=='custac4'],5000000))
+  checkTrue(setequal(result$internalCost[assetId=='USD' & custAccount=='custac4'],0.01))
+  checkTrue(setequal(result$opptCost[assetId=='USD' & custAccount=='custac4'],0.01))
   checkTrue(setequal(result$currency[assetId=='USD' & custAccount=='custac4'],'USD'))
   
-  checkTrue(setequal(result$quantity[assetId=='GBP' & custAccount=='custac4'],5000000))
-  checkTrue(setequal(result$internalCost[assetId=='GBP' & custAccount=='custac4'],0.002))
-  checkTrue(setequal(result$opptCost[assetId=='GBP' & custAccount=='custac4'],0.002))
+  checkTrue(setequal(result$totalQuantity[assetId=='GBP' & custAccount=='custac4'],5000000))
+  checkTrue(setequal(result$internalCost[assetId=='GBP' & custAccount=='custac4'],0.006))
+  checkTrue(setequal(result$opptCost[assetId=='GBP' & custAccount=='custac4'],0.006))
   checkTrue(setequal(result$currency[assetId=='GBP' & custAccount=='custac4'],'GBP'))
   
-  checkTrue(setequal(result$quantity[assetId=='JPY' & custAccount=='custac4'],5000000))
-  checkTrue(setequal(result$internalCost[assetId=='JPY' & custAccount=='custac4'],0.002))
-  checkTrue(setequal(result$opptCost[assetId=='JPY' & custAccount=='custac4'],0.002))
+  checkTrue(setequal(result$totalQuantity[assetId=='JPY' & custAccount=='custac4'],5000000))
+  checkTrue(setequal(result$internalCost[assetId=='JPY' & custAccount=='custac4'],0.006))
+  checkTrue(setequal(result$opptCost[assetId=='JPY' & custAccount=='custac4'],0.006))
   checkTrue(setequal(result$currency[assetId=='JPY' & custAccount=='custac4'],'JPY'))
   
-  checkTrue(setequal(result$quantity[assetId=='CAD' & custAccount=='custac5'],5000000))
-  checkTrue(setequal(result$internalCost[assetId=='CAD' & custAccount=='custac5'],0.004))
-  checkTrue(setequal(result$opptCost[assetId=='CAD' & custAccount=='custac5'],0.004))
+  checkTrue(setequal(result$totalQuantity[assetId=='CAD' & custAccount=='custac5'],5000000))
+  checkTrue(setequal(result$internalCost[assetId=='CAD' & custAccount=='custac5'],0.01))
+  checkTrue(setequal(result$opptCost[assetId=='CAD' & custAccount=='custac5'],0.01))
   checkTrue(setequal(result$currency[assetId=='CAD' & custAccount=='custac5'],'CAD'))
   
-  checkTrue(setequal(result$quantity[assetId=='SGD' & custAccount=='custac4'],5000000))
-  checkTrue(setequal(result$internalCost[assetId=='SGD' & custAccount=='custac4'],0.002))
-  checkTrue(setequal(result$opptCost[assetId=='SGD' & custAccount=='custac4'],0.002))
+  checkTrue(setequal(result$totalQuantity[assetId=='SGD' & custAccount=='custac4'],5000000))
+  checkTrue(setequal(result$internalCost[assetId=='SGD' & custAccount=='custac4'],0.006))
+  checkTrue(setequal(result$opptCost[assetId=='SGD' & custAccount=='custac4'],0.006))
   checkTrue(setequal(result$currency[assetId=='SGD' & custAccount=='custac4'],'SGD'))
   
-  checkTrue(setequal(result$quantity[assetId=='AUD' & custAccount=='custac5'],5000000))
-  checkTrue(setequal(result$internalCost[assetId=='AUD' & custAccount=='custac5'],0.008))
-  checkTrue(setequal(result$opptCost[assetId=='AUD' & custAccount=='custac5'],0.008))
+  checkTrue(setequal(result$totalQuantity[assetId=='AUD' & custAccount=='custac5'],5000000))
+  checkTrue(setequal(result$internalCost[assetId=='AUD' & custAccount=='custac5'],0.018))
+  checkTrue(setequal(result$opptCost[assetId=='AUD' & custAccount=='custac5'],0.018))
   checkTrue(setequal(result$currency[assetId=='AUD' & custAccount=='custac5'],'AUD'))
   
-  checkTrue(setequal(result$quantity[assetId=='EUR' & custAccount=='custac4'],5000000))
-  checkTrue(setequal(result$internalCost[assetId=='EUR' & custAccount=='custac4'],0.001))
-  checkTrue(setequal(result$opptCost[assetId=='EUR' & custAccount=='custac4'],0.001))
+  checkTrue(setequal(result$totalQuantity[assetId=='EUR' & custAccount=='custac4'],5000000))
+  checkTrue(setequal(result$internalCost[assetId=='EUR' & custAccount=='custac4'],0.004))
+  checkTrue(setequal(result$opptCost[assetId=='EUR' & custAccount=='custac4'],0.004))
   checkTrue(setequal(result$currency[assetId=='EUR' & custAccount=='custac4'],'EUR'))
   
 }
