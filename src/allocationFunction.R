@@ -109,7 +109,6 @@ if(all(pref==c(0,0,1))){  # In case of OW-171,173,174, pref=(0,0,1,0)
       
       select.list[[callId[i]]] <- select.asset.df       
     }
-    
     output.list<- select.list
   }
   
@@ -243,19 +242,19 @@ if(all(pref==c(0,0,1))){  # In case of OW-171,173,174, pref=(0,0,1,0)
       select.asset.unitValue <- unitValue.mat[i,select.asset.idx]
       select.asset.Amount <- select.asset.quantity*select.asset.unitValue
       select.asset.NetAmount <- select.asset.Amount*(1-haircut.mat[i,select.asset.idx])
-      #subTotal <- sum(select.asset.NetAmount
-      
+
       select.asset.df <- data.frame(select.asset.id,select.asset.name,select.asset.NetAmount,select.asset.haircut,select.asset.Amount,select.asset.currency,select.asset.quantity,select.asset.custodianAccount)
       colnames(select.asset.df)<- c('Asset','Name','NetAmount(USD)','Haircut','Amount','Currency','Quantity','CustodianAccount')
       
       select.list[[callId[i]]] <- select.asset.df       
     }
-    
     output.list <- select.list
   }
 }
 
 else if(all(pref==c(0,1,0))){
+  
+  ##### SORT ASSETS BY LIQUIDITY ################################# 
   asset.liquid <- apply((1-haircut.mat*eli.mat),2,min) # define asset liquidity
                                                        # for convenience, use (1-maximum haircut among calls)
   asset.liquid.sort <- sort(asset.liquid)              # sort asset liquidity
@@ -263,7 +262,6 @@ else if(all(pref==c(0,1,0))){
   reserve.list <-list()    # store all available assets for each call, list by callId
   select.list  <-list()    # store selected assets for each call, list by callId
   leastLiquidAsset <- matrix(c(callId,rep('', call.num)),nrow=call.num,ncol=2,dimnames = list(callId,c('callId','assetId')))
-  
   least.liquid.idx <- which(asset.liquid.sort==min(asset.liquid.sort)) # least liquid asset(s) index(es)
   
   cost.mat<-call.mat/(1-haircut.mat)*cost.percent.mat  # cost amount
@@ -283,27 +281,38 @@ else if(all(pref==c(0,1,0))){
       sortLiquid <- temp2[,order(temp2[1,])] # sort the cost
     }
     reserve.list[[callId[i]]]<- assetId[sortLiquid[2,]] # 
-    
     leastLiquidAsset[i,2] <- assetId[sortLiquid[2,]][1]
   }
   
-  for(i in 1:call.num){
-    select.asset.idx <- which(assetInfo$id==reserve.list[[i]][1])
-    select.asset.id <- assetId[select.asset.idx]
-    select.asset.custodianAccount <- custodianAccount[select.asset.idx]
-    select.asset.name <- assetInfo$name[select.asset.idx]
-    select.asset.NetAmount <- call.mat[i,1]
-    select.asset.haircut <- haircut.mat[i,select.asset.idx]
-    select.asset.Amount <- select.asset.NetAmount/(1-haircut.mat[i,select.asset.idx])
-    select.asset.currency <- assetInfo$currency[select.asset.idx]
-    select.asset.quantity <- select.asset.Amount/unitValue.mat[i,select.asset.idx]
-    select.asset.df <- data.frame(select.asset.id,select.asset.name,select.asset.NetAmount,select.asset.haircut,select.asset.Amount,select.asset.currency,select.asset.quantity,select.asset.custodianAccount)
-    colnames(select.asset.df)<- c('Asset','Name','NetAmount(USD)','Haircut','Amount','Currency','Quantity','CustodianAccount')
-    
-    select.list[[callId[i]]] <- select.asset.df       
-  }
+  ############# LEAST Liquid ASSET SUFFICIENCY #####################
+  leastLiquid.suff.qty <- call.mat/(1-haircut.mat)/minUnitValue.mat # quantity needed for a single asset to fulfill each call
   
-  output.list<- select.list
+  select.temp.unique <- unique(leastLiquidAsset[,2]) ; 
+  suff.select.unique <- rep(0,length(select.temp.unique))
+  for(i in 1:length(select.temp.unique)){
+    id <- select.temp.unique[i]
+    idx.temp <- leastLiquidAsset[which(leastLiquidAsset[,2]==id),1] # calls have the least Liquid assetId=id
+    suff.select.unique[i] <- 1*(sum(leastLiquid.suff.qty[idx.temp,id]) < minUnitQuantity.mat[1,id])
+  }
+  #### In case of OW-249, least liquid assets are sufficient ########
+  if(!is.element(0,suff.select.unique)){ 
+    for(i in 1:call.num){
+      select.asset.idx <- which(assetInfo$id==reserve.list[[i]][1])
+      select.asset.id <- assetId[select.asset.idx]
+      select.asset.custodianAccount <- custodianAccount[select.asset.idx]
+      select.asset.name <- assetInfo$name[select.asset.idx]
+      select.asset.NetAmount <- call.mat[i,1]
+      select.asset.haircut <- haircut.mat[i,select.asset.idx]
+      select.asset.Amount <- select.asset.NetAmount/(1-haircut.mat[i,select.asset.idx])
+      select.asset.currency <- assetInfo$currency[select.asset.idx]
+      select.asset.quantity <- select.asset.Amount/unitValue.mat[i,select.asset.idx]
+      select.asset.df <- data.frame(select.asset.id,select.asset.name,select.asset.NetAmount,select.asset.haircut,select.asset.Amount,select.asset.currency,select.asset.quantity,select.asset.custodianAccount)
+      colnames(select.asset.df)<- c('Asset','Name','NetAmount(USD)','Haircut','Amount','Currency','Quantity','CustodianAccount')
+      
+      select.list[[callId[i]]] <- select.asset.df       
+    }
+    output.list<- select.list
+  }
 
 }
   return(list(input=input.list,output=output.list))
