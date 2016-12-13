@@ -256,6 +256,7 @@ if(all(pref==c(0,0,1))){  # In case of OW-171,173,174, pref=(0,0,1,0)
 
       select.asset.df <- data.frame(select.asset.id,select.asset.name,select.asset.NetAmount,select.asset.haircut,select.asset.Amount,select.asset.currency,select.asset.quantity,select.asset.custodianAccount)
       colnames(select.asset.df)<- c('Asset','Name','NetAmount(USD)','Haircut','Amount','Currency','Quantity','CustodianAccount')
+      rownames(select.asset.df)<- paste('Asset',c(1:length(select.asset.id)),sep='')
       
       select.list[[callId[i]]] <- select.asset.df       
     }
