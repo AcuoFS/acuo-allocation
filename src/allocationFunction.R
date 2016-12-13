@@ -26,9 +26,12 @@ allocationAlgo <- function(callId='mc1',clientId='c1',pref=c(0,0,1)){
   minUnit.mat <- input.list$minUnit.mat; minUnit.vec <- input.list$minUnit.vec;
   minUnitValue.mat <- input.list$minUnitValue.mat; minUnitValue.vec <- input.list$minUnitValue.vec;
   
-  call.mat <- input.list$call.mat;                                                # margin call amount mat
+  call.mat <- input.list$call.mat; call.vec <- as.vector(t(call.mat))             # margin call amount mat
   cost.percent.mat <- input.list$cost.mat; cost.vec <- input.list$cost.vec        # cost mat & vec
 
+############### CONSTANTS DEFINED INSIDE THE ALGO ###################
+  minMoveValue <- 1000
+  
 ############### Output Format #######################################
   output.list <- list()
 
@@ -209,16 +212,15 @@ if(all(pref==c(0,0,1))){  # In case of OW-171,173,174, pref=(0,0,1,0)
   #  idx.int <- 1:var.num
   #  set.type(lps.model,idx.int,type='integer')    # set integer variables
     set.semicont(lps.model,1:var.num,TRUE)        # set semi-continuous variables
-    # set different lower bounds for different types of assets
-    # minUnitValue <= 0.001, set 1000
-    # minUnitValue <= 10, set 10
-    # minUnitValue > 10, set 1
-    lower.bound <- rep(0,var.num)
-    lower.bound[which(minUnitValue.vec[idx.eli] <= 0.001)] <- 1000
-    lower.bound[which(minUnitValue.vec[idx.eli] <= 10)] <- 10
-    lower.bound[which(minUnitValue.vec[idx.eli] >10)] <- 1
     
-    set.bounds(lps.model,lower=lower.bound,upper=minUnitQuantity.vec[idx.eli])
+    minMoveQuantity <- ceiling(minMoveValue/minUnitValue.vec[idx.eli])
+    if(length(call.vec[which(minMoveValue > call.vec[idx.eli])])!=0){
+      temp.idx <- which(minMoveValue > call.vec[idx.eli])
+      call.eli.vec <- call.vec[idx.eli]
+      minUnitValue.eli.vec <- minUnitValue.vec[idx.eli]
+      minMoveQuantity[temp.idx] <- ceiling(call.eli.vec[temp.idx]/minUnitValue.eli.vec[temp.idx])
+    }
+    set.bounds(lps.model,lower=minMoveQuantity,upper=minUnitQuantity.vec[idx.eli])
                                                   # set variables lower/upper bounds
     lp.control(lps.model,epsb=1e-30,epsd=1e-30)   # modify tolerance
     solve(lps.model)                              # solve model
@@ -290,7 +292,11 @@ else if(all(pref==c(0,1,0))){
       # if there are more than one least liquid asset, then sort by cost
       least.liquid.idx.temp <- sortLiquid[2,which(sortLiquid[1,]==sortLiquid[1,1])]
       temp2 <- rbind(cost.mat[i,least.liquid.idx.temp],least.liquid.idx.temp)
-      sortLiquid <- temp2[,order(temp2[1,])] # sort the cost
+      if(length(least.liquid.idx.temp)==1){
+        sortLiquid <- temp2
+      }else{
+        sortLiquid <- temp2[,order(temp2[1,])] # sort the cost
+      }
     }
     reserve.list[[callId[i]]]<- assetId[sortLiquid[2,]] # 
     leastLiquidAsset[i,2] <- assetId[sortLiquid[2,]][1]
@@ -383,16 +389,14 @@ else if(all(pref==c(0,1,0))){
     #  set.type(lps.model,idx.int,type='integer') # set integer variables
     set.semicont(lps.model,1:var.num,TRUE)        # set semi-continuous variables
     
-    # set different lower bounds for different types of assets
-    # minUnitValue <= 0.001, set 1000
-    # minUnitValue <= 10, set 10
-    # minUnitValue > 10, set 1
-    lower.bound <- rep(0,var.num)
-    lower.bound[which(minUnitValue.vec[idx.eli] <= 0.001)] <- 1000
-    lower.bound[which(minUnitValue.vec[idx.eli] <= 10)] <- 10
-    lower.bound[which(minUnitValue.vec[idx.eli] >10)] <- 1
-    
-    set.bounds(lps.model,lower=lower.bound,upper=minUnitQuantity.vec[idx.eli])
+    minMoveQuantity <- ceiling(minMoveValue/minUnitValue.vec[idx.eli])
+    if(length(call.vec[which(minMoveValue > call.vec[idx.eli])])!=0){
+      temp.idx <- which(minMoveValue > call.vec[idx.eli])
+      call.eli.vec <- call.vec[idx.eli]
+      minUnitValue.eli.vec <- minUnitValue.vec[idx.eli]
+      minMoveQuantity[temp.idx] <- ceiling(call.eli.vec[temp.idx]/minUnitValue.eli.vec[temp.idx])
+    }
+    set.bounds(lps.model,lower=minMoveQuantity,upper=minUnitQuantity.vec[idx.eli])
     # set variables lower/upper bounds
     lp.control(lps.model,epsb=1e-30,epsd=1e-30)   # modify tolerance
     solve(lps.model)                              # solve model
