@@ -290,14 +290,14 @@ testCostOnlyQuantityLimitAllocationAlgoByPassingAExistentClientIdAndAListOfExist
   # check whether each margin call has been fulfilled with the correct asset and amount
   assetIdCall1<- result[[existentCallIdToClient1Group4[1]]]$Asset
   checkTrue(setequal(assetIdCall1,c('CAD')))
-  checkEquals(result[[existentCallIdToClient1Group4[1]]]$Asset,'CAD')
-  checkEquals(result[[existentCallIdToClient1Group4[1]]]$Name,'Canadian Dollar')
-  checkEquals(result[[existentCallIdToClient1Group4[1]]]$`NetAmount(USD)`,250)
-  checkEquals(round(result[[existentCallIdToClient1Group4[1]]]$Amount,0),263)
-  checkEquals(round(result[[existentCallIdToClient1Group4[1]]]$Quantity,0),350)
-  checkEquals(result[[existentCallIdToClient1Group4[1]]]$Haircut,0.05)
-  checkEquals(result[[existentCallIdToClient1Group4[1]]]$Currency,'CAD')
-  checkEquals(result[[existentCallIdToClient1Group4[1]]]$CustodianAccount,'custac5')
+  checkEquals(result[[existentCallIdToClient1Group4[1]]]$Asset[assetIdCall1=='CAD'],'CAD')
+  checkEquals(result[[existentCallIdToClient1Group4[1]]]$Name[assetIdCall1=='CAD'],'Canadian Dollar')
+  checkEquals(result[[existentCallIdToClient1Group4[1]]]$`NetAmount(USD)`[assetIdCall1=='CAD'],250)
+  checkEquals(round(result[[existentCallIdToClient1Group4[1]]]$Amount[assetIdCall1=='CAD'],2),263.16)
+  checkEquals(round(result[[existentCallIdToClient1Group4[1]]]$Quantity[assetIdCall1=='CAD'],2),350)
+  checkEquals(result[[existentCallIdToClient1Group4[1]]]$Haircut[assetIdCall1=='CAD'],0.05)
+  checkEquals(result[[existentCallIdToClient1Group4[1]]]$Currency[assetIdCall1=='CAD'],'CAD')
+  checkEquals(result[[existentCallIdToClient1Group4[1]]]$CustodianAccount[assetIdCall1=='CAD'],'custac5')
   
   assetIdCall2<- result[[existentCallIdToClient1Group4[2]]]$Asset
   checkTrue(setequal(assetIdCall2,'SGD'))
@@ -508,4 +508,223 @@ testLiquidityOnlyNoConstraintAllocationAlgoByPassingAExistentClientIdAndAListOfE
   checkEquals(result[[existentCallIdToClient1Group4[5]]]$Currency,'USD')
   checkEquals(result[[existentCallIdToClient1Group4[5]]]$CustodianAccount,'custac3')
 }
+
+testLiquidityOnlyQuantityLimitAllocationAlgoByPassingAExistentClientIdAndAListOfExistentCallIdsGroup3<-function(){
+  # test input: a existent client id; a list of existent margin call ids, which direct to the client
+  callId <- existentCallIdToClient1Group3
+  clientId <- existentClientId1
+  pref <- prefForLiquidityOnlyAllocationAlgo
+  
+  # modify the database before running allocation function
+  executeCypher(path=modifyAssetQuantityCypherPath1)
+  
+  # test function: allocationAlgo(callId,clientId,pref)
+  input <- allocationAlgo(callId=callId,clientId=clientId,pref=pref)$input
+  result<- allocationAlgo(callId=callId,clientId=clientId,pref=pref)$output
+  
+  # restore the database after getting the result from allocation funciton
+  executeCypher(path=restoreAssetQuantityCypherPath1)
+  
+  # test output:
+  # check whether each margin call has been fulfilled with the correct asset and amount
+  assetIdCall1<- result[[existentCallIdToClient1Group3[1]]]$Asset
+  checkTrue(setequal(assetIdCall1,c('GBP')))
+  checkEquals(result[[existentCallIdToClient1Group3[1]]]$Name[assetIdCall1=='GBP'],'British Pound')
+  checkEquals(round(result[[existentCallIdToClient1Group3[1]]]$`NetAmount(USD)`[assetIdCall1=='GBP'],2),1000000)
+  checkEquals(round(result[[existentCallIdToClient1Group3[1]]]$Amount[assetIdCall1=='GBP'],2),1052631.58)
+  checkEquals(round(result[[existentCallIdToClient1Group3[1]]]$Quantity[assetIdCall1=='GBP'],2),821052.63)
+  checkEquals(result[[existentCallIdToClient1Group3[1]]]$Haircut[assetIdCall1=='GBP'],0.05)
+  checkEquals(result[[existentCallIdToClient1Group3[1]]]$CustodianAccount[assetIdCall1=='GBP'],'custac4')
+  
+  assetIdCall2 <- result[[existentCallIdToClient1Group3[2]]]$Asset
+  checkTrue(setequal(assetIdCall2,c('CAD','GBP','SGD')))
+  checkEquals(result[[existentCallIdToClient1Group3[2]]]$Name[assetIdCall2=='CAD'],'Canadian Dollar')
+  checkEquals(result[[existentCallIdToClient1Group3[2]]]$Name[assetIdCall2=='GBP'],'British Pound')
+  checkEquals(result[[existentCallIdToClient1Group3[2]]]$Name[assetIdCall2=='SGD'],'Singapore Dollar')
+  checkEquals(round(result[[existentCallIdToClient1Group3[2]]]$`NetAmount(USD)`[assetIdCall2=='CAD'],2),91077.24)
+  checkEquals(round(result[[existentCallIdToClient1Group3[2]]]$`NetAmount(USD)`[assetIdCall2=='GBP'],2),478908.19)
+  checkEquals(round(result[[existentCallIdToClient1Group3[2]]]$`NetAmount(USD)`[assetIdCall2=='SGD'],2),930014.57)
+  checkEquals(round(result[[existentCallIdToClient1Group3[2]]]$Amount[assetIdCall2=='CAD'],2),95870.78)
+  checkEquals(round(result[[existentCallIdToClient1Group3[2]]]$Amount[assetIdCall2=='GBP'],2),504113.88)
+  checkEquals(round(result[[existentCallIdToClient1Group3[2]]]$Amount[assetIdCall2=='SGD'],2),978962.71)
+  checkEquals(result[[existentCallIdToClient1Group3[2]]]$Haircut[assetIdCall2=='CAD'],0.05)
+  checkEquals(result[[existentCallIdToClient1Group3[2]]]$Haircut[assetIdCall2=='GBP'],0.05)
+  checkEquals(result[[existentCallIdToClient1Group3[2]]]$Haircut[assetIdCall2=='SGD'],0.05)
+  checkEquals(round(result[[existentCallIdToClient1Group3[2]]]$Quantity[assetIdCall2=='CAD'],2),127508.13)
+  checkEquals(round(result[[existentCallIdToClient1Group3[2]]]$Quantity[assetIdCall2=='GBP'],2),393208.83)
+  checkEquals(round(result[[existentCallIdToClient1Group3[2]]]$Quantity[assetIdCall2=='SGD'],2),1390127.05)
+  checkEquals(result[[existentCallIdToClient1Group3[2]]]$CustodianAccount[assetIdCall2=='CAD'],'custac5')
+  checkEquals(result[[existentCallIdToClient1Group3[2]]]$CustodianAccount[assetIdCall2=='GBP'],'custac4')
+  checkEquals(result[[existentCallIdToClient1Group3[2]]]$CustodianAccount[assetIdCall2=='SGD'],'custac4')
+  
+  assetIdCall3<- result[[existentCallIdToClient1Group3[3]]]$Asset
+  checkTrue(setequal(assetIdCall3,c('AUD','CAD')))
+  checkEquals(result[[existentCallIdToClient1Group3[3]]]$Name[assetIdCall3=='AUD'],'Australian Dollar')
+  checkEquals(result[[existentCallIdToClient1Group3[3]]]$Name[assetIdCall3=='CAD'],'Canadian Dollar')
+  checkEquals(round(result[[existentCallIdToClient1Group3[3]]]$`NetAmount(USD)`[assetIdCall3=='AUD'],2),662755.81)
+  checkEquals(round(result[[existentCallIdToClient1Group3[3]]]$`NetAmount(USD)`[assetIdCall3=='CAD'],2),1337244.19)
+  checkEquals(round(result[[existentCallIdToClient1Group3[3]]]$Amount[assetIdCall3=='AUD'],2),697637.69)
+  checkEquals(round(result[[existentCallIdToClient1Group3[3]]]$Amount[assetIdCall3=='CAD'],2),1407625.47)
+  checkEquals(round(result[[existentCallIdToClient1Group3[3]]]$Quantity[assetIdCall3=='AUD'],2),934834.51)
+  checkEquals(round(result[[existentCallIdToClient1Group3[3]]]$Quantity[assetIdCall3=='CAD'],2),1872141.87)
+  checkEquals(result[[existentCallIdToClient1Group3[3]]]$Haircut[assetIdCall3=='AUD'],0.05)
+  checkEquals(result[[existentCallIdToClient1Group3[3]]]$Haircut[assetIdCall3=='CAD'],0.05)
+  checkEquals(result[[existentCallIdToClient1Group3[3]]]$CustodianAccount[assetIdCall3=='AUD'],'custac5')
+  checkEquals(result[[existentCallIdToClient1Group3[3]]]$CustodianAccount[assetIdCall3=='CAD'],'custac5')
+  
+  assetIdCall4<- result[[existentCallIdToClient1Group3[4]]]$Asset
+  checkTrue(setequal(assetIdCall4,'CAD'))
+  checkEquals(result[[existentCallIdToClient1Group3[4]]]$Name[assetIdCall4=='CAD'],'Canadian Dollar')
+  checkEquals(result[[existentCallIdToClient1Group3[4]]]$`NetAmount(USD)`[assetIdCall4=='CAD'],250)
+  checkEquals(round(result[[existentCallIdToClient1Group3[4]]]$Amount[assetIdCall4=='CAD'],2),263.16)
+  checkEquals(round(result[[existentCallIdToClient1Group3[4]]]$Quantity[assetIdCall4=='CAD'],2),350)
+  checkEquals(result[[existentCallIdToClient1Group3[4]]]$Haircut[assetIdCall4=='CAD'],0.05)
+  checkEquals(result[[existentCallIdToClient1Group3[4]]]$CustodianAccount[assetIdCall4=='CAD'],'custac5')
+  
+  assetIdCall5<- result[[existentCallIdToClient1Group3[5]]]$Asset
+  checkTrue(setequal(assetIdCall5,c('EUR','GBP')))
+  checkEquals(result[[existentCallIdToClient1Group3[5]]]$Name[assetIdCall5=='EUR'],'Euro')
+  checkEquals(result[[existentCallIdToClient1Group3[5]]]$Name[assetIdCall5=='GBP'],'British Pound')
+  checkEquals(round(result[[existentCallIdToClient1Group3[5]]]$`NetAmount(USD)`[assetIdCall5=='EUR'],2),2043010.75)
+  checkEquals(round(result[[existentCallIdToClient1Group3[5]]]$`NetAmount(USD)`[assetIdCall5=='GBP'],2),956989.25)
+  checkEquals(round(result[[existentCallIdToClient1Group3[5]]]$Amount[assetIdCall5=='EUR'],2),2150537.63)
+  checkEquals(round(result[[existentCallIdToClient1Group3[5]]]$Amount[assetIdCall5=='GBP'],2),1007357.10)
+  checkEquals(round(result[[existentCallIdToClient1Group3[5]]]$Quantity[assetIdCall5=='EUR'],2),2000000.00)
+  checkEquals(round(result[[existentCallIdToClient1Group3[5]]]$Quantity[assetIdCall5=='GBP'],2),785738.54)
+  checkEquals(result[[existentCallIdToClient1Group3[5]]]$Haircut[assetIdCall5=='EUR'],0.05)
+  checkEquals(result[[existentCallIdToClient1Group3[5]]]$Haircut[assetIdCall5=='GBP'],0.05)
+  checkEquals(result[[existentCallIdToClient1Group3[5]]]$CustodianAccount[assetIdCall5=='EUR'],'custac4')
+  checkEquals(result[[existentCallIdToClient1Group3[5]]]$CustodianAccount[assetIdCall5=='GBP'],'custac4')
+  
+  assetIdCall6<- result[[existentCallIdToClient1Group3[6]]]$Asset
+  checkTrue(setequal(assetIdCall6,c('AUD','HKD')))
+  checkEquals(result[[existentCallIdToClient1Group3[6]]]$Name[assetIdCall6=='AUD'],'Australian Dollar')
+  checkEquals(result[[existentCallIdToClient1Group3[6]]]$Name[assetIdCall6=='HKD'],'Hongkong Dollar')
+  checkEquals(round(result[[existentCallIdToClient1Group3[6]]]$`NetAmount(USD)`[assetIdCall6=='AUD'],2),755154.64)
+  checkEquals(round(result[[existentCallIdToClient1Group3[6]]]$`NetAmount(USD)`[assetIdCall6=='HKD'],2),244845.36)
+  checkEquals(round(result[[existentCallIdToClient1Group3[6]]]$Amount[assetIdCall6=='AUD'],2),794899.62)
+  checkEquals(round(result[[existentCallIdToClient1Group3[6]]]$Amount[assetIdCall6=='HKD'],2),257731.96)
+  checkEquals(result[[existentCallIdToClient1Group3[6]]]$Haircut[assetIdCall6=='AUD'],0.05)
+  checkEquals(result[[existentCallIdToClient1Group3[6]]]$Haircut[assetIdCall6=='HKD'],0.05)
+  checkEquals(round(result[[existentCallIdToClient1Group3[6]]]$Quantity[assetIdCall6=='AUD'],2),1065165.49)
+  checkEquals(round(result[[existentCallIdToClient1Group3[6]]]$Quantity[assetIdCall6=='HKD'],2),2000000.00)
+  checkEquals(result[[existentCallIdToClient1Group3[6]]]$CustodianAccount[assetIdCall6=='AUD'],'custac5')
+  checkEquals(result[[existentCallIdToClient1Group3[6]]]$CustodianAccount[assetIdCall6=='HKD'],'custac5')
+  
+}
+
+testLiquidityOnlyQuantityLimitAllocationAlgoByPassingAExistentClientIdAndAListOfExistentCallIdsGroup4<-function(){
+  # test input: a existent client id; a list of existent margin call ids, which direct to the client
+  callId <- existentCallIdToClient1Group4
+  clientId <- existentClientId1
+  pref <- prefForLiquidityOnlyAllocationAlgo
+  
+  # modify the database before running allocation function
+  executeCypher(path=modifyAssetQuantityCypherPath2)
+  
+  # test function: allocationAlgo(callId,clientId,pref)
+  input <- allocationAlgo(callId=callId,clientId=clientId,pref=pref)$input
+  result<- allocationAlgo(callId=callId,clientId=clientId,pref=pref)$output
+  
+  # restore the database after getting the result from allocation funciton
+  executeCypher(path=restoreAssetQuantityCypherPath2)
+  
+  # test output:
+  # check whether each margin call has been fulfilled with the correct asset and amount
+  assetIdCall1<- result[[existentCallIdToClient1Group4[1]]]$Asset
+  checkTrue(setequal(assetIdCall1,c('CAD')))
+  checkEquals(result[[existentCallIdToClient1Group4[1]]]$Asset[assetIdCall1=='CAD'],'CAD')
+  checkEquals(result[[existentCallIdToClient1Group4[1]]]$Name[assetIdCall1=='CAD'],'Canadian Dollar')
+  checkEquals(round(result[[existentCallIdToClient1Group4[1]]]$`NetAmount(USD)`[assetIdCall1=='CAD'],2),250)
+  checkEquals(round(result[[existentCallIdToClient1Group4[1]]]$Amount[assetIdCall1=='CAD'],2),263.16)
+  checkEquals(round(result[[existentCallIdToClient1Group4[1]]]$Quantity[assetIdCall1=='CAD'],2),350)
+  checkEquals(result[[existentCallIdToClient1Group4[1]]]$Haircut[assetIdCall1=='CAD'],0.05)
+  checkEquals(result[[existentCallIdToClient1Group4[1]]]$Currency[assetIdCall1=='CAD'],'CAD')
+  checkEquals(result[[existentCallIdToClient1Group4[1]]]$CustodianAccount[assetIdCall1=='CAD'],'custac5')
+  
+  assetIdCall2<- result[[existentCallIdToClient1Group4[2]]]$Asset
+  checkTrue(setequal(assetIdCall1,c('CAD')))
+  checkEquals(result[[existentCallIdToClient1Group4[2]]]$Asset[assetIdCall2=='CAD'],'CAD')
+  checkEquals(result[[existentCallIdToClient1Group4[2]]]$Name[assetIdCall2=='CAD'],'Canadian Dollar')
+  checkEquals(round(result[[existentCallIdToClient1Group4[2]]]$`NetAmount(USD)`[assetIdCall2=='CAD'],2),1000000)
+  checkEquals(round(result[[existentCallIdToClient1Group4[2]]]$Amount[assetIdCall2=='CAD'],2),1052631.58)
+  checkEquals(round(result[[existentCallIdToClient1Group4[2]]]$Quantity[assetIdCall2=='CAD'],0),1400000)
+  checkEquals(result[[existentCallIdToClient1Group4[2]]]$Haircut[assetIdCall2=='CAD'],0.05)
+  checkEquals(result[[existentCallIdToClient1Group4[2]]]$Currency[assetIdCall2=='CAD'],'CAD')
+  checkEquals(result[[existentCallIdToClient1Group4[2]]]$CustodianAccount[assetIdCall2=='CAD'],'custac5')
+  
+  assetIdCall3<- result[[existentCallIdToClient1Group4[3]]]$Asset
+  checkTrue(setequal(assetIdCall3,c('SG3260987684')))
+  checkEquals(result[[existentCallIdToClient1Group4[3]]]$Name[assetIdCall3=='SG3260987684'],'SINGAPORE GOVERNMENT')
+  checkEquals(round(result[[existentCallIdToClient1Group4[3]]]$`NetAmount(USD)`[assetIdCall3=='SG3260987684'],2),500000)
+  checkEquals(round(result[[existentCallIdToClient1Group4[3]]]$Amount[assetIdCall3=='SG3260987684'],2),571428.57)
+  checkEquals(result[[existentCallIdToClient1Group4[3]]]$Haircut[assetIdCall3=='SG3260987684'],0.125)
+  checkEquals(round(result[[existentCallIdToClient1Group4[3]]]$Quantity[assetIdCall3=='SG3260987684'],2),811.43)
+  checkEquals(result[[existentCallIdToClient1Group4[3]]]$Currency[assetIdCall3=='SG3260987684'],'SGD')
+  checkEquals(result[[existentCallIdToClient1Group4[3]]]$CustodianAccount[assetIdCall3=='SG3260987684'],'custac2')
+  
+  assetIdCall4<- result[[existentCallIdToClient1Group4[4]]]$Asset
+  checkTrue(setequal(assetIdCall3,c('SG3260987684')))
+  checkEquals(result[[existentCallIdToClient1Group4[4]]]$Name[assetIdCall4=='SG3260987684'],'SINGAPORE GOVERNMENT')
+  checkEquals(round(result[[existentCallIdToClient1Group4[4]]]$`NetAmount(USD)`[assetIdCall4=='SG3260987684'],2),700000)
+  checkEquals(round(result[[existentCallIdToClient1Group4[4]]]$Amount[assetIdCall4=='SG3260987684'],2),800000)
+  checkEquals(result[[existentCallIdToClient1Group4[4]]]$Haircut[assetIdCall4=='SG3260987684'],0.125)
+  checkEquals(round(result[[existentCallIdToClient1Group4[4]]]$Quantity[assetIdCall4=='SG3260987684'],2),1136)
+  checkEquals(result[[existentCallIdToClient1Group4[4]]]$Currency[assetIdCall4=='SG3260987684'],'SGD')
+  checkEquals(result[[existentCallIdToClient1Group4[4]]]$CustodianAccount[assetIdCall4=='SG3260987684'],'custac2')
+  
+  assetIdCall5<- result[[existentCallIdToClient1Group4[5]]]$Asset
+  checkTrue(setequal(assetIdCall5,c('EUR','US30231G1022','US3696041033','US38141G1040','US4592001014','US46625H1005','US5801351017')))
+  checkEquals(result[[existentCallIdToClient1Group4[5]]]$Name[assetIdCall5=='EUR'],'Euro')
+  checkEquals(result[[existentCallIdToClient1Group4[5]]]$Name[assetIdCall5=='US30231G1022'],'EXXON MOBIL CORP')
+  checkEquals(result[[existentCallIdToClient1Group4[5]]]$Name[assetIdCall5=='US3696041033'],'GENERAL ELECTRIC CO')
+  checkEquals(result[[existentCallIdToClient1Group4[5]]]$Name[assetIdCall5=='US38141G1040'],'GOLDMAN SACHS GROUP INC')
+  checkEquals(result[[existentCallIdToClient1Group4[5]]]$Name[assetIdCall5=='US4592001014'],'INTL BUSINESS MACHINES CORP')
+  checkEquals(result[[existentCallIdToClient1Group4[5]]]$Name[assetIdCall5=='US46625H1005'],'JPMORGAN CHASE & CO')
+  checkEquals(result[[existentCallIdToClient1Group4[5]]]$Name[assetIdCall5=='US5801351017'],'MCDONALD\'S CORP')
+  
+  checkEquals(round(result[[existentCallIdToClient1Group4[5]]]$`NetAmount(USD)`[assetIdCall5=='EUR'],2),788635.0)
+  checkEquals(round(result[[existentCallIdToClient1Group4[5]]]$`NetAmount(USD)`[assetIdCall5=='US30231G1022'],2),29267.0)
+  checkEquals(round(result[[existentCallIdToClient1Group4[5]]]$`NetAmount(USD)`[assetIdCall5=='US3696041033'],2),10881.5)
+  checkEquals(round(result[[existentCallIdToClient1Group4[5]]]$`NetAmount(USD)`[assetIdCall5=='US38141G1040'],2),54701.5)
+  checkEquals(round(result[[existentCallIdToClient1Group4[5]]]$`NetAmount(USD)`[assetIdCall5=='US4592001014'],2),52020.5)
+  checkEquals(round(result[[existentCallIdToClient1Group4[5]]]$`NetAmount(USD)`[assetIdCall5=='US46625H1005'],2),21161.0)
+  checkEquals(round(result[[existentCallIdToClient1Group4[5]]]$`NetAmount(USD)`[assetIdCall5=='US5801351017'],2),43333.5)
+  
+  checkEquals(round(result[[existentCallIdToClient1Group4[5]]]$Amount[assetIdCall5=='EUR'],2),830142.11)
+  checkEquals(round(result[[existentCallIdToClient1Group4[5]]]$Amount[assetIdCall5=='US30231G1022'],2),41810.00)
+  checkEquals(round(result[[existentCallIdToClient1Group4[5]]]$Amount[assetIdCall5=='US3696041033'],2),15545.00)
+  checkEquals(round(result[[existentCallIdToClient1Group4[5]]]$Amount[assetIdCall5=='US38141G1040'],2),78145.00)
+  checkEquals(round(result[[existentCallIdToClient1Group4[5]]]$Amount[assetIdCall5=='US4592001014'],2),74315.00)
+  checkEquals(round(result[[existentCallIdToClient1Group4[5]]]$Amount[assetIdCall5=='US46625H1005'],2),30230.00)
+  checkEquals(round(result[[existentCallIdToClient1Group4[5]]]$Amount[assetIdCall5=='US5801351017'],2),61905.00)
+  
+  checkEquals(round(result[[existentCallIdToClient1Group4[5]]]$Quantity[assetIdCall5=='EUR'],2),772032.16)
+  checkEquals(round(result[[existentCallIdToClient1Group4[5]]]$Quantity[assetIdCall5=='US30231G1022'],2),500.00)
+  checkEquals(round(result[[existentCallIdToClient1Group4[5]]]$Quantity[assetIdCall5=='US3696041033'],2),500.00)
+  checkEquals(round(result[[existentCallIdToClient1Group4[5]]]$Quantity[assetIdCall5=='US38141G1040'],2),500.00)
+  checkEquals(round(result[[existentCallIdToClient1Group4[5]]]$Quantity[assetIdCall5=='US4592001014'],2),500.00)
+  checkEquals(round(result[[existentCallIdToClient1Group4[5]]]$Quantity[assetIdCall5=='US46625H1005'],2),500.00)
+  checkEquals(round(result[[existentCallIdToClient1Group4[5]]]$Quantity[assetIdCall5=='US5801351017'],2),500.00)
+  
+  checkEquals(round(result[[existentCallIdToClient1Group4[5]]]$Haircut[assetIdCall5=='EUR'],2),0.05)
+  checkEquals(round(result[[existentCallIdToClient1Group4[5]]]$Haircut[assetIdCall5=='US30231G1022'],2),0.3)
+  checkEquals(round(result[[existentCallIdToClient1Group4[5]]]$Haircut[assetIdCall5=='US3696041033'],2),0.3)
+  checkEquals(round(result[[existentCallIdToClient1Group4[5]]]$Haircut[assetIdCall5=='US38141G1040'],2),0.3)
+  checkEquals(round(result[[existentCallIdToClient1Group4[5]]]$Haircut[assetIdCall5=='US4592001014'],2),0.3)
+  checkEquals(round(result[[existentCallIdToClient1Group4[5]]]$Haircut[assetIdCall5=='US46625H1005'],2),0.3)
+  checkEquals(round(result[[existentCallIdToClient1Group4[5]]]$Haircut[assetIdCall5=='US5801351017'],2),0.3)
+  
+  checkEquals(result[[existentCallIdToClient1Group4[5]]]$CustodianAccount[assetIdCall5=='EUR'],'custac4')
+  checkEquals(result[[existentCallIdToClient1Group4[5]]]$CustodianAccount[assetIdCall5=='US30231G1022'],'custac3')
+  checkEquals(result[[existentCallIdToClient1Group4[5]]]$CustodianAccount[assetIdCall5=='US3696041033'],'custac3')
+  checkEquals(result[[existentCallIdToClient1Group4[5]]]$CustodianAccount[assetIdCall5=='US38141G1040'],'custac3')
+  checkEquals(result[[existentCallIdToClient1Group4[5]]]$CustodianAccount[assetIdCall5=='US4592001014'],'custac3')
+  checkEquals(result[[existentCallIdToClient1Group4[5]]]$CustodianAccount[assetIdCall5=='US46625H1005'],'custac3')
+  checkEquals(result[[existentCallIdToClient1Group4[5]]]$CustodianAccount[assetIdCall5=='US5801351017'],'custac3')
+  
+}
+
+
+
 
