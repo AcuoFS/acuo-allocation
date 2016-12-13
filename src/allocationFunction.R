@@ -209,7 +209,16 @@ if(all(pref==c(0,0,1))){  # In case of OW-171,173,174, pref=(0,0,1,0)
   #  idx.int <- 1:var.num
   #  set.type(lps.model,idx.int,type='integer')    # set integer variables
     set.semicont(lps.model,1:var.num,TRUE)        # set semi-continuous variables
-    set.bounds(lps.model,lower=rep(1,var.num),upper=minUnitQuantity.vec[idx.eli])
+    # set different lower bounds for different types of assets
+    # minUnitValue <= 0.001, set 1000
+    # minUnitValue <= 10, set 10
+    # minUnitValue > 10, set 1
+    lower.bound <- rep(0,var.num)
+    lower.bound[which(minUnitValue.vec[idx.eli] <= 0.001)] <- 1000
+    lower.bound[which(minUnitValue.vec[idx.eli] <= 10)] <- 10
+    lower.bound[which(minUnitValue.vec[idx.eli] >10)] <- 1
+    
+    set.bounds(lps.model,lower=lower.bound,upper=minUnitQuantity.vec[idx.eli])
                                                   # set variables lower/upper bounds
     lp.control(lps.model,epsb=1e-30,epsd=1e-30)   # modify tolerance
     solve(lps.model)                              # solve model
@@ -351,24 +360,10 @@ else if(all(pref==c(0,1,0))){
     names(f.obj) <- paste('var',1:var.num)
     
     
-    ###### USE THE PACKAGE 'lpSolveAPI' #############################
-    # decision variables: x, qunatity used of each asset for each margin call
-    # 
+    ###### USE THE PACKAGE 'lpSolveAPI' ############################
+    #
     # objective function: f.obj, minimize  x*value*liquidity
-    # 
-    # variable bounds: a < x < x_quantity
-    # variable kind: semi-continuous, value below 'a' will automately set to 0
     #
-    # constraints: A*x (direction) b
-    # A-- constraint matrix: lp.con;
-    # b-- constraint value: lp.rhs;
-    # direction -- constraint direction: lp.dir.
-    #
-    # Constraints are specified below:
-    # 1. quantity limit of each asset for all margin calls(asset.num)
-    #    total quantity used <= total quantity (for an asset)
-    # 2. margin call requirement (call.num)
-    #    total net amount of assets for one margin call >= call amount
     ######
     
     # constraints
@@ -387,13 +382,23 @@ else if(all(pref==c(0,1,0))){
     #  idx.int <- 1:var.num
     #  set.type(lps.model,idx.int,type='integer') # set integer variables
     set.semicont(lps.model,1:var.num,TRUE)        # set semi-continuous variables
-    set.bounds(lps.model,lower=rep(1,var.num),upper=minUnitQuantity.vec[idx.eli])
+    
+    # set different lower bounds for different types of assets
+    # minUnitValue <= 0.001, set 1000
+    # minUnitValue <= 10, set 10
+    # minUnitValue > 10, set 1
+    lower.bound <- rep(0,var.num)
+    lower.bound[which(minUnitValue.vec[idx.eli] <= 0.001)] <- 1000
+    lower.bound[which(minUnitValue.vec[idx.eli] <= 10)] <- 10
+    lower.bound[which(minUnitValue.vec[idx.eli] >10)] <- 1
+    
+    set.bounds(lps.model,lower=lower.bound,upper=minUnitQuantity.vec[idx.eli])
     # set variables lower/upper bounds
     lp.control(lps.model,epsb=1e-30,epsd=1e-30)   # modify tolerance
     solve(lps.model)                              # solve model
-    #get.objective(lps.model) 
+    
     lpSolveAPI.solution <- get.variables(lps.model)
-    # get solution
+    
     result.mat <- matrix(0,nrow=call.num,ncol=asset.num,dimnames=list(callId,assetId))
     result.mat <- t(result.mat)
     result.mat[idx.eli]<-lpSolveAPI.solution
