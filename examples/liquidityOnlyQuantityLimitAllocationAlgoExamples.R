@@ -6,7 +6,7 @@ source('src/allocationFunction.R')
 callId1 <- c('mc1','mc2','mc3','mc5'); clientId1 <- 'c1'
 callId2 <- c('mc1','mc2','mc3','mc4','mc5','mc8') ; clientId2 <- 'c1'
 callId3 <- c('mc4','mc8','mc12','mc13','mc16') ; clientId3 <- 'c1'
-callId4 <- c('mc2','mc3','mc8','mc12','mc13','mc16','mc17') ; clientId4 <- 'c1'
+callId4 <- c('mc2','mc9','mc10','mc11','mc14','mc15','mc17','mc19','mc20') ; clientId4 <- 'c1'
 
 modifyAssetQuantityCypherPath1 <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/modify1AssetQuantityToSimulateLiquidityOnlyQuantityLimitAllocationAlgo.load'
 restoreAssetQuantityCypherPath1 <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/restore1AssetQuantityDueToSimulateLiquidityOnlyQuantityLimitAllocationAlgo.load'
@@ -55,11 +55,17 @@ liquidityOnlyQuantityLimitAllocationAlgoEx4 <- function(){
   
   return(allocation.result)
 }
+liquidityOnlyQuantityLimitAllocationAlgoEx5 <- function(){
+  
+  allocation.result <- allocationAlgo(callId=callId4,clientId=clientId4,pref=c(0,1,0))
+  
+  return(allocation.result)
+}
 
 #### EXAMPLES RESULTS ####################
 liquidityOnlyQuantityLimitAllocationAlgoEx1()
 liquidityOnlyQuantityLimitAllocationAlgoEx2()
 liquidityOnlyQuantityLimitAllocationAlgoEx3()
 liquidityOnlyQuantityLimitAllocationAlgoEx4()
-
+liquidityOnlyQuantityLimitAllocationAlgoEx5()
 
