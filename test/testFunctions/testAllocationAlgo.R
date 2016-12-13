@@ -389,6 +389,240 @@ testCostOnlyQuantityLimitAllocationAlgoByPassingAExistentClientIdAndAListOfExist
   
 }
 
+testCostOnlyQuantityLimitAllocationAlgoByPassingAExistentClientIdAndAListOfExistentCallIdsGroup5<-function(){
+  # test input: a existent client id; a list of existent margin call ids, which direct to the client
+  callId <- existentCallIdToClient1Group5
+  clientId <- existentClientId1
+  pref <- prefForCostOnlyAllocationAlgo
+  
+  # test function: allocationAlgo(callId,clientId,pref)
+  input <- allocationAlgo(callId=callId,clientId=clientId,pref=pref)$input
+  result<- allocationAlgo(callId=callId,clientId=clientId,pref=pref)$output
+  
+  # test output:
+  # check whether each margin call has been fulfilled with the correct asset and amount
+  assetIdCall1<- result[[existentCallIdToClient1Group5[1]]]$Asset
+  checkTrue(setequal(assetIdCall1,c('SGD')))
+  checkEquals(result[[existentCallIdToClient1Group5[1]]]$Asset[assetIdCall1=='SGD'],'SGD')
+  checkEquals(result[[existentCallIdToClient1Group5[1]]]$Name[assetIdCall1=='SGD'],'Singapore Dollar')
+  checkEquals(round(result[[existentCallIdToClient1Group5[1]]]$`NetAmount(USD)`[assetIdCall1=='SGD'],2),1500000)
+  checkEquals(round(result[[existentCallIdToClient1Group5[1]]]$Amount[assetIdCall1=='SGD'],2),1578947.37)
+  checkEquals(round(result[[existentCallIdToClient1Group5[1]]]$Quantity[assetIdCall1=='SGD'],2),2242105.26)
+  checkEquals(result[[existentCallIdToClient1Group5[1]]]$Haircut[assetIdCall1=='SGD'],0.05)
+  checkEquals(result[[existentCallIdToClient1Group5[1]]]$Currency[assetIdCall1=='SGD'],'SGD')
+  checkEquals(result[[existentCallIdToClient1Group5[1]]]$CustodianAccount[assetIdCall1=='SGD'],'custac4')
+  
+  assetIdCall2<- result[[existentCallIdToClient1Group5[2]]]$Asset
+  checkTrue(setequal(assetIdCall2,c('SGD')))
+  checkEquals(result[[existentCallIdToClient1Group5[2]]]$Asset[assetIdCall2=='SGD'],'SGD')
+  checkEquals(result[[existentCallIdToClient1Group5[2]]]$Name[assetIdCall2=='SGD'],'Singapore Dollar')
+  checkEquals(round(result[[existentCallIdToClient1Group5[2]]]$`NetAmount(USD)`[assetIdCall2=='SGD'],2),1000000)
+  checkEquals(round(result[[existentCallIdToClient1Group5[2]]]$Amount[assetIdCall2=='SGD'],2),1052631.58)
+  checkEquals(round(result[[existentCallIdToClient1Group5[2]]]$Quantity[assetIdCall2=='SGD'],2),1494736.84)
+  checkEquals(result[[existentCallIdToClient1Group5[2]]]$Haircut[assetIdCall2=='SGD'],0.05)
+  checkEquals(result[[existentCallIdToClient1Group5[2]]]$Currency[assetIdCall2=='SGD'],'SGD')
+  checkEquals(result[[existentCallIdToClient1Group5[2]]]$CustodianAccount[assetIdCall2=='SGD'],'custac4')
+  
+  assetIdCall3<- result[[existentCallIdToClient1Group5[3]]]$Asset
+  checkTrue(setequal(assetIdCall3,'CAD'))
+  checkEquals(result[[existentCallIdToClient1Group5[3]]]$Name[assetIdCall3=='CAD'],'Canadian Dollar')
+  checkEquals(round(result[[existentCallIdToClient1Group5[3]]]$`NetAmount(USD)`[assetIdCall3=='CAD'],2),1000000)
+  checkEquals(round(result[[existentCallIdToClient1Group5[3]]]$Amount[assetIdCall3=='CAD'],2),1052631.58)
+  checkEquals(round(result[[existentCallIdToClient1Group5[3]]]$Quantity[assetIdCall3=='CAD'],2),1400000)
+  checkEquals(result[[existentCallIdToClient1Group5[3]]]$Haircut[assetIdCall3=='CAD'],0.05)
+  checkEquals(result[[existentCallIdToClient1Group5[3]]]$CustodianAccount[assetIdCall3=='CAD'],'custac5')
+  
+  assetIdCall4<- result[[existentCallIdToClient1Group5[4]]]$Asset
+  checkTrue(setequal(assetIdCall4,'CAD'))
+  checkEquals(result[[existentCallIdToClient1Group5[4]]]$Name[assetIdCall4=='CAD'],'Canadian Dollar')
+  checkEquals(round(result[[existentCallIdToClient1Group5[4]]]$`NetAmount(USD)`[assetIdCall4=='CAD'],2),1000000)
+  checkEquals(round(result[[existentCallIdToClient1Group5[4]]]$Amount[assetIdCall4=='CAD'],2),1052631.58)
+  checkEquals(round(result[[existentCallIdToClient1Group5[4]]]$Quantity[assetIdCall4=='CAD'],2),1400000)
+  checkEquals(result[[existentCallIdToClient1Group5[4]]]$Haircut[assetIdCall4=='CAD'],0.05)
+  checkEquals(result[[existentCallIdToClient1Group5[4]]]$CustodianAccount[assetIdCall4=='CAD'],'custac5')
+  
+  
+  assetIdCall5<- result[[existentCallIdToClient1Group5[5]]]$Asset
+  checkTrue(setequal(assetIdCall5,c('DE0001104636','DE0001119584')))
+  checkEquals(result[[existentCallIdToClient1Group5[5]]]$Name[assetIdCall5=='DE0001104636'],'BUNDESSCHATZANWEISUNGEN')
+  checkEquals(result[[existentCallIdToClient1Group5[5]]]$Name[assetIdCall5=='DE0001119584'],'GERMAN TREASURY BILL')
+  checkEquals(round(result[[existentCallIdToClient1Group5[5]]]$`NetAmount(USD)`[assetIdCall5=='DE0001104636'],2),505370.23)
+  checkEquals(round(result[[existentCallIdToClient1Group5[5]]]$`NetAmount(USD)`[assetIdCall5=='DE0001119584'],2),494629.77)
+  checkEquals(round(result[[existentCallIdToClient1Group5[5]]]$Amount[assetIdCall5=='DE0001104636'],2),567831.72)
+  checkEquals(round(result[[existentCallIdToClient1Group5[5]]]$Amount[assetIdCall5=='DE0001119584'],2),549588.63)
+  checkEquals(result[[existentCallIdToClient1Group5[5]]]$Haircut[assetIdCall5=='DE0001104636'],0.11)
+  checkEquals(result[[existentCallIdToClient1Group5[5]]]$Haircut[assetIdCall5=='DE0001119584'],0.10)
+  checkEquals(round(result[[existentCallIdToClient1Group5[5]]]$Quantity[assetIdCall5=='DE0001104636'],2),52808350.27)
+  checkEquals(round(result[[existentCallIdToClient1Group5[5]]]$Quantity[assetIdCall5=='DE0001119584'],2),51111742.51)
+  checkEquals(result[[existentCallIdToClient1Group5[5]]]$Currency[assetIdCall5=='DE0001104636'],'EUR')
+  checkEquals(result[[existentCallIdToClient1Group5[5]]]$Currency[assetIdCall5=='DE0001119584'],'EUR')
+  checkEquals(result[[existentCallIdToClient1Group5[5]]]$CustodianAccount[assetIdCall5=='DE0001104636'],'custac1')
+  checkEquals(result[[existentCallIdToClient1Group5[5]]]$CustodianAccount[assetIdCall5=='DE0001119584'],'custac1')
+  
+  assetIdCall6<- result[[existentCallIdToClient1Group5[6]]]$Asset
+  checkTrue(setequal(assetIdCall6,c('DE0001119584','GB00B4YRFP41')))
+  checkEquals(result[[existentCallIdToClient1Group5[6]]]$Name[assetIdCall6=='DE0001119584'],'GERMAN TREASURY BILL')
+  checkEquals(result[[existentCallIdToClient1Group5[6]]]$Name[assetIdCall6=='GB00B4YRFP41'],'UK TREASURY BILL GBP')
+  checkEquals(round(result[[existentCallIdToClient1Group5[6]]]$`NetAmount(USD)`[assetIdCall6=='DE0001119584'],2),473112.17)
+  checkEquals(round(result[[existentCallIdToClient1Group5[6]]]$`NetAmount(USD)`[assetIdCall6=='GB00B4YRFP41'],2),476887.83)
+  checkEquals(round(result[[existentCallIdToClient1Group5[6]]]$Amount[assetIdCall6=='DE0001119584'],2),525680.19)
+  checkEquals(round(result[[existentCallIdToClient1Group5[6]]]$Amount[assetIdCall6=='GB00B4YRFP41'],2),529875.37)
+  checkEquals(round(result[[existentCallIdToClient1Group5[6]]]$Quantity[assetIdCall6=='DE0001119584'],2),48888257.49)
+  checkEquals(round(result[[existentCallIdToClient1Group5[6]]]$Quantity[assetIdCall6=='GB00B4YRFP41'],2),41330278.67)
+  
+  checkEquals(result[[existentCallIdToClient1Group5[6]]]$Haircut[assetIdCall6=='DE0001119584'],0.1)
+  checkEquals(result[[existentCallIdToClient1Group5[6]]]$Haircut[assetIdCall6=='GB00B4YRFP41'],0.1)
+  checkEquals(result[[existentCallIdToClient1Group5[6]]]$Currency[assetIdCall6=='DE0001119584'],'EUR')
+  checkEquals(result[[existentCallIdToClient1Group5[6]]]$Currency[assetIdCall6=='GB00B4YRFP41'],'GBP')
+  checkEquals(result[[existentCallIdToClient1Group5[6]]]$CustodianAccount[assetIdCall6=='DE0001119584'],'custac1')
+  checkEquals(result[[existentCallIdToClient1Group5[6]]]$CustodianAccount[assetIdCall6=='GB00B4YRFP41'],'custac2')
+  
+  
+  assetIdCall7<- result[[existentCallIdToClient1Group5[7]]]$Asset
+  checkTrue(setequal(assetIdCall7,c('JP1023481F17','JP1023561F93','JP1023621G33','JP1051041C55','JP1051161DC4','JP1051271G37','JP1103121AC2',
+                                    'US30231G1022','US3696041033','US38141G1040','US4592001014','US46625H1005','US5801351017','US912796JE09')))
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$`NetAmount(USD)`[assetIdCall7=='JP1023481F17'],2),6716.42)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$`NetAmount(USD)`[assetIdCall7=='JP1023561F93'],2),6716.42)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$`NetAmount(USD)`[assetIdCall7=='JP1023621G33'],2),6716.42)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$`NetAmount(USD)`[assetIdCall7=='JP1051041C55'],2),6716.42)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$`NetAmount(USD)`[assetIdCall7=='JP1051161DC4'],2),6716.42)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$`NetAmount(USD)`[assetIdCall7=='JP1051271G37'],2),6716.42)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$`NetAmount(USD)`[assetIdCall7=='JP1103121AC2'],2),6716.42)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$`NetAmount(USD)`[assetIdCall7=='US30231G1022'],2),58534.00)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$`NetAmount(USD)`[assetIdCall7=='US3696041033'],2),21763.00)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$`NetAmount(USD)`[assetIdCall7=='US38141G1040'],2),109403.00)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$`NetAmount(USD)`[assetIdCall7=='US4592001014'],2),104041.00)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$`NetAmount(USD)`[assetIdCall7=='US46625H1005'],2),42322.00)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$`NetAmount(USD)`[assetIdCall7=='US5801351017'],2),86667.00)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$`NetAmount(USD)`[assetIdCall7=='US912796JE09'],2),680255.07)
+  
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$Amount[assetIdCall7=='JP1023481F17'],2),7462.69)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$Amount[assetIdCall7=='JP1023561F93'],2),7462.69)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$Amount[assetIdCall7=='JP1023621G33'],2),7462.69)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$Amount[assetIdCall7=='JP1051041C55'],2),7462.69)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$Amount[assetIdCall7=='JP1051161DC4'],2),7462.69)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$Amount[assetIdCall7=='JP1051271G37'],2),7462.69)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$Amount[assetIdCall7=='JP1103121AC2'],2),7462.69)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$Amount[assetIdCall7=='US30231G1022'],2),83620.00)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$Amount[assetIdCall7=='US3696041033'],2),31090.00)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$Amount[assetIdCall7=='US38141G1040'],2),156290.00)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$Amount[assetIdCall7=='US4592001014'],2),148630.00)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$Amount[assetIdCall7=='US46625H1005'],2),60460.00)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$Amount[assetIdCall7=='US5801351017'],2),123810.00)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$Amount[assetIdCall7=='US912796JE09'],2),683673.44)
+  
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$Quantity[assetIdCall7=='JP1023481F17'],2),17)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$Quantity[assetIdCall7=='JP1023561F93'],2),17)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$Quantity[assetIdCall7=='JP1023621G33'],2),17)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$Quantity[assetIdCall7=='JP1051041C55'],2),17)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$Quantity[assetIdCall7=='JP1051161DC4'],2),17)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$Quantity[assetIdCall7=='JP1051271G37'],2),17)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$Quantity[assetIdCall7=='JP1103121AC2'],2),17)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$Quantity[assetIdCall7=='US30231G1022'],2),1000.00)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$Quantity[assetIdCall7=='US3696041033'],2),1000.00)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$Quantity[assetIdCall7=='US38141G1040'],2),1000.00)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$Quantity[assetIdCall7=='US4592001014'],2),1000.00)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$Quantity[assetIdCall7=='US46625H1005'],2),1000.00)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$Quantity[assetIdCall7=='US5801351017'],2),1000.00)
+  checkEquals(round(result[[existentCallIdToClient1Group5[7]]]$Quantity[assetIdCall7=='US912796JE09'],2),6836.73)
+  
+  
+  checkEquals(result[[existentCallIdToClient1Group5[7]]]$CustodianAccount[assetIdCall7=='JP1023481F17'],'custac1')
+  checkEquals(result[[existentCallIdToClient1Group5[7]]]$CustodianAccount[assetIdCall7=='JP1023561F93'],'custac1')
+  checkEquals(result[[existentCallIdToClient1Group5[7]]]$CustodianAccount[assetIdCall7=='JP1023621G33'],'custac1')
+  checkEquals(result[[existentCallIdToClient1Group5[7]]]$CustodianAccount[assetIdCall7=='JP1051041C55'],'custac1')
+  checkEquals(result[[existentCallIdToClient1Group5[7]]]$CustodianAccount[assetIdCall7=='JP1051161DC4'],'custac1')
+  checkEquals(result[[existentCallIdToClient1Group5[7]]]$CustodianAccount[assetIdCall7=='JP1051271G37'],'custac1')
+  checkEquals(result[[existentCallIdToClient1Group5[7]]]$CustodianAccount[assetIdCall7=='JP1103121AC2'],'custac1')
+  checkEquals(result[[existentCallIdToClient1Group5[7]]]$CustodianAccount[assetIdCall7=='US30231G1022'],'custac3')
+  checkEquals(result[[existentCallIdToClient1Group5[7]]]$CustodianAccount[assetIdCall7=='US3696041033'],'custac3')
+  checkEquals(result[[existentCallIdToClient1Group5[7]]]$CustodianAccount[assetIdCall7=='US38141G1040'],'custac3')
+  checkEquals(result[[existentCallIdToClient1Group5[7]]]$CustodianAccount[assetIdCall7=='US4592001014'],'custac3')
+  checkEquals(result[[existentCallIdToClient1Group5[7]]]$CustodianAccount[assetIdCall7=='US46625H1005'],'custac3')
+  checkEquals(result[[existentCallIdToClient1Group5[7]]]$CustodianAccount[assetIdCall7=='US5801351017'],'custac3')
+  checkEquals(result[[existentCallIdToClient1Group5[7]]]$CustodianAccount[assetIdCall7=='US912796JE09'],'custac1')
+  
+  checkEquals(result[[existentCallIdToClient1Group5[7]]]$Currency[assetIdCall7=='JP1023481F17'],'JPY')
+  checkEquals(result[[existentCallIdToClient1Group5[7]]]$Currency[assetIdCall7=='JP1023561F93'],'JPY')
+  checkEquals(result[[existentCallIdToClient1Group5[7]]]$Currency[assetIdCall7=='JP1023621G33'],'JPY')
+  checkEquals(result[[existentCallIdToClient1Group5[7]]]$Currency[assetIdCall7=='JP1051041C55'],'JPY')
+  checkEquals(result[[existentCallIdToClient1Group5[7]]]$Currency[assetIdCall7=='JP1051161DC4'],'JPY')
+  checkEquals(result[[existentCallIdToClient1Group5[7]]]$Currency[assetIdCall7=='JP1051271G37'],'JPY')
+  checkEquals(result[[existentCallIdToClient1Group5[7]]]$Currency[assetIdCall7=='JP1103121AC2'],'JPY')
+  checkEquals(result[[existentCallIdToClient1Group5[7]]]$Currency[assetIdCall7=='US30231G1022'],'USD')
+  checkEquals(result[[existentCallIdToClient1Group5[7]]]$Currency[assetIdCall7=='US3696041033'],'USD')
+  checkEquals(result[[existentCallIdToClient1Group5[7]]]$Currency[assetIdCall7=='US38141G1040'],'USD')
+  checkEquals(result[[existentCallIdToClient1Group5[7]]]$Currency[assetIdCall7=='US4592001014'],'USD')
+  checkEquals(result[[existentCallIdToClient1Group5[7]]]$Currency[assetIdCall7=='US46625H1005'],'USD')
+  checkEquals(result[[existentCallIdToClient1Group5[7]]]$Currency[assetIdCall7=='US5801351017'],'USD')
+  checkEquals(result[[existentCallIdToClient1Group5[7]]]$Currency[assetIdCall7=='US912796JE09'],'USD')
+  
+  assetIdCall8<- result[[existentCallIdToClient1Group5[8]]]$Asset
+  checkTrue(setequal(assetIdCall8,c('GB00B4YRFP41')))
+  checkEquals(result[[existentCallIdToClient1Group5[8]]]$Name[assetIdCall8=='GB00B4YRFP41'],'UK TREASURY BILL GBP')
+  checkEquals(round(result[[existentCallIdToClient1Group5[8]]]$`NetAmount(USD)`[assetIdCall8=='GB00B4YRFP41'],2),500000)
+  checkEquals(round(result[[existentCallIdToClient1Group5[8]]]$Amount[assetIdCall8=='GB00B4YRFP41'],2),555555.56)
+  checkEquals(round(result[[existentCallIdToClient1Group5[8]]]$Quantity[assetIdCall8=='GB00B4YRFP41'],2),43333333.33)
+  checkEquals(result[[existentCallIdToClient1Group5[8]]]$Haircut[assetIdCall8=='GB00B4YRFP41'],0.1)
+  checkEquals(result[[existentCallIdToClient1Group5[8]]]$CustodianAccount[assetIdCall8=='GB00B4YRFP41'],'custac2')
+  
+  
+  assetIdCall9<- result[[existentCallIdToClient1Group5[9]]]$Asset
+  checkTrue(setequal(assetIdCall9,c('GB00B4YRFP41','JP1023481F17','JP1023561F93','JP1023621G33','JP1051041C55','JP1051161DC4',
+                                    'JP1051271G37','JP1103121AC2','US912796JE09')))
+  checkEquals(round(result[[existentCallIdToClient1Group5[9]]]$`NetAmount(USD)`[assetIdCall9=='GB00B4YRFP41'],2),176958.32)
+  checkEquals(round(result[[existentCallIdToClient1Group5[9]]]$`NetAmount(USD)`[assetIdCall9=='JP1023481F17'],2),1185.25)
+  checkEquals(round(result[[existentCallIdToClient1Group5[9]]]$`NetAmount(USD)`[assetIdCall9=='JP1023561F93'],2),1185.25)
+  checkEquals(round(result[[existentCallIdToClient1Group5[9]]]$`NetAmount(USD)`[assetIdCall9=='JP1023621G33'],2),1185.25)
+  checkEquals(round(result[[existentCallIdToClient1Group5[9]]]$`NetAmount(USD)`[assetIdCall9=='JP1051041C55'],2),1185.25)
+  checkEquals(round(result[[existentCallIdToClient1Group5[9]]]$`NetAmount(USD)`[assetIdCall9=='JP1051161DC4'],2),1185.25)
+  checkEquals(round(result[[existentCallIdToClient1Group5[9]]]$`NetAmount(USD)`[assetIdCall9=='JP1051271G37'],2),1185.25)
+  checkEquals(round(result[[existentCallIdToClient1Group5[9]]]$`NetAmount(USD)`[assetIdCall9=='JP1103121AC2'],2),1185.25)
+  checkEquals(round(result[[existentCallIdToClient1Group5[9]]]$`NetAmount(USD)`[assetIdCall9=='US912796JE09'],2),314744.93)
+  
+  checkEquals(round(result[[existentCallIdToClient1Group5[9]]]$Amount[assetIdCall9=='GB00B4YRFP41'],2),196620.36)
+  checkEquals(round(result[[existentCallIdToClient1Group5[9]]]$Amount[assetIdCall9=='JP1023481F17'],2),1316.94)
+  checkEquals(round(result[[existentCallIdToClient1Group5[9]]]$Amount[assetIdCall9=='JP1023561F93'],2),1316.94)
+  checkEquals(round(result[[existentCallIdToClient1Group5[9]]]$Amount[assetIdCall9=='JP1023621G33'],2),1316.94)
+  checkEquals(round(result[[existentCallIdToClient1Group5[9]]]$Amount[assetIdCall9=='JP1051041C55'],2),1316.94)
+  checkEquals(round(result[[existentCallIdToClient1Group5[9]]]$Amount[assetIdCall9=='JP1051161DC4'],2),1316.94)
+  checkEquals(round(result[[existentCallIdToClient1Group5[9]]]$Amount[assetIdCall9=='JP1051271G37'],2),1316.94)
+  checkEquals(round(result[[existentCallIdToClient1Group5[9]]]$Amount[assetIdCall9=='JP1103121AC2'],2),1316.94)
+  checkEquals(round(result[[existentCallIdToClient1Group5[9]]]$Amount[assetIdCall9=='US912796JE09'],2),316326.56)
+  
+  checkEquals(round(result[[existentCallIdToClient1Group5[9]]]$Quantity[assetIdCall9=='GB00B4YRFP41'],2),15336388.00)
+  checkEquals(round(result[[existentCallIdToClient1Group5[9]]]$Quantity[assetIdCall9=='JP1023481F17'],2),3)
+  checkEquals(round(result[[existentCallIdToClient1Group5[9]]]$Quantity[assetIdCall9=='JP1023561F93'],2),3)
+  checkEquals(round(result[[existentCallIdToClient1Group5[9]]]$Quantity[assetIdCall9=='JP1023621G33'],2),3)
+  checkEquals(round(result[[existentCallIdToClient1Group5[9]]]$Quantity[assetIdCall9=='JP1051041C55'],2),3)
+  checkEquals(round(result[[existentCallIdToClient1Group5[9]]]$Quantity[assetIdCall9=='JP1051161DC4'],2),3)
+  checkEquals(round(result[[existentCallIdToClient1Group5[9]]]$Quantity[assetIdCall9=='JP1051271G37'],2),3)
+  checkEquals(round(result[[existentCallIdToClient1Group5[9]]]$Quantity[assetIdCall9=='JP1103121AC2'],2),3)
+  checkEquals(round(result[[existentCallIdToClient1Group5[9]]]$Quantity[assetIdCall9=='US912796JE09'],2),3163.27)
+  
+  checkEquals(result[[existentCallIdToClient1Group5[9]]]$CustodianAccount[assetIdCall9=='GB00B4YRFP41'],'custac2')
+  checkEquals(result[[existentCallIdToClient1Group5[9]]]$CustodianAccount[assetIdCall9=='JP1023481F17'],'custac1')
+  checkEquals(result[[existentCallIdToClient1Group5[9]]]$CustodianAccount[assetIdCall9=='JP1023561F93'],'custac1')
+  checkEquals(result[[existentCallIdToClient1Group5[9]]]$CustodianAccount[assetIdCall9=='JP1023621G33'],'custac1')
+  checkEquals(result[[existentCallIdToClient1Group5[9]]]$CustodianAccount[assetIdCall9=='JP1051041C55'],'custac1')
+  checkEquals(result[[existentCallIdToClient1Group5[9]]]$CustodianAccount[assetIdCall9=='JP1051161DC4'],'custac1')
+  checkEquals(result[[existentCallIdToClient1Group5[9]]]$CustodianAccount[assetIdCall9=='JP1051271G37'],'custac1')
+  checkEquals(result[[existentCallIdToClient1Group5[9]]]$CustodianAccount[assetIdCall9=='JP1103121AC2'],'custac1')
+  checkEquals(result[[existentCallIdToClient1Group5[9]]]$CustodianAccount[assetIdCall9=='US912796JE09'],'custac1')
+  
+  checkEquals(result[[existentCallIdToClient1Group5[9]]]$Currency[assetIdCall9=='GB00B4YRFP41'],'GBP')
+  checkEquals(result[[existentCallIdToClient1Group5[9]]]$Currency[assetIdCall9=='JP1023481F17'],'JPY')
+  checkEquals(result[[existentCallIdToClient1Group5[9]]]$Currency[assetIdCall9=='JP1023561F93'],'JPY')
+  checkEquals(result[[existentCallIdToClient1Group5[9]]]$Currency[assetIdCall9=='JP1023621G33'],'JPY')
+  checkEquals(result[[existentCallIdToClient1Group5[9]]]$Currency[assetIdCall9=='JP1051041C55'],'JPY')
+  checkEquals(result[[existentCallIdToClient1Group5[9]]]$Currency[assetIdCall9=='JP1051161DC4'],'JPY')
+  checkEquals(result[[existentCallIdToClient1Group5[9]]]$Currency[assetIdCall9=='JP1051271G37'],'JPY')
+  checkEquals(result[[existentCallIdToClient1Group5[9]]]$Currency[assetIdCall9=='JP1103121AC2'],'JPY')
+  checkEquals(result[[existentCallIdToClient1Group5[9]]]$Currency[assetIdCall9=='US912796JE09'],'USD')
+  
+}
+
+
 testLiquidityOnlyNoConstraintAllocationAlgoByPassingAExistentClientIdAndAListOfExistentCallIdsGroup2<-function(){
   # test input: a existent client id; a list of existent margin call ids, which direct to the client
   callId <- existentCallIdToClient1Group2
