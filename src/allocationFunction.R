@@ -16,6 +16,7 @@ allocationAlgo <- function(callId='mc1',clientId='c1',pref=c(0,0,1)){
   callInfo <- input.list$callInfo
   callInfo <- callInfo[match(callId,callInfo$id),]
   custodianAccount <- input.list$custodianAccount  
+  venue <- input.list$venue
 
   call.num <- length(callId)            # total margin call number
   asset.num <- length(assetId)          # total asset number
@@ -104,14 +105,16 @@ if(all(pref==c(0,0,1))){  # In case of OW-171,173,174, pref=(0,0,1,0)
       select.asset.idx <- which(assetInfo$id==reserve.list[[i]][1])
       select.asset.id <- assetId[select.asset.idx]
       select.asset.custodianAccount <- custodianAccount[select.asset.idx]
+      select.asset.venue <- venue[select.asset.idx]
       select.asset.name <- assetInfo$name[select.asset.idx]
       select.asset.NetAmount <- call.mat[i,1]
       select.asset.haircut <- haircut.mat[i,select.asset.idx]
       select.asset.Amount <- select.asset.NetAmount/(1-haircut.mat[i,select.asset.idx])
       select.asset.currency <- assetInfo$currency[select.asset.idx]
       select.asset.quantity <- select.asset.Amount/unitValue.mat[i,select.asset.idx]
-      select.asset.df <- data.frame(select.asset.id,select.asset.name,select.asset.NetAmount,select.asset.haircut,select.asset.Amount,select.asset.currency,select.asset.quantity,select.asset.custodianAccount)
-      colnames(select.asset.df)<- c('Asset','Name','NetAmount(USD)','Haircut','Amount','Currency','Quantity','CustodianAccount')
+      select.asset.df <- data.frame(select.asset.id,select.asset.name,select.asset.NetAmount,select.asset.haircut,select.asset.Amount,select.asset.currency,
+                                    select.asset.quantity,select.asset.custodianAccount,select.asset.venue )
+      colnames(select.asset.df)<- c('Asset','Name','NetAmount(USD)','Haircut','Amount','Currency','Quantity','CustodianAccount','Venue')
       
       select.list[[callId[i]]] <- select.asset.df       
     }
@@ -249,6 +252,7 @@ if(all(pref==c(0,0,1))){  # In case of OW-171,173,174, pref=(0,0,1,0)
       select.asset.idx <- which(result.mat[i,]!=0)
       select.asset.id <- assetId[select.asset.idx]
       select.asset.custodianAccount <- custodianAccount[select.asset.idx]
+      select.asset.venue <- venue[select.asset.idx]
       select.asset.name <- assetInfo$name[select.asset.idx]
       select.asset.haircut <- haircut.mat[i,select.asset.idx]
       select.asset.currency <- assetInfo$currency[select.asset.idx]
@@ -257,8 +261,9 @@ if(all(pref==c(0,0,1))){  # In case of OW-171,173,174, pref=(0,0,1,0)
       select.asset.Amount <- select.asset.quantity*select.asset.unitValue
       select.asset.NetAmount <- select.asset.Amount*(1-haircut.mat[i,select.asset.idx])
 
-      select.asset.df <- data.frame(select.asset.id,select.asset.name,select.asset.NetAmount,select.asset.haircut,select.asset.Amount,select.asset.currency,select.asset.quantity,select.asset.custodianAccount)
-      colnames(select.asset.df)<- c('Asset','Name','NetAmount(USD)','Haircut','Amount','Currency','Quantity','CustodianAccount')
+      select.asset.df <- data.frame(select.asset.id,select.asset.name,select.asset.NetAmount,select.asset.haircut,select.asset.Amount,select.asset.currency,
+                                    select.asset.quantity,select.asset.custodianAccount,select.asset.venue)
+      colnames(select.asset.df)<- c('Asset','Name','NetAmount(USD)','Haircut','Amount','Currency','Quantity','CustodianAccount','venue')
       rownames(select.asset.df)<- paste('Asset',c(1:length(select.asset.id)),sep='')
       
       select.list[[callId[i]]] <- select.asset.df       
@@ -322,14 +327,16 @@ else if(all(pref==c(0,1,0))){
       select.asset.idx <- which(assetInfo$id==reserve.list[[i]][1])
       select.asset.id <- assetId[select.asset.idx]
       select.asset.custodianAccount <- custodianAccount[select.asset.idx]
+      select.asset.venue <- venue[select.asset.idx]
       select.asset.name <- assetInfo$name[select.asset.idx]
       select.asset.NetAmount <- call.mat[i,1]
       select.asset.haircut <- haircut.mat[i,select.asset.idx]
       select.asset.Amount <- select.asset.NetAmount/(1-haircut.mat[i,select.asset.idx])
       select.asset.currency <- assetInfo$currency[select.asset.idx]
       select.asset.quantity <- select.asset.Amount/unitValue.mat[i,select.asset.idx]
-      select.asset.df <- data.frame(select.asset.id,select.asset.name,select.asset.NetAmount,select.asset.haircut,select.asset.Amount,select.asset.currency,select.asset.quantity,select.asset.custodianAccount)
-      colnames(select.asset.df)<- c('Asset','Name','NetAmount(USD)','Haircut','Amount','Currency','Quantity','CustodianAccount')
+      select.asset.df <- data.frame(select.asset.id,select.asset.name,select.asset.NetAmount,select.asset.haircut,select.asset.Amount,select.asset.currency,
+                                    select.asset.quantity,select.asset.custodianAccount,select.asset.venue)
+      colnames(select.asset.df)<- c('Asset','Name','NetAmount(USD)','Haircut','Amount','Currency','Quantity','CustodianAccount','venue')
       
       select.list[[callId[i]]] <- select.asset.df       
     }
@@ -426,6 +433,7 @@ else if(all(pref==c(0,1,0))){
       select.asset.idx <- which(result.mat[i,]!=0)
       select.asset.id <- assetId[select.asset.idx]
       select.asset.custodianAccount <- custodianAccount[select.asset.idx]
+      select.asset.venue <- venue[select.asset.idx]
       select.asset.name <- assetInfo$name[select.asset.idx]
       select.asset.haircut <- haircut.mat[i,select.asset.idx]
       select.asset.currency <- assetInfo$currency[select.asset.idx]
@@ -434,8 +442,9 @@ else if(all(pref==c(0,1,0))){
       select.asset.Amount <- select.asset.quantity*select.asset.unitValue
       select.asset.NetAmount <- select.asset.Amount*(1-haircut.mat[i,select.asset.idx])
       
-      select.asset.df <- data.frame(select.asset.id,select.asset.name,select.asset.NetAmount,select.asset.haircut,select.asset.Amount,select.asset.currency,select.asset.quantity,select.asset.custodianAccount)
-      colnames(select.asset.df)<- c('Asset','Name','NetAmount(USD)','Haircut','Amount','Currency','Quantity','CustodianAccount')
+      select.asset.df <- data.frame(select.asset.id,select.asset.name,select.asset.NetAmount,select.asset.haircut,select.asset.Amount,select.asset.currency,
+                                    select.asset.quantity,select.asset.custodianAccount,select.asset.venue)
+      colnames(select.asset.df)<- c('Asset','Name','NetAmount(USD)','Haircut','Amount','Currency','Quantity','CustodianAccount','venue')
       
       select.list[[callId[i]]] <- select.asset.df       
     }
@@ -488,14 +497,16 @@ else if(all(pref==c(1,0,0))){
       select.asset.idx <- which(assetInfo$id==reserve.list[[i]][1])
       select.asset.id <- assetId[select.asset.idx]
       select.asset.custodianAccount <- custodianAccount[select.asset.idx]
+      select.asset.venue <- venue[select.asset.idx]
       select.asset.name <- assetInfo$name[select.asset.idx]
       select.asset.NetAmount <- call.mat[i,1]
       select.asset.haircut <- haircut.mat[i,select.asset.idx]
       select.asset.Amount <- select.asset.NetAmount/(1-haircut.mat[i,select.asset.idx])
       select.asset.currency <- assetInfo$currency[select.asset.idx]
       select.asset.quantity <- select.asset.Amount/unitValue.mat[i,select.asset.idx]
-      select.asset.df <- data.frame(select.asset.id,select.asset.name,select.asset.NetAmount,select.asset.haircut,select.asset.Amount,select.asset.currency,select.asset.quantity,select.asset.custodianAccount)
-      colnames(select.asset.df)<- c('Asset','Name','NetAmount(USD)','Haircut','Amount','Currency','Quantity','CustodianAccount')
+      select.asset.df <- data.frame(select.asset.id,select.asset.name,select.asset.NetAmount,select.asset.haircut,select.asset.Amount,select.asset.currency,
+                                    select.asset.quantity,select.asset.custodianAccount,select.asset.venue)
+      colnames(select.asset.df)<- c('Asset','Name','NetAmount(USD)','Haircut','Amount','Currency','Quantity','CustodianAccount','venue')
       
       select.list[[callId[i]]] <- select.asset.df       
       # options("scipen"=100, "digits"=10)

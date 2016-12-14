@@ -16,7 +16,7 @@ allocationInputData = function(callId,clientId,order='assetId'){
   callInfo <- callInfo[match(callId,callInfo$id),]
   
   custodianAccount <- result$CustodianAccount[match(assetId,result$assetId)]
-  
+  venue <- result$venue[match(assetId,result$assetId)]
   ###############################################
   # eligibility matrix: 1-eligible, 0-ineligible
   # haircut matrix: haircut+FX haircut
@@ -68,7 +68,7 @@ allocationInputData = function(callId,clientId,order='assetId'){
   minUnit.vec <- as.vector(t(minUnit.mat))
   minUnitValue.vec <- as.vector(t(minUnitValue.mat))
   
-  output.list <- list(assetId=assetId,assetInfo=assetInfo,callInfo=callInfo,custodianAccount=custodianAccount,
+  output.list <- list(assetId=assetId,assetInfo=assetInfo,callInfo=callInfo,custodianAccount=custodianAccount,venue=venue,
                       eli.mat=eli.mat, eli.vec = eli.vec,
                       haircut.mat=haircut.mat, haircut.vec=haircut.vec,
                       cost.mat = cost.mat, cost.vec = cost.vec,
