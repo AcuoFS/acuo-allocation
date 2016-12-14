@@ -49,7 +49,7 @@ allocationInputData = function(callId,clientId,order='assetId'){
   
   eli.mat[cbind(result$callId,result$assetId)]<-1
   haircut.mat[cbind(result$callId,result$assetId)]<- result$haircut+result$FXHaircut
-  cost.mat[cbind(result$callId,result$assetId)]<- result$internalCost+result$externalCost+result$opptCost-result$interestRate
+  cost.mat[cbind(result$callId,result$assetId)]<- result$internalCost+result$externalCost+result$opptCost-(result$interestRate+result$yield)
   
   unitValue.mat[cbind(result$callId,result$assetId)] <- result$unitValue/result$FXRate
   minUnit.mat[,]<- matrix(rep(assetInfo$minUnit,call.num),nrow=call.num,byrow=TRUE)

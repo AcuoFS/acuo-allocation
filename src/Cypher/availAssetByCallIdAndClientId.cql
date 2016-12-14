@@ -27,6 +27,7 @@ RETURN DISTINCT
     h.quantities AS totalQuantity,
     p.internalCost AS internalCost,
     p.opptCost AS opptCost,
+    p.yield AS yield,
     is.haircut AS haircut,
     is.FXHaircut AS FXHaircut,
     is.externalCost AS externalCost,
