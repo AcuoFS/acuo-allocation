@@ -12,6 +12,9 @@ allocationAlgo <- function(callId='mc1',clientId='c1',pref=c(0,0,1)){
   assetId <- input.list$assetId         # all eligible asset ids
   assetInfo <- input.list$assetInfo     # eligible asset information
   assetInfo <- assetInfo[match(assetId,assetInfo$id),]  # sort the assetInfo in the assetId order
+  
+  callInfo <- input.list$callInfo
+  callInfo <- callInfo[match(callId,callInfo$id),]
   custodianAccount <- input.list$custodianAccount  
 
   call.num <- length(callId)            # total margin call number
@@ -440,6 +443,70 @@ else if(all(pref==c(0,1,0))){
   }
   
 }
+
+else if(all(pref==c(1,0,0))){
+  # whether the settlement currency is sufficient #
+  # if the client doesn't have the settlement currency in the inventory,
+  # then use another currency which has least cost
+  mostOperationAsset <- matrix(c(callId,rep('', call.num)),nrow=call.num,ncol=2,dimnames = list(callId,c('callId','assetId')))
+  call.ccy <- callInfo$currency
+  cost.mat<-call.mat/(1-haircut.mat)*cost.percent.mat  # cost amount
+  
+  reserve.list <-list()    # store all available assets for each call, list by callId
+  select.list  <-list()    # store selected assets for each call, list by callId
+  
+  for(i in 1:call.num){
+    ccy.idx <- which(call.ccy[i]==assetId)   # return the index of mc[i] currency cash in the assetId list
+    idx1 <- which(eli.mat[i,]!=0)             # return elegible asset idx for mc[i]
+    temp.idx <- rbind(cost.mat[i,idx1],idx1,deparse.level = 0) # combine the asset cost and index together
+    sortCost <- temp.idx[,order(temp.idx[1,])]                 # sort the cost and corresponding index
+    
+    if(length(ccy.idx)==1 && is.element(ccy.idx,idx1)){  # if there exist call currency cash in the inventory, and it's available
+      sortOperation <- cbind(sortCost[,which(sortCost[2,]==ccy.idx)],sortCost[,-which(sortCost[2,]==ccy.idx)])
+    }else {    # if not the case above, then select the least cost asset from the availble inventory
+      sortOperation <- sortCost
+    }
+    
+    reserve.list[[callId[i]]]<- assetId[sortOperation[2,]] 
+    mostOperationAsset[i,2] <- assetId[sortOperation[2,]][1] # return the most operational efficiency asset
+  }
+  
+  # most operationally efficient asset sefficiency #
+  mostOperation.suff.qty <- call.mat/(1-haircut.mat)/minUnitValue.mat # quantity needed for a single asset to fulfill each call
+  
+  select.temp.unique <- unique(mostOperationAsset[,2])  
+  suff.select.unique <- rep(0,length(select.temp.unique))
+  for(i in 1:length(select.temp.unique)){
+    id <- select.temp.unique[i]
+    idx.temp <- mostOperationAsset[which(mostOperationAsset[,2]==id),1] # calls have the most opetationally efficient assetId=id
+    suff.select.unique[i] <- 1*(sum(mostOperation.suff.qty[idx.temp,id]) < minUnitQuantity.mat[1,id])
+  }
+  
+  #### In case of OW-253, most operationally efficient assets are sufficient ########
+  if(!is.element(0,suff.select.unique)){ 
+    for(i in 1:call.num){
+      select.asset.idx <- which(assetInfo$id==reserve.list[[i]][1])
+      select.asset.id <- assetId[select.asset.idx]
+      select.asset.custodianAccount <- custodianAccount[select.asset.idx]
+      select.asset.name <- assetInfo$name[select.asset.idx]
+      select.asset.NetAmount <- call.mat[i,1]
+      select.asset.haircut <- haircut.mat[i,select.asset.idx]
+      select.asset.Amount <- select.asset.NetAmount/(1-haircut.mat[i,select.asset.idx])
+      select.asset.currency <- assetInfo$currency[select.asset.idx]
+      select.asset.quantity <- select.asset.Amount/unitValue.mat[i,select.asset.idx]
+      select.asset.df <- data.frame(select.asset.id,select.asset.name,select.asset.NetAmount,select.asset.haircut,select.asset.Amount,select.asset.currency,select.asset.quantity,select.asset.custodianAccount)
+      colnames(select.asset.df)<- c('Asset','Name','NetAmount(USD)','Haircut','Amount','Currency','Quantity','CustodianAccount')
+      
+      select.list[[callId[i]]] <- select.asset.df       
+      # options("scipen"=100, "digits"=10)
+      # select.list[[paste(callId[i],callInfo$currency[i],callInfo$callAmount[i],'(USD)',sep='-')]] <- select.asset.df       
+    }
+    output.list<- select.list
+  }
+  
+  
+}
+
   return(list(input=input.list,output=output.list))
 }
 
