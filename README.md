@@ -50,11 +50,13 @@ To do unit testing, please go to the folder 'test', run 'testAll.R'
     2. examples/costOnlyQuantityLimitAllocationAlgoExamples.R
     3. examples/liquidityOnlyNoConstraintAllocationAlgoExamples.R 
     4. examples/liquidityOnlyQuantityLimitAllocationAlgoExamples.R
+    5. examples/operationOnlyNoConstraintAllocationAlgoExamples.R 
   2. Functions:
     1. costOnlyNoConstraintAllocationAlgoEx*()
     2. costOnlyQuantityLimitAllocationAlgoEx*()
     3. liquidityOnlyNoConstraintAllocationAlgoEx*()
     4. liquidityOnlyQuantityLimitAllocationAlgoEx*()
+    5. operationOnlyNoConstraintAllocationAlgoEx*()
 
 6. R file, test all examples by processing each step.
   1. Location:
