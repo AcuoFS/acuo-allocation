@@ -1,4 +1,4 @@
-MATCH (ca:CustodianAccount)-[h:HOLDS]-(a:Asset)-[is:IS_AVAILABLE_FOR]->(ag:Agreement)<-[*1..2]-(mc:MarginCall)-[:DIRECTED_TO]->
+MATCH (cu:Custodian)-[:MANAGES]->(ca:CustodianAccount)-[h:HOLDS]-(a:Asset)-[is:IS_AVAILABLE_FOR]->(ag:Agreement)<-[*1..2]-(mc:MarginCall)-[:DIRECTED_TO]->
     (c:Client)-[:MANAGES]-(e:LegalEntity)-[:HAS]-(acc:Account)
 WHERE mc.id IN {callId}
 AND c.id = {clientId}
@@ -15,6 +15,7 @@ RETURN DISTINCT
     mc.callType AS callType,
     mc.callAmount AS callAmount,
     ca.id AS CustodianAccount,
+    cu.countryShortName AS venue,
     a.id AS assetId,
     a.ACUOCategory AS ACUOCategory,
 //    a.name AS assetName,
