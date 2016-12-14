@@ -47,15 +47,19 @@ To do unit testing, please go to the folder 'test', run 'testAll.R'
 5. R file, contain several allocation examples functions, call the R function(4), allocation examples given sample input parameters, return allocation result.
   1. Location:
     1. examples/costOnlyNoConstraintAllocationAlgoExamples.R 
+    2. examples/costOnlyQuantityLimitAllocationAlgoExamples.R
+    3. examples/liquidityOnlyNoConstraintAllocationAlgoExamples.R 
+    4. examples/liquidityOnlyQuantityLimitAllocationAlgoExamples.R
   2. Functions:
-    1. costOnlyNoConstraintAllocationAlgoEx1()
-    2. costOnlyNoConstraintAllocationAlgoEx2()
-    3. costOnlyQuantityLimitAllocationAlgoEx1()
-    4. costOnlyQuantityLimitAllocationAlgoEx2()
+    1. costOnlyNoConstraintAllocationAlgoEx*()
+    2. costOnlyQuantityLimitAllocationAlgoEx*()
+    3. liquidityOnlyNoConstraintAllocationAlgoEx*()
+    4. liquidityOnlyQuantityLimitAllocationAlgoEx*()
 
 6. R file, test all examples by processing each step.
   1. Location:
     1. test/testAll.R 
   2. Test Functions Location:
-    1. test/testFunctions/
+    1. test/testFunctions/testAllocationAlgo.R
+    2. test/testFunctions/testDBRequestFunction.R
 
