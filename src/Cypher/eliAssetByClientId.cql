@@ -15,9 +15,9 @@ RETURN
     a.minUnitValue AS minUnitValue,
     p.quantities AS totalQuantity,
     p.availableQuantities AS availableQuantities,
-    p.deployedQuantities AS deployedQuantities,
-    p.departingQuantities AS departingQuantities,
-    p.arrivingQuantities AS arrivingQuantities,
+//    p.deployedQuantities AS deployedQuantities,
+//    p.departingQuantities AS departingQuantities,
+//    p.arrivingQuantities AS arrivingQuantities,
     p.earmarkedQuantities AS earmarkedQuantities,
     p.internalCost AS internalCost,
     p.opptCost AS opptCost
