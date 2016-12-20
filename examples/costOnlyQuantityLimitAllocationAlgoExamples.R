@@ -3,11 +3,11 @@ source('src/functionsOfDBRequestByExecutingCypher.R')
 source('src/allocationFunction.R')
 
 #### CONSTANTS, PLEASE DO NOT CHANGE #####
-callId1 <- c('mc1','mc2','mc3','mc5'); clientId1 <- 'c1'
-callId2 <- c('mc1','mc2','mc3','mc4','mc5','mc8') ; clientId2 <- 'c1'
-callId3 <- c('mc4','mc8','mc12','mc13','mc16') ; clientId3 <- 'c1'
-callId4 <- c('mc2','mc3','mc8','mc12','mc13','mc16','mc17') ; clientId4 <- 'c1'
-callId5 <- c('mc2','mc9','mc10','mc11','mc14','mc15','mc17','mc19','mc20') ; clientId5 <- 'c1'
+callId1 <- c('mc1','mc2','mc3','mc5'); clientId1 <- '999'
+callId2 <- c('mc1','mc2','mc3','mc4','mc5','mc8') ; clientId2 <- '999'
+callId3 <- c('mc4','mc8','mc12','mc13','mc16') ; clientId3 <- '999'
+callId4 <- c('mc2','mc3','mc8','mc12','mc13','mc16','mc17') ; clientId4 <- '999'
+callId5 <- c('mc2','mc9','mc10','mc11','mc14','mc15','mc17','mc19','mc20') ; clientId5 <- '999'
 
 modifyAssetQuantityCypherPath1 <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/modify1AssetQuantityToSimulateCostOnlyQuantityLimitAllocationAlgo.load'
 restoreAssetQuantityCypherPath1 <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/restore1AssetQuantityDueToSimulateCostOnlyQuantityLimitAllocationAlgo.load'

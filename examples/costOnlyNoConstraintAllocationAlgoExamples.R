@@ -3,9 +3,9 @@ source('src/functionsOfDBRequestByExecutingCypher.R')
 source('src/allocationFunction.R')
 
 #### CONSTANTS, PLEASE DO NOT CHANGE #####
-callId1 <- c('mc1','mc2','mc3','mc5'); clientId1 <- 'c1'
-callId2 <- c('mc1','mc2','mc3','mc4','mc5','mc8','mc9','mc10') ; clientId2 <- 'c1'
-callId3 <- c('mc4','mc8','mc12','mc13','mc16') ; clientId3 <- 'c1'
+callId1 <- c('mc1','mc2','mc3','mc5'); clientId1 <- '999'
+callId2 <- c('mc1','mc2','mc3','mc4','mc5','mc8','mc9','mc10') ; clientId2 <- '999'
+callId3 <- c('mc4','mc8','mc12','mc13','mc16') ; clientId3 <- '999'
 
 modifyDBToSimulateCostOnlyNoConstraintAllocationAlgoCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/modifyAssetQuantityToSimulateCostOnlyNoConstraintAllocationAlgo.load'
 restoreDBDueToSimulateCostOnlyNoConstraintAllocationAlgoCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/restoreAssetQuantityDueToSimulateCostOnlyNoConstraintAllocationAlgo.load'

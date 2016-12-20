@@ -2,8 +2,8 @@ library('RNeo4j')
 source('src/functionsOfDBRequestByExecutingCypher.R')
 
 #### CONSTANTS, PLASE DO NOT CHANGE #####
-clientId1 <- 'c1'
-clientId2 <- 'c2'
+clientId1 <- '999'
+clientId2 <- '999'
 
 #### EXAMPLE FUNCTIONS ##################
 eliAssetByClientIdEx1<-function(){
