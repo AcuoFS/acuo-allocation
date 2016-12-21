@@ -1,0 +1,24 @@
+LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/modify2AssetQuantityToSimulateOperationOnlyQuantityLimitAllocationAlgo.csv' 
+AS line 
+
+MATCH (custac:CustodianAccount {id:line.accountId})-[h:HOLDS]-(a:Asset {id:line.assetId})
+SET
+	h.quantities=h.oriQuantities,
+	h.availableQuantities=h.oriAvailableQuantities
+REMOVE 
+	h.oriQuantities,
+	h.oriAvailableQuantities
+
+WITH DISTINCT a
+
+MATCH path1 = (custac:CustodianAccount)-[h:HOLDS]->(a)<-[p:POSSESSES]-(c:Client)
+WHERE (c)-[*3]->(custac)
+WITH DISTINCT p
+SET 
+	p.quantities=p.oriQuantities,
+	p.availableQuantities=p.oriAvailableQuantities
+
+REMOVE 
+	p.oriQuantities,
+	p.oriAvailableQuantities
+
