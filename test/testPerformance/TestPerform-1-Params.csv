@@ -1,242 +1,103 @@
 Prameters,anti.degen,basis.crash,bb.depthlimit,bb.floorfirst,bb.rule,break.at.first,break.at.value,epsb,epsd,improve,infinite,maxpivot,mip.gap,negrange,obj.in.basis,pivoting,presolve,scalelimit,scaling,simplextype,timeout,verbose
-Description,"a character vector containing one or more of the following options. If any element is
-""none"" then no anti-degeneracy handling is used.","a character string specifying the basis crash mode to use. When no basis crash is done
-the initial basis from which lpSolve starts is the basis containing all slack or artificial variables.
-When basis crash is enabled, a heuristic crash procedure is executed before the first simplex
-iteration to quickly choose a basis matrix that has fewer artificial variables. This procedure
-tends to reduce the number of iterations required by the solver.","a single integer value specifying the maximum branch-and-bound depth. A positive
-value means that the depth limit is absolute. A negative value means a relative branch-andbound depth limit. The order of an MIP problem is defined to be 2 times the number of binary
-variables plus the number of semi-continuous (SC) and special-ordered-sets (SOS) variables.
-A relative value of -x results in a maximum depth of x times the order of the MIP problem.
-This control option only applies if there are integer, SC or SOS variables in the model(i.e.,when the branch-and-bound algorithm is used). The branch-and-bound algorithm will not go
-deeper than this level. Limiting the depth speeds up the solving time but there is a chance that
-the solution obtained is sub-optimal. Be aware of this. Another possible consequence is that
-no solution will be found.
-The default value is -50; a value of zero implies no limit to the depth.","a character string from among the following choices specifying which branch to take
-first in the branch-and-bound algorithm.",a character vector specifying the branch-and-bound rule.,a logical value. If TRUE then the branch-and-bound algorithm stops at the first solution found. The default (FALSE) is to continue until an optimal solution is found.,"a numeric value. The branch-and-bound algorithm stops if the objective function
-becomes better than this value. The default ( infinity) is to continue until an optimal value is
-found.","a single positive numeric value specifying the tolerance used to determine whether a righthand-side value should be considered zero. Rounding error in floating-point calculations may
-result in a loss of precision. A very small value (for example, 1e-99) could be the result of such
-errors and should be considered zero by the solver. If the absolute value of a right-hand-side
-value is less than epsb then it is treated as zero by the solver.","a single positive numeric value specifying the tolerance used to determine whether a computed reduced cost should be considered zero. Rounding error in floating-point calculations
-may result in a loss of precision. A very small value (for example, 1e-99) could be the result of
-such errors and should be considered zero by the solver. If the absolute value of a computed
-reduced cost is less than epsd then it is treated as zero by the solver.",a character vector specifying the iterative improvement level. The possible values are given in the following table,"a positive numeric value specifying the practical value for infinity. This value is used for very large numbers, for example the upper bound of a variable without an upper bound.","a positive integer value specifying the maximum number of pivots between re-inversion of the matrix. For stability, lpSolve often this is done, the slower the solver becomes.periodically re-inverts the matrix. However, the more","a numeric vector of length two specifying respectively the absolute and relative MIP gaps used in the branch-and-bound algorithm. This tolerance is the difference between the bestfound solution yet and the current solution. If the difference is smaller than this tolerance then the solution (and all the sub-solutions) is rejected. This can result in faster solving times, but results in a solution which is not the perfect solution.","a nonpositive numeric value below which variables are split into negative and positive
-parts.","a logical value specifying whether the objective function is stored in the matrix. The
-default is to store the objective function in the top row of the constraint matrix. If FALSE then
-the objective function is moved to separate storage. When the objective function is not stored
-in the basis the computation of reduced costs is somewhat slower. In the later versions of v5.5
-there is the option to calculate reduced cost in the textbook way: completely independently of
-the basis.","a character vector specifying the pivot rule (the rule for selecting row and column entering/leaving) and mode. The first element of this vector must be one of the four pivot rules
-listed in the first table. Remaining elements (if any) specify modes that modify this rule. The
-rule/mode can influence solving times considerably.","a character vector specifying presolve steps to be carried out before solving. Presolve
-looks at the model and tries to simplify it so that solving times are shorter. For example a
-constraint on only one variable is converted to a bound on this variable (and the constraint is
-deleted) - the model dimensions can change because of this. Both rows and columns can be
-deleted by the presolve. Also, note that the ""lindep"" presolve option can result in the deletion
-of rows (the linear dependent ones). The get.constraints function will then return only the
-values of the rows that are kept.",a numeric value specifying the relative scaling convergence criterion for the active scaling mode; the integer part specifies the maximum number of iterations.,a character vector specifying the scaling algorithm used and zero or more augmentations. ,"a character vector of length one or two composed of ""primal"" and ""dual"". If length
-two then the first element describes the simplex type used in phase 1 and the second element
-the simplex type used in phase 2. If length one then that simplex type is used for both phases.
-The default is c(""dual"", ""primal"").","a positive integer value specifying the number of seconds after which a timeout will occur.
-If zero, then no timeout will occur.","a character string controlling the severity of messages reported by lp_solve. The possible
-choices are given in the table below. All errors/warnings in lp_solve have a particular severiy: for example, specifying a wrong row or column index is considered a severe error. All
-messages equal to and below the set level are reported (in the console)"
-Default,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",0,neutral
-1,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",1,neutral
-2,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",2,neutral
-3,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",3,neutral
-4,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",4,neutral
-5,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",5,neutral
-6,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",6,neutral
-7,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",7,neutral
-8,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",8,neutral
-9,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",9,neutral
-10,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",10,neutral
-11,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",11,neutral
-12,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",12,neutral
-13,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",13,neutral
-14,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",14,neutral
-15,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",15,neutral
-16,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",16,neutral
-17,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",17,neutral
-18,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",18,neutral
-19,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",19,neutral
-20,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",20,neutral
-21,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",21,neutral
-22,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",22,neutral
-23,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",23,neutral
-24,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",24,neutral
-25,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",25,neutral
-26,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",26,neutral
-27,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",27,neutral
-28,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",28,neutral
-29,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",29,neutral
-30,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",30,neutral
-31,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",31,neutral
-32,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",32,neutral
-33,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",33,neutral
-34,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",34,neutral
-35,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",35,neutral
-36,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",36,neutral
-37,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",37,neutral
-38,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",38,neutral
-39,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",39,neutral
-40,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",40,neutral
-41,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",41,neutral
-42,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",42,neutral
-43,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",43,neutral
-44,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",44,neutral
-45,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",45,neutral
-46,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",46,neutral
-47,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",47,neutral
-48,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",48,neutral
-49,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",49,neutral
-50,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",50,neutral
-51,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",51,neutral
-52,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",52,neutral
-53,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",53,neutral
-54,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",54,neutral
-55,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",55,neutral
-56,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",56,neutral
-57,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",57,neutral
-58,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",58,neutral
-59,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",59,neutral
-60,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",60,neutral
-61,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",61,neutral
-62,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",62,neutral
-63,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",63,neutral
-64,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",64,neutral
-65,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",65,neutral
-66,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",66,neutral
-67,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",67,neutral
-68,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",68,neutral
-69,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",69,neutral
-70,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",70,neutral
-71,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",71,neutral
-72,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",72,neutral
-73,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",73,neutral
-74,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",74,neutral
-75,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",75,neutral
-76,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",76,neutral
-77,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",77,neutral
-78,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",78,neutral
-79,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",79,neutral
-80,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",80,neutral
-81,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",81,neutral
-82,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",82,neutral
-83,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",83,neutral
-84,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",84,neutral
-85,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",85,neutral
-86,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",86,neutral
-87,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",87,neutral
-88,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",88,neutral
-89,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",89,neutral
-90,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",90,neutral
-91,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",91,neutral
-92,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",92,neutral
-93,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",93,neutral
-94,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",94,neutral
-95,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",95,neutral
-96,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",96,neutral
-97,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",97,neutral
-98,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",98,neutral
-99,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",99,neutral
-100,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250.00,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",100,neutral
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
+Description,,,,,,,,,,,,,,,,,,,,,,
+Default,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",0,neutral
+1,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",1,neutral
+2,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",2,neutral
+3,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",3,neutral
+4,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",4,neutral
+5,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",5,neutral
+6,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",6,neutral
+7,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",7,neutral
+8,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",8,neutral
+9,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",9,neutral
+10,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",10,neutral
+11,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",11,neutral
+12,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",12,neutral
+13,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",13,neutral
+14,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",14,neutral
+15,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",15,neutral
+16,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",16,neutral
+17,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",17,neutral
+18,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",18,neutral
+19,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",19,neutral
+20,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",20,neutral
+21,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",21,neutral
+22,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",22,neutral
+23,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",23,neutral
+24,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",24,neutral
+25,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",25,neutral
+26,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",26,neutral
+27,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",27,neutral
+28,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",28,neutral
+29,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",29,neutral
+30,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",30,neutral
+31,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",31,neutral
+32,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",32,neutral
+33,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",33,neutral
+34,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",34,neutral
+35,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",35,neutral
+36,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",36,neutral
+37,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",37,neutral
+38,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",38,neutral
+39,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",39,neutral
+40,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",40,neutral
+41,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",41,neutral
+42,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",42,neutral
+43,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",43,neutral
+44,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",44,neutral
+45,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",45,neutral
+46,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",46,neutral
+47,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",47,neutral
+48,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",48,neutral
+49,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",49,neutral
+50,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",50,neutral
+51,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",51,neutral
+52,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",52,neutral
+53,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",53,neutral
+54,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",54,neutral
+55,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",55,neutral
+56,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",56,neutral
+57,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",57,neutral
+58,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",58,neutral
+59,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",59,neutral
+60,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",60,neutral
+61,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",61,neutral
+62,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",62,neutral
+63,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",63,neutral
+64,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",64,neutral
+65,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",65,neutral
+66,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",66,neutral
+67,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",67,neutral
+68,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",68,neutral
+69,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",69,neutral
+70,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",70,neutral
+71,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",71,neutral
+72,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",72,neutral
+73,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",73,neutral
+74,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",74,neutral
+75,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",75,neutral
+76,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",76,neutral
+77,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",77,neutral
+78,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",78,neutral
+79,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",79,neutral
+80,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",80,neutral
+81,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",81,neutral
+82,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",82,neutral
+83,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",83,neutral
+84,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",84,neutral
+85,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",85,neutral
+86,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",86,neutral
+87,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",87,neutral
+88,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",88,neutral
+89,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",89,neutral
+90,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",90,neutral
+91,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",91,neutral
+92,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",92,neutral
+93,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",93,neutral
+94,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",94,neutral
+95,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",95,neutral
+96,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",96,neutral
+97,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",97,neutral
+98,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",98,neutral
+99,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",99,neutral
+100,none,none,-50,automatic,"pseudononint,greedy,dynamic,rcostfixing",FALSE,-1.00E+30,1.00E-10,1.00E-09,"dualfeas,thetagap",1.00E+30,250,1.00E-11,1.00E-06,TRUE,"devex,adaptive",none,5,"geometric,equilibrate,integers","dual,primal",100,neutral
