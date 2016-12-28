@@ -66,65 +66,104 @@ if(!(suffPerCall&suffAllCall)){
   return(errorMsg)
 }
 
-if(all(pref==c(0,0,1))){  # In case of OW-171,173,174, pref=(0,0,1,0)
+#### Recalculate the parameters weight setting
+pref <- pref/sum(pref)
+
+#### calculate the optimal asset sufficiency
+reserve.list <-list()    # store all available assets for each call, list by callId
+select.list  <-list()    # store selected assets for each call, list by callId
+optimalAsset <- matrix(c(callId,rep('', call.num)),nrow=call.num,ncol=2,dimnames = list(callId,c('callId','assetId')))
+
+cost.mat<-call.mat/(1-haircut.mat)*cost.percent.mat  # cost amount
+asset.liquid <- apply((1-haircut.mat*eli.mat)^2,2,min) # define asset liquidity
+liquidity.mat <- matrix(rep(asset.liquid,call.num),nrow=call.num,byrow=TRUE,dimnames=list(callId,assetId)) 
+liquidity.vec <- as.vector(t(liquidity.mat))
+excess.call.percent <- 0.2
+call.mat <- call.mat*(1+excess.call.percent*pref[3])
+call.vec <- call.vec*(1+excess.call.percent*pref[3])
+
+mostOperationAsset <- matrix(c(callId,rep('', call.num)),nrow=call.num,ncol=2,dimnames = list(callId,c('callId','assetId')))
+call.ccy <- callInfo$currency
+cost.mat<-call.mat/(1-haircut.mat)*cost.percent.mat  # cost amount
+
+operation.mat <- matrix(rep(1,asset.num*call.num),nrow=call.num,byrow=TRUE,dimnames=list(callId,assetId)) 
+for(i in 1:call.num){
+  ccy.idx <- which(call.ccy[i]==assetId)    # return the index of mc[i] currency cash in the assetId list
+  idx1 <- which(eli.mat[i,]!=0)             # return elegible asset idx for mc[i]
+  if(length(ccy.idx)==1 && is.element(ccy.idx,idx1)){  # if there exist call currency cash in the inventory, and it's available
+    operation.mat[i,ccy.idx] <- 0
+  }
+}
+operation.vec <- as.vector(t(operation.mat))
+
+norm.cost <- t(apply(cost.mat,1,scale))
+norm.liquidity <- t(apply(liquidity.mat,1,scale))
+norm.operation <- operation.mat
+for(i in 1:call.num){
+  if(all(operation.mat[i,]==1)){
+    norm.operation[i,]<-0
+  }else{
+    norm.operation[i,]<- scale(operation.mat[i,])
+  }
+}
+
+optimal.mat <- norm.operation*pref[1]+norm.liquidity*pref[2]+norm.cost*pref[3]
+colnames(optimal.mat) <- assetId; rownames(optimal.mat)<-callId
+
+for(i in 1:call.num){
+  idx1 <- which(eli.mat[i,]!=0)  # return elegible asset idx for mc[i]
+  temp <- rbind(optimal.mat[i,idx1],idx1,deparse.level = 0) # combine the asset cost and index together
+  # sort the asset per call by cost
+  if(length(temp[1,])==1){       # if there's only one eligible asset, no need to sort.
+    sortOptimal=temp
+  }else{
+    sortOptimal<-temp[,order(temp[1,])] # sort the cost, return the cost and asset idx in matrix
+  }
+  reserve.list[[callId[i]]]<- assetId[sortOptimal[2,]] # 
+  optimalAsset[i,2] <- assetId[sortOptimal[2,]][1]
+}
+
+optimal.suff.qty <- call.mat/(1-haircut.mat)/minUnitValue.mat # quantity needed for a single asset to fulfill each call
+
+select.temp.unique <- unique(optimalAsset[,2]) ; 
+suff.select.unique <- rep(0,length(select.temp.unique))
+for(i in 1:length(select.temp.unique)){
+  id <- select.temp.unique[i]
+  idx.temp <- optimalAsset[which(optimalAsset[,2]==id),1] # calls have the least cost assetId=id
+  suff.select.unique[i] <- 1*(sum(optimal.suff.qty[idx.temp,id]) < minUnitQuantity.mat[1,id])
+}
+
+#### In case of OW-291, optimal assets are sufficient
+if(!is.element(0,suff.select.unique)){ 
   
-  ######### SORT ASSET PER CALL BY COST ########################
-  cost.mat<-call.mat/(1-haircut.mat)*cost.percent.mat  # cost amount
-  
-  reserve.list <-list()    # store all available assets for each call, list by callId
-  select.list  <-list()    # store selected assets for each call, list by callId
-  leastCostAsset <- matrix(c(callId,rep('', call.num)),nrow=call.num,ncol=2,dimnames = list(callId,c('callId','assetId')))
-  
-  for (i in 1:call.num){
-    idx1 <- which(eli.mat[i,]!=0)  # return elegible asset idx for mc[i]
-    temp <- rbind(cost.mat[i,idx1],idx1,deparse.level = 0) # combine the asset cost and index together
+  for(i in 1:call.num){
+    select.asset.idx <- which(assetInfo$id==reserve.list[[i]][1])
+    select.asset.id <- assetId[select.asset.idx]
+    select.asset.custodianAccount <- custodianAccount[select.asset.idx]
+    select.asset.venue <- venue[select.asset.idx]
+    select.asset.name <- assetInfo$name[select.asset.idx]
+    select.asset.NetAmount <- call.mat[i,1]
+    select.asset.haircut <- haircut.mat[i,select.asset.idx]
+    select.asset.Amount <- select.asset.NetAmount/(1-haircut.mat[i,select.asset.idx])
+    select.asset.currency <- assetInfo$currency[select.asset.idx]
+    select.asset.quantity <- select.asset.Amount/unitValue.mat[i,select.asset.idx]
+    select.asset.df <- data.frame(select.asset.id,select.asset.name,select.asset.NetAmount,select.asset.haircut,select.asset.Amount,select.asset.currency,
+                                  select.asset.quantity,select.asset.custodianAccount,select.asset.venue )
+    colnames(select.asset.df)<- c('Asset','Name','NetAmount(USD)','Haircut','Amount','Currency','Quantity','CustodianAccount','Venue')
     
-    # sort the asset per call by cost
-    if(length(temp[1,])==1){       # if there's only one eligible asset, no need to sort.
-      sortCost=temp
-    }else{
-      sortCost<-temp[,order(temp[1,])] # sort the cost, return the cost and asset idx in matrix
-    }
-    reserve.list[[callId[i]]]<- assetId[sortCost[2,]] # 
-    leastCostAsset[i,2] <- assetId[sortCost[2,]][1]
+    select.list[[callId[i]]] <- select.asset.df       
   }
-  
-  ############# LEAST COST ASSET SUFFICIENCY #####################
-  leastCost.suff.qty <- call.mat/(1-haircut.mat)/minUnitValue.mat # quantity needed for a single asset to fulfill each call
-  
-  select.temp.unique <- unique(leastCostAsset[,2]) ; 
-  suff.select.unique <- rep(0,length(select.temp.unique))
-  for(i in 1:length(select.temp.unique)){
-    id <- select.temp.unique[i]
-    idx.temp <- leastCostAsset[which(leastCostAsset[,2]==id),1] # calls have the least cost assetId=id
-    suff.select.unique[i] <- 1*(sum(leastCost.suff.qty[idx.temp,id]) < minUnitQuantity.mat[1,id])
-  }
+  output.list<- select.list
+}
 
-  #### In case of OW-171, least cost assets are sufficient ########
-  if(!is.element(0,suff.select.unique)){ 
 
-    for(i in 1:call.num){
-      select.asset.idx <- which(assetInfo$id==reserve.list[[i]][1])
-      select.asset.id <- assetId[select.asset.idx]
-      select.asset.custodianAccount <- custodianAccount[select.asset.idx]
-      select.asset.venue <- venue[select.asset.idx]
-      select.asset.name <- assetInfo$name[select.asset.idx]
-      select.asset.NetAmount <- call.mat[i,1]
-      select.asset.haircut <- haircut.mat[i,select.asset.idx]
-      select.asset.Amount <- select.asset.NetAmount/(1-haircut.mat[i,select.asset.idx])
-      select.asset.currency <- assetInfo$currency[select.asset.idx]
-      select.asset.quantity <- select.asset.Amount/unitValue.mat[i,select.asset.idx]
-      select.asset.df <- data.frame(select.asset.id,select.asset.name,select.asset.NetAmount,select.asset.haircut,select.asset.Amount,select.asset.currency,
-                                    select.asset.quantity,select.asset.custodianAccount,select.asset.venue )
-      colnames(select.asset.df)<- c('Asset','Name','NetAmount(USD)','Haircut','Amount','Currency','Quantity','CustodianAccount','Venue')
-      
-      select.list[[callId[i]]] <- select.asset.df       
-    }
-    output.list<- select.list
-  }
+else if(all(pref==c(0,0,1))){  # In case of OW-171,173,174, pref=(0,0,1)
+  
+ 
+  
   
   ##### In case of OW-174, all assets have quantity limits #######
-  else if(1){ 
+   
     idx.eli <- which(eli.vec==1)  # Exclude the non-eligible asset variable for each margin call
     var.num <- length(idx.eli)    # variable numbers
     
@@ -271,82 +310,14 @@ if(all(pref==c(0,0,1))){  # In case of OW-171,173,174, pref=(0,0,1,0)
       select.list[[callId[i]]] <- select.asset.df       
     }
     output.list <- select.list
-  }
+  
 }
 
 else if(all(pref==c(0,1,0))){
   
-  ##### SORT ASSETS BY LIQUIDITY ################################# 
-  asset.liquid <- apply((1-haircut.mat*eli.mat)^2,2,min) # define asset liquidity
-                                                       # for convenience, use (1-maximum haircut among calls)
-  liquidity.mat <- matrix(rep(asset.liquid,call.num),nrow=call.num,byrow=TRUE,dimnames=list(callId,assetId)) 
-  liquidity.vec <- as.vector(t(liquidity.mat))
-  
-  asset.liquid.sort <- sort(asset.liquid)              # sort asset liquidity
-  
-  reserve.list <-list()    # store all available assets for each call, list by callId
-  select.list  <-list()    # store selected assets for each call, list by callId
-  leastLiquidAsset <- matrix(c(callId,rep('', call.num)),nrow=call.num,ncol=2,dimnames = list(callId,c('callId','assetId')))
-  least.liquid.idx <- which(asset.liquid.sort==min(asset.liquid.sort)) # least liquid asset(s) index(es)
-  
-  cost.mat<-call.mat/(1-haircut.mat)*cost.percent.mat  # cost amount
-  
-  for (i in 1:call.num){
-    idx1 <- which(eli.mat[i,]!=0)   # return elegible asset idx for mc[i]
-    temp1 <- rbind(asset.liquid[idx1],idx1,deparse.level = 0) # combine the asset liquidity and index together
-    
-    # sort the asset (per call) by liquidity
-    if(length(temp1[1,])==1){        # if there's only one eligible asset, no need to sort.
-      sortLiquid=temp1
-    }else{
-      sortLiquid<-temp1[,order(temp1[1,])] # sort the liquidity, return the liquidity and asset idx in matrix
-      # if there are more than one least liquid asset, then sort by cost
-      least.liquid.idx.temp <- sortLiquid[2,which(sortLiquid[1,]==sortLiquid[1,1])]
-      temp2 <- rbind(cost.mat[i,least.liquid.idx.temp],least.liquid.idx.temp)
-      if(length(least.liquid.idx.temp)==1){
-        sortLiquid <- temp2
-      }else{
-        sortLiquid <- temp2[,order(temp2[1,])] # sort the cost
-      }
-    }
-    reserve.list[[callId[i]]]<- assetId[sortLiquid[2,]] # 
-    leastLiquidAsset[i,2] <- assetId[sortLiquid[2,]][1]
-  }
-  
-  ############# LEAST Liquid ASSET SUFFICIENCY #####################
-  leastLiquid.suff.qty <- call.mat/(1-haircut.mat)/minUnitValue.mat # quantity needed for a single asset to fulfill each call
-  
-  select.temp.unique <- unique(leastLiquidAsset[,2]) ; 
-  suff.select.unique <- rep(0,length(select.temp.unique))
-  for(i in 1:length(select.temp.unique)){
-    id <- select.temp.unique[i]
-    idx.temp <- leastLiquidAsset[which(leastLiquidAsset[,2]==id),1] # calls have the least Liquid assetId=id
-    suff.select.unique[i] <- 1*(sum(leastLiquid.suff.qty[idx.temp,id]) < minUnitQuantity.mat[1,id])
-  }
-  #### In case of OW-249, least liquid assets are sufficient ########
-  if(!is.element(0,suff.select.unique)){ 
-    for(i in 1:call.num){
-      select.asset.idx <- which(assetInfo$id==reserve.list[[i]][1])
-      select.asset.id <- assetId[select.asset.idx]
-      select.asset.custodianAccount <- custodianAccount[select.asset.idx]
-      select.asset.venue <- venue[select.asset.idx]
-      select.asset.name <- assetInfo$name[select.asset.idx]
-      select.asset.NetAmount <- call.mat[i,1]
-      select.asset.haircut <- haircut.mat[i,select.asset.idx]
-      select.asset.Amount <- select.asset.NetAmount/(1-haircut.mat[i,select.asset.idx])
-      select.asset.currency <- assetInfo$currency[select.asset.idx]
-      select.asset.quantity <- select.asset.Amount/unitValue.mat[i,select.asset.idx]
-      select.asset.df <- data.frame(select.asset.id,select.asset.name,select.asset.NetAmount,select.asset.haircut,select.asset.Amount,select.asset.currency,
-                                    select.asset.quantity,select.asset.custodianAccount,select.asset.venue)
-      colnames(select.asset.df)<- c('Asset','Name','NetAmount(USD)','Haircut','Amount','Currency','Quantity','CustodianAccount','venue')
-      
-      select.list[[callId[i]]] <- select.asset.df       
-    }
-    output.list<- select.list
-  }
-  
+ 
   ##### In case of OW-250, all assets have quantity limits ##########
-  else if(1){
+  
     idx.eli <- which(eli.vec==1)  # Exclude the non-eligible asset variable for each margin call
     var.num <- length(idx.eli)    # variable numbers
    
@@ -451,78 +422,14 @@ else if(all(pref==c(0,1,0))){
       select.list[[callId[i]]] <- select.asset.df       
     }
     output.list <- select.list
-  }
+  
   
 }
 
 else if(all(pref==c(1,0,0))){
-  # whether the settlement currency is sufficient #
-  # if the client doesn't have the settlement currency in the inventory,
-  # then use another currency which has least cost
-  # change the call amount -- to reduce the potential future calls
-  excess.call.percent <- 0.2
-  call.mat <- call.mat*(1+excess.call.percent)
-  call.vec <- call.vec*(1+excess.call.percent)
   
-  mostOperationAsset <- matrix(c(callId,rep('', call.num)),nrow=call.num,ncol=2,dimnames = list(callId,c('callId','assetId')))
-  call.ccy <- callInfo$currency
-  cost.mat<-call.mat/(1-haircut.mat)*cost.percent.mat  # cost amount
-  
-  reserve.list <-list()    # store all available assets for each call, list by callId
-  select.list  <-list()    # store selected assets for each call, list by callId
-  
-  for(i in 1:call.num){
-    ccy.idx <- which(call.ccy[i]==assetId)   # return the index of mc[i] currency cash in the assetId list
-    idx1 <- which(eli.mat[i,]!=0)             # return elegible asset idx for mc[i]
-    temp.idx <- rbind(cost.mat[i,idx1],idx1,deparse.level = 0) # combine the asset cost and index together
-    sortCost <- temp.idx[,order(temp.idx[1,])]                 # sort the cost and corresponding index
-    
-    if(length(ccy.idx)==1 && is.element(ccy.idx,idx1)){  # if there exist call currency cash in the inventory, and it's available
-      sortOperation <- cbind(sortCost[,which(sortCost[2,]==ccy.idx)],sortCost[,-which(sortCost[2,]==ccy.idx)])
-    }else {    # if not the case above, then select the least cost asset from the availble inventory
-      sortOperation <- sortCost
-    }
-    
-    reserve.list[[callId[i]]]<- assetId[sortOperation[2,]] 
-    mostOperationAsset[i,2] <- assetId[sortOperation[2,]][1] # return the most operational efficiency asset
-  }
-  
-  # most operationally efficient asset sefficiency #
-  mostOperation.suff.qty <- call.mat/(1-haircut.mat)/minUnitValue.mat # quantity needed for a single asset to fulfill each call
-  
-  select.temp.unique <- unique(mostOperationAsset[,2])  
-  suff.select.unique <- rep(0,length(select.temp.unique))
-  for(i in 1:length(select.temp.unique)){
-    id <- select.temp.unique[i]
-    idx.temp <- mostOperationAsset[which(mostOperationAsset[,2]==id),1] # calls have the most opetationally efficient assetId=id
-    suff.select.unique[i] <- 1*(sum(mostOperation.suff.qty[idx.temp,id]) < minUnitQuantity.mat[1,id])
-  }
-  
-  #### In case of OW-253, most operationally efficient assets are sufficient ########
-  if(!is.element(0,suff.select.unique)){ 
-    for(i in 1:call.num){
-      select.asset.idx <- which(assetInfo$id==reserve.list[[i]][1])
-      select.asset.id <- assetId[select.asset.idx]
-      select.asset.custodianAccount <- custodianAccount[select.asset.idx]
-      select.asset.venue <- venue[select.asset.idx]
-      select.asset.name <- assetInfo$name[select.asset.idx]
-      select.asset.NetAmount <- call.mat[i,1]
-      select.asset.haircut <- haircut.mat[i,select.asset.idx]
-      select.asset.Amount <- select.asset.NetAmount/(1-haircut.mat[i,select.asset.idx])
-      select.asset.currency <- assetInfo$currency[select.asset.idx]
-      select.asset.quantity <- select.asset.Amount/unitValue.mat[i,select.asset.idx]
-      select.asset.df <- data.frame(select.asset.id,select.asset.name,select.asset.NetAmount,select.asset.haircut,select.asset.Amount,select.asset.currency,
-                                    select.asset.quantity,select.asset.custodianAccount,select.asset.venue)
-      colnames(select.asset.df)<- c('Asset','Name','NetAmount(USD)','Haircut','Amount','Currency','Quantity','CustodianAccount','venue')
-      
-      select.list[[callId[i]]] <- select.asset.df       
-      # options("scipen"=100, "digits"=10)
-      # select.list[[paste(callId[i],callInfo$currency[i],callInfo$callAmount[i],'(USD)',sep='-')]] <- select.asset.df       
-    }
-    output.list<- select.list
-  }
   ##### In case of OW-254, all assets have quantity limits ##########
-  else if(1){
+  
     idx.eli <- which(eli.vec==1)  # Exclude the non-eligible asset variable for each margin call
     var.num <- length(idx.eli)    # variable numbers
     var.num2 <- var.num*2
@@ -661,9 +568,10 @@ else if(all(pref==c(1,0,0))){
       output.list <- select.list
     }
     
-  }
+  
   
 }
+
   return(list(input=input.list,output=output.list))
 }
 
