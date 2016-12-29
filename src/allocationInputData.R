@@ -51,9 +51,11 @@ allocationInputData = function(callId,clientId,order='assetId'){
   haircut.mat[cbind(result$callId,result$assetId)]<- result$haircut+result$FXHaircut
   cost.mat[cbind(result$callId,result$assetId)]<- result$internalCost+result$externalCost+result$opptCost-(result$interestRate+result$yield)
   
-  unitValue.mat[cbind(result$callId,result$assetId)] <- result$unitValue/result$FXRate
+  #unitValue.mat[cbind(result$callId,result$assetId)] <- result$unitValue/result$FXRate
+  unitValue.mat[,] <- matrix(rep(assetInfo$unitValue,call.num),nrow=call.num,byrow=TRUE)
   minUnit.mat[,]<- matrix(rep(assetInfo$minUnit,call.num),nrow=call.num,byrow=TRUE)
-  minUnitValue.mat[cbind(result$callId,result$assetId)]<- result$minUnitValue/result$FXRate
+  #minUnitValue.mat[cbind(result$callId,result$assetId)]<- result$minUnitValue/result$FXRate
+  minUnitValue.mat[,] <- matrix(rep(assetInfo$minUnitValue,call.num),nrow=call.num,byrow=TRUE)
   
   minUnitQuantity.mat[,]<- floor(quantity.mat/minUnit.mat) # round to the nearest integer smaller
   
