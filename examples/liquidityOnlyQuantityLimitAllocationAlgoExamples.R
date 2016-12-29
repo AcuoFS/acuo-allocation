@@ -49,7 +49,7 @@ liquidityOnlyQuantityLimitAllocationAlgoEx4 <- function(){
   
   executeCypher(path=modifyAssetQuantityCypherPath2)
   
-  allocation.result <- allocationAlgo(callId=callId4,clientId=clientId4,pref=c(0,0,1))
+  allocation.result <- allocationAlgo(callId=callId4,clientId=clientId4,pref=c(0,1,0))
   
   executeCypher(path=restoreAssetQuantityCypherPath2)
   
