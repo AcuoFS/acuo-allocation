@@ -79,14 +79,15 @@ asset.liquid <- apply((1-haircut.mat*eli.mat)^2,2,min) # define asset liquidity
 liquidity.mat <- matrix(rep(asset.liquid,call.num),nrow=call.num,byrow=TRUE,dimnames=list(callId,assetId)) 
 liquidity.vec <- as.vector(t(liquidity.mat))
 excess.call.percent <- 0.2
-call.mat <- call.mat*(1+excess.call.percent*pref[3])
-call.vec <- call.vec*(1+excess.call.percent*pref[3])
+call.mat <- call.mat*(1+excess.call.percent*pref[1])
+call.vec <- call.vec*(1+excess.call.percent*pref[1])
 
-mostOperationAsset <- matrix(c(callId,rep('', call.num)),nrow=call.num,ncol=2,dimnames = list(callId,c('callId','assetId')))
 call.ccy <- callInfo$currency
-cost.mat<-call.mat/(1-haircut.mat)*cost.percent.mat  # cost amount
-
+# calculate the cost if only the integral units of asset can be allocated
+integer.call.mat <- ceiling(call.mat/(1-haircut.mat)/minUnitValue.mat)*minUnitValue.mat*(1-haircut.mat)
+cost.mat<-integer.call.mat/(1-haircut.mat)*cost.percent.mat  # cost amount
 operation.mat <- matrix(rep(1,asset.num*call.num),nrow=call.num,byrow=TRUE,dimnames=list(callId,assetId)) 
+
 for(i in 1:call.num){
   ccy.idx <- which(call.ccy[i]==assetId)    # return the index of mc[i] currency cash in the assetId list
   idx1 <- which(eli.mat[i,]!=0)             # return elegible asset idx for mc[i]
@@ -142,7 +143,7 @@ if(!is.element(0,suff.select.unique)){
     select.asset.custodianAccount <- custodianAccount[select.asset.idx]
     select.asset.venue <- venue[select.asset.idx]
     select.asset.name <- assetInfo$name[select.asset.idx]
-    select.asset.NetAmount <- call.mat[i,1]
+    select.asset.NetAmount <- integer.call.mat[i,1]
     select.asset.haircut <- haircut.mat[i,select.asset.idx]
     select.asset.Amount <- select.asset.NetAmount/(1-haircut.mat[i,select.asset.idx])
     select.asset.currency <- assetInfo$currency[select.asset.idx]
