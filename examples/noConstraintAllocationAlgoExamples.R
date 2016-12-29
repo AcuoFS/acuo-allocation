@@ -7,7 +7,7 @@ callId1 <- c('mc1','mc2','mc3','mc5'); clientId1 <- '999'; pref1 <- c(5,5,0)
 callId2 <- c('mc1','mc2','mc3','mc5'); clientId2 <- '999'; pref2 <- c(2,5,9)
 
 callId3 <- c('mc1','mc2','mc3','mc4','mc5','mc8','mc9','mc10') ; clientId3 <- '999'; pref3<- c(3,3,3)
-callId4 <- c('mc1','mc2','mc3','mc4','mc5','mc8','mc9','mc10') ; clientId4 <- '999'; pref4<- c(3,8,5)
+callId4 <- c('mc1','mc2','mc3','mc4','mc5','mc8','mc9','mc10') ; clientId4 <- '999'; pref4<- c(2,10,5)
 
 callId5 <- c('mc4','mc8','mc12','mc13','mc16') ; clientId5 <- '999'; pref5<-c(2,5,8)
 callId6 <- c('mc4','mc8','mc12','mc13','mc16') ; clientId6 <- '999'; pref6<-c(7,4,5)
@@ -84,3 +84,6 @@ noConstraintAllocationAlgoEx6 <- function(){
 noConstraintAllocationAlgoEx1()$output
 noConstraintAllocationAlgoEx2()$output
 noConstraintAllocationAlgoEx3()$output
+noConstraintAllocationAlgoEx4()$output
+noConstraintAllocationAlgoEx5()$output
+noConstraintAllocationAlgoEx6()$output
