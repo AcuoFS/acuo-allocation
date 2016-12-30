@@ -74,20 +74,21 @@ reserve.list <-list()    # store all available assets for each call, list by cal
 select.list  <-list()    # store selected assets for each call, list by callId
 optimalAsset <- matrix(c(callId,rep('', call.num)),nrow=call.num,ncol=2,dimnames = list(callId,c('callId','assetId')))
 
-cost.mat<-call.mat/(1-haircut.mat)*cost.percent.mat  # cost amount
-asset.liquid <- apply((1-haircut.mat*eli.mat)^2,2,min) # define asset liquidity
-liquidity.mat <- matrix(rep(asset.liquid,call.num),nrow=call.num,byrow=TRUE,dimnames=list(callId,assetId)) 
-liquidity.vec <- as.vector(t(liquidity.mat))
+call.ccy <- callInfo$currency
 excess.call.percent <- 0.2
 call.mat <- call.mat*(1+excess.call.percent*pref[1])
 call.vec <- call.vec*(1+excess.call.percent*pref[1])
 
-call.ccy <- callInfo$currency
 # calculate the cost if only the integral units of asset can be allocated
 integer.call.mat <- ceiling(call.mat/(1-haircut.mat)/minUnitValue.mat)*minUnitValue.mat*(1-haircut.mat)
-cost.mat<-integer.call.mat/(1-haircut.mat)*cost.percent.mat  # cost amount
-operation.mat <- matrix(rep(1,asset.num*call.num),nrow=call.num,byrow=TRUE,dimnames=list(callId,assetId)) 
 
+cost.mat<-integer.call.mat/(1-haircut.mat)*cost.percent.mat  # cost amount
+
+asset.liquid <- apply((1-haircut.mat*eli.mat)^2,2,min) # define asset liquidity
+liquidity.mat <- matrix(rep(asset.liquid,call.num),nrow=call.num,byrow=TRUE,dimnames=list(callId,assetId)) 
+liquidity.vec <- as.vector(t(liquidity.mat))
+
+operation.mat <- matrix(rep(1,asset.num*call.num),nrow=call.num,byrow=TRUE,dimnames=list(callId,assetId)) 
 for(i in 1:call.num){
   ccy.idx <- which(call.ccy[i]==assetId)    # return the index of mc[i] currency cash in the assetId list
   idx1 <- which(eli.mat[i,]!=0)             # return elegible asset idx for mc[i]
@@ -160,10 +161,7 @@ if(!is.element(0,suff.select.unique)){
 
 else if(all(pref==c(0,0,1))){  # In case of OW-171,173,174, pref=(0,0,1)
   
- 
-  
-  
-  ##### In case of OW-174, all assets have quantity limits #######
+##### In case of OW-174, all assets have quantity limits #######
    
     idx.eli <- which(eli.vec==1)  # Exclude the non-eligible asset variable for each margin call
     var.num <- length(idx.eli)    # variable numbers
@@ -503,9 +501,9 @@ else if(all(pref==c(1,0,0))){
     }
     
     #  idx.int <- 1:var.num
-    #  set.type(lps.model,idx.int,type='integer') # set integer variables
+    set.type(lps.model,1:var.num2,type='integer') # set integer variables
     set.semicont(lps.model,1:var.num2,TRUE)        # set semi-continuous variables
-    set.type(lps.model,(var.num+1):var.num2,type="binary")
+    #set.type(lps.model,(var.num+1):var.num2,type="binary")
     
     minMoveQuantity <- ceiling(minMoveValue/minUnitValue.vec[idx.eli])
     
