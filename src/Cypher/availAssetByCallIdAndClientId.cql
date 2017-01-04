@@ -17,7 +17,7 @@ RETURN DISTINCT
 //    ag.id AS agreementId,
     mc.id AS callId,
     mc.callType AS callType,
-    mc.callAmount AS callAmount,
+    mc.excessAmount AS callAmount,
     ca.id AS CustodianAccount,
     cu.countryShortName AS venue,
     a.id AS assetId,
