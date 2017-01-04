@@ -38,11 +38,3 @@ RETURN DISTINCT
     is.externalCost AS externalCost,
     is.interestRate AS interestRate,
     is.FXRate AS FXRate
-
-ORDER BY
-CASE 
-WHEN 'assetId' IN {order} THEN assetId
-WHEN 'ACUOCategory' IN {order} THEN ACUOCategory
-WHEN 'callId' IN {order} THEN callId
-WHEN 'callType' IN {order} THEN callType
-END
