@@ -21,5 +21,5 @@ RETURN
     p.earmarkedQuantities AS earmarkedQuantities,
     p.internalCost AS internalCost,
     p.opptCost AS opptCost
-ORDER BY a.isdaType
+
 
