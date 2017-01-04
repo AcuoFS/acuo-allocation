@@ -1,9 +1,9 @@
 library("RNeo4j")
 
-allocationInputData = function(callId,clientId,order='assetId'){
+allocationInputData = function(callId,clientId){
   source('src/functionsOfDBRequestByExecutingCypher.R')
   
-  result <- availAssetByCallIdAndClientId(callId,clientId,order)
+  result <- availAssetByCallIdAndClientId(callId,clientId)
   
   assetId <- unique(result$assetId)
   asset.num <- length(assetId)
