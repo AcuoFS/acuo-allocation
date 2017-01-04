@@ -15,6 +15,7 @@ allocationAlgo <- function(callId='mc1',clientId='999',pref=c(0,0,1)){
   
   callInfo <- input.list$callInfo
   callInfo <- callInfo[match(callId,callInfo$id),]
+  
   custodianAccount <- input.list$custodianAccount  
   venue <- input.list$venue
 
@@ -33,6 +34,7 @@ allocationAlgo <- function(callId='mc1',clientId='999',pref=c(0,0,1)){
   amount.mat <- unitValue.mat*quantity.mat; amount.vec <- unitValue.vec*quantity.vec     # amount of asset
   
   call.mat <- input.list$call.mat; call.vec <- as.vector(t(call.mat))             # margin call amount mat
+  
   cost.percent.mat <- input.list$cost.mat; cost.vec <- input.list$cost.vec        # cost mat & vec
 
 ############### CONSTANTS DEFINED INSIDE THE ALGO ###################
@@ -303,9 +305,12 @@ else if(1){
   #total.move <- sum(lpSolveAPI.solution[(var.num+1):var.num2])
   #obj.result <- c(cost.obj.result,liquidity.obj.result,operation.obj.result)
   
+  # round up the decimal quantity to the nearest integer.
+  # if it's larger than 0.5
   result.mat <- matrix(0,nrow=call.num,ncol=asset.num,dimnames=list(callId,assetId))
   result.mat <- t(result.mat)
   result.mat[idx.eli]<-lpSolveAPI.solution[1:var.num]
+  result.mat[which(result.mat>0.5)] <- ceiling(result.mat[which(result.mat>0.5)])
   result.mat <- t(result.mat)                   # convert solution into matrix format
   
   for(i in 1:call.num){                          # store the result into select list
@@ -327,6 +332,7 @@ else if(1){
     
     select.list[[callId[i]]] <- select.asset.df       
   }
+  output.list <- select.list
 }
 
   return(list(input=input.list,output=output.list))
