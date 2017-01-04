@@ -1,6 +1,6 @@
 library('RNeo4j')
 
-neo4jUrl <- 'http://neo4j.acuo.com:7474/db/data/'
+#neo4jUrl <- 'http://neo4j.acuo.com:7474/db/data/'
 neo4jLocalUrl <- 'http://localhost:7474/db/data/'
 
 callInfoByCallIdCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/src/Cypher/callInfoByCallId.cql'
@@ -12,8 +12,8 @@ assetInfoByAssetIdCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-a
 executeCypher <- function(path,...){
   params <- list(...)
   query = paste(readLines(path), collapse="\n")
-  graph = startGraph(neo4jUrl)
-  #graph = startGraph(neo4jLocalUrl)
+  #graph = startGraph(neo4jUrl)
+  graph = startGraph(neo4jLocalUrl,username='neo4j',password='neo4j')
   cypher(graph,query,params)
 }
   
@@ -29,6 +29,6 @@ eliAssetByClientId <- function(clientId){
   executeCypher(path=eliAssetByClientIdCypherPath,clientId=clientId)
 }
 
-availAssetByCallIdAndClientId <- function(callId,clientId,order='assetId') {
-  executeCypher(path=availAssetByCallIdAndClientIdCypherPath, callId=callId,clientId=clientId, order=order)
+availAssetByCallIdAndClientId <- function(callId,clientId) {
+  executeCypher(path=availAssetByCallIdAndClientIdCypherPath, callId=callId,clientId=clientId)
 }
