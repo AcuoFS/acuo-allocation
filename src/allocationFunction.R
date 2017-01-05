@@ -25,7 +25,7 @@ allocationAlgo <- function(callId='mc1',clientId='999',pref=c(0,0,1)){
   eli.mat <- input.list$eli.mat; eli.vec <- input.list$eli.vec                    # eligibility matrix & vector
   haircut.mat<-input.list$haircut.mat; haircut.vec <- input.list$haircut.vec      # haircut mat & vec
   quantity.mat<- input.list$quantity.mat; quantity.vec <- input.list$quantity.vec # asset quantity mat & vec
-  minUnitQuantity.mat<- input.list$minUnitQuantity.mat; minUnitQuantity.vec <- input.list$minUnitQuantity.ve
+  minUnitQuantity.mat<- input.list$minUnitQuantity.mat; minUnitQuantity.vec <- input.list$minUnitQuantity.vec
   
   unitValue.mat<-input.list$unitValue.mat; unitValue.vec <- input.list$unitValue.vec     # asset unit value mat & vec
   minUnit.mat <- input.list$minUnit.mat; minUnit.vec <- input.list$minUnit.vec;
@@ -286,15 +286,15 @@ else if(1){
   
   result.status <- solve(lps.model)                              # solve model
   
-  if(result.status==2){
+  if(is.element(result.status,c(2,13))){
     errorMsg <- 'Error: Asset inventory might be insufficient!'
     return(errorMsg)
-  } else if(result.status==5){                            # solve model
+  } else if(is.element(result.status,c(5,6,10))){                            # solve model
     errorMsg <- 'Error: Fail to calculate!'
     return(errorMsg)
   } else if(result.status==1){
-    errorMsg <- 'sub-optimal result!'
-    return(errorMsg)
+    warningMsg <- 'sub-optimal result!'
+    
   }
   
   lpSolveAPI.solution <- get.variables(lps.model)
@@ -312,6 +312,148 @@ else if(1){
   result.mat[idx.eli]<-lpSolveAPI.solution[1:var.num]
   result.mat[which(result.mat>0.5)] <- ceiling(result.mat[which(result.mat>0.5)])
   result.mat <- t(result.mat)                   # convert solution into matrix format
+  
+  ##### CHECK ALLOCATION RESULT #############################
+  # 
+  # STATUS: Developing
+  #
+  
+  # 1. whether all variables are non-negative
+  neg.idx <- which(result.mat<0)
+  if(length(excess.idx)>=1){
+    result.mat[neg.idx] <-0 # set to 0 first, then check the other two criteria
+  }
+  
+  # 2. whether statisfy the quantity limits
+  asset.quantity.used <- apply(result.mat,2,sum)
+  asset.quantity.left <- minUnitQuantity.mat[1,]-asset.quantity.used
+  excess.idx <- which(asset.quantity.used>minUnitQuantity.mat[1,])
+  if(length(excess.idx)>=1){
+    for(i in excess.idx){
+      current.allocate <- matrix(c(which(result.mat[,i]>0),result.mat[which(result.mat[,i]>0),i]),nrow=2,byrow=T)
+      if(length(current.allocate[1,])>1){
+        current.allocate<-current.allocate[,order(current.allocate[2,])]
+      }
+      for(k in 1:length(current.allocate[1,])){
+        j = current.allocate[1,k]
+        if(current.allocate[2,k]< (-asset.quantity.left[i])){
+          # the amount missing for the margin call j if excluding the asset i
+          new.quantity <- 0
+          other.amount <- sum(result.mat[j,1+which(result.mat[j,-i]>0)]*minUnitValue.mat[j,1+which(result.mat[j,-i]>0)]*(1-haircut.mat[j,1+which(result.mat[j,-i]>0)]))
+          missing.amount <- call.mat[j,1]-(other.amount+new.quantity/(1-haircut.mat[j,i])/minUnitValue.mat[j,i])
+          # missing.amount<0, means even we substract the exceed quantity of the asset, 
+          # the sub-total is still larger than call amount, then, we update asset to the 
+          # least quantity(already 0) which can meet the margin call requirement, no swaps occur
+          if(missing.amount<=0){
+            result.mat[j,i]<- new.quantity
+            break
+          }
+          # first check whether the other previous allocated assets are sufficient,based on the operation efficiency
+          # find the other asset which is sufficient and eligible for margin call j
+          
+          missing.quantity <- ceiling((missing.amount/(1-haircut.mat)/minUnitValue.mat)[j,])
+          suff.idx <- intersect(which(missing.quantity<=asset.quantity.left),which(eli.mat[j,]==1))
+          
+          # whether there are other assets allocated to call j
+          swap.prob.idx <- which(result.mat[j,]>0)
+          if(length(swap.prob.idx)>1){
+            swap.prob.idx <- swap.prob.idx[-which(swap.prob.idx==i)]
+            swap.new.idx <- swap.prob.idx[which(is.element(swap.old.idx,suff.idx))]
+          }else{
+            swap.new.idx <- suff.idx[1]
+          }
+          swap.new.quantity <- missing.quantity[swap.new.idx]+result.mat[j,swap.new.idx]
+          new.allocate <- matrix(current.allocate[,-which(current.allocate[1,]==j)],nrow=2)
+          
+          if(length(which(result.mat[,swap.new.idx]>0))){
+            swap.allocate<- matrix(c(which(result.mat[,swap.new.idx]>0),result.mat[which(result.mat[,swap.new.idx]>0),swap.new.idx]),nrow=2,byrow=T)
+            swap.allocate[2,which(swap.allocate[1,]==j)] <- swap.new.quantity
+          }else{
+            swap.allocate<- matrix(c(swap.new.idx,swap.new.quantity),nrow=2)
+          }
+          # update the result.mat
+          result.mat[j,c(i,swap.new.idx)]<- c(new.quantity,swap.new.quantity)
+        }
+        else{
+          # the amount missing for the margin call j if excluding the asset i
+          new.quantity<- current.allocate[2,j]+asset.quantity.left[i]
+          other.amount <- sum(result.mat[j,1+which(result.mat[j,-i]>0)]*minUnitValue.mat[j,1+which(result.mat[j,-i]>0)]*
+                                 (1-haircut.mat[j,1+which(result.mat[j,-i]>0)]))
+          missing.amount <- call.mat[j,1]-(other.amount+new.quantity*minUnitValue.mat[j,i]*(1-haircut.mat[j,i]))
+          # missing.amount<0, means even we substract the exceed quantity of the asset, 
+          # the sub-total is still larger than call amount, then, we update asset to the 
+          # least quantity which can meet the margin call requirement, no swaps occur
+          if(missing.amount<=0){
+            new.quantity <-  ceiling((call.mat[j,1]-other.amount)/minUnitValue.mat[j,i]/(1-haircut.mat[j,i]))
+            result.mat[j,i]<- new.quantity
+            break
+          }
+          
+          # first check whether the other previous allocated assets are sufficient,based on the operation efficiency
+          # find the other asset which is sufficient and eligible for margin call j
+          missing.quantity <- ceiling((missing.amount/(1-haircut.mat)/minUnitValue.mat)[j,])
+          suff.idx <- intersect(which(missing.quantity<=asset.quantity.left),which(eli.mat[j,]==1))
+          
+          # whether there are other assets allocated to call j
+          swap.prob.idx <- which(result.mat[j,]>0)
+          if(length(swap.prob.idx)>1){
+            swap.prob.idx <- swap.prob.idx[-which(swap.prob.idx==i)]
+            swap.new.idx <- swap.prob.idx[which(is.element(swap.old.idx,suff.idx))]
+          }else{
+            swap.new.idx <- suff.idx[1]
+          }
+          swap.new.quantity <- missing.quantity[swap.new.idx]+result.mat[j,swap.new.idx]
+          
+          new.allocate <- current.allocate
+          new.allocate[,-which(current.allocate[1,]==j)] <- new.quantity
+          
+          if(length(which(result.mat[,swap.new.idx]>0))){
+            swap.allocate<- matrix(c(which(result.mat[,swap.new.idx]>0),result.mat[which(result.mat[,swap.new.idx]>0),swap.new.idx]),nrow=2,byrow=T)
+            swap.allocate[2,which(swap.allocate[1,]==j)] <- swap.new.quantity
+          }else{
+            swap.allocate<- matrix(c(swap.new.idx,swap.new.quantity),nrow=2)
+          }
+          # update the result.mat
+          result.mat[j,c(i,swap.new.idx)]<- c(new.quantity,swap.new.quantity)
+          
+          # break
+          break
+        }
+      } 
+    }
+  }
+  
+  # 3. whether meet all margin call requirements
+  asset.quantity.used <- apply(result.mat,2,sum)
+  asset.quantity.left <- minUnitQuantity.mat[1,]-asset.quantity.used
+  call.fulfilled <- apply(result.mat*minUnitValue.mat*(1-haircut.mat),1,sum)
+  call.missing.amount <- call.mat[,1]-call.fulfilled
+  call.missing.idx <- which(call.missing.amount>0)
+  if(length(call.missing.idx)>=1){
+    for(i in call.missing.idx){
+      current.allocate <- matrix(c(which(result.mat[i,]>0),result.mat[i,which(result.mat[i,]>0)]),nrow=2,byrow=T)
+      missing.amount <- call.missing.amount[i]
+      missing.quantity <- ceiling((missing.amount/(1-haircut.mat)/minUnitValue.mat)[j,])
+      suff.idx <- intersect(which(missing.quantity<=asset.quantity.left),which(eli.mat[j,]==1))
+      if(length(suff.idx)==0){
+        # which means none of the asset itself is enough to to fulfill the left amount of the margin call
+        # This should be a very extreme case, and it's more complicated to develop for this case
+        # so, I will leave here blank, once I'm done the rest part I'll return to check
+        # Also, the exception handling will be a long-run development, and it will be raised once we have exception
+      }
+      
+      # whether there are assets which are sufficient allocated to call i
+      current.prob.idx <- intersect(suff.idx,current.allocate[1,])
+      if(length(current.prob.idx)==0){
+        current.prob.idx<- suff.idx
+      }
+      add.new.idx <- current.prob.idx[1]
+      add.new.quantity <- missing.quantity[add.new.idx]+result.mat[i,add.new.idx]
+      result.mat[i,add.new.idx] <- add.new.quantity
+    }
+  }
+  
+  ##########################################################
   
   for(i in 1:call.num){                          # store the result into select list
     select.asset.idx <- which(result.mat[i,]!=0)
@@ -335,7 +477,7 @@ else if(1){
   output.list <- select.list
 }
 
-  return(list(input=input.list,output=output.list))
+  return(list(input=input.list,output=output.list,warning=warningMsg))
 }
 
 
