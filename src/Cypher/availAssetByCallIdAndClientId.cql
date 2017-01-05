@@ -11,7 +11,7 @@ MATCH (e)-[:HAS]-(acc:TradingAccount)
 WHERE (acc)-[:ACCESSES]->(ca)
 
 WITH *
-MATCH (c)-[p:POSSESSES]->(a)
+MATCH (c)-[:CLIENT_ASSET]->(:ClientAsset)-[p:POSSESSES]->(a)
 
 RETURN DISTINCT
 //    ag.id AS agreementId,

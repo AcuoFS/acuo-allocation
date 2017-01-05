@@ -4,7 +4,7 @@ AND at.status = 'Arriving'
 AND at.reservedQuantities >0 
 
 WITH DISTINCT at, ca
-MATCH (ca)-[:HOLDS]->(a:Asset)<-[p:POSSESSES]-(c)
+MATCH (ca)-[:HOLDS]->(a:Asset)<-[p:POSSESSES]-(:ClientAsset)<-[:CLIENT_ASSET]-(c)
 WHERE a.id = at.assetId
 
 WITH *

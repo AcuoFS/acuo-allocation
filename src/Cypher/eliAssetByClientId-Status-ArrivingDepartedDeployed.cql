@@ -3,7 +3,7 @@ MATCH (c:Client)-->(e:LegalEntity)-->(ta:TradingAccount)-->(ca:CustodianAccount)
 WHERE c.id = {clientId}
 
 WITH DISTINCT at, ca
-MATCH (ca)-[:HOLDS]->(a:Asset)<-[p:POSSESSES]-(c)
+MATCH (ca)-[:HOLDS]->(a:Asset)<-[p:POSSESSES]-(:ClientAsset)<-[:CLIENT_ASSET]-(c)
 WHERE a.id = at.assetId
 
 WITH *

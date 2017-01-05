@@ -1,5 +1,5 @@
 //query for asset in 'Available' status
-MATCH path=(e:LegalEntity)<-[:MANAGES]-(c:Client)-[p:POSSESSES]->(a:Asset)-[:IS_AVAILABLE_FOR]->(ag:Agreement)
+MATCH path=(e:LegalEntity)<-[:MANAGES]-(c:Client)-[:CLIENT_ASSET]->(:ClientAsset)-[p:POSSESSES]->(a:Asset)-[:IS_AVAILABLE_FOR]->(ag:Agreement)
 WHERE (e)-[:CLIENT_SIGNS]->(ag)
 AND c.id = {clientId}
 AND p.quantities>p.reservedQuantities
