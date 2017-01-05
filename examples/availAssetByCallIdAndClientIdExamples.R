@@ -29,22 +29,22 @@ order6 <- 'callId'
 
 #### EXAMPLE FUNCTIONS ##################
 availAssetByCallIdAndClientIdEx1 <- function(){
-  availAssetByCallIdAndClientId(callId1,clientId1,order1)
+  availAssetByCallIdAndClientId(callId1,clientId1)
 }
 availAssetByCallIdAndClientIdEx2 <- function(){
-  availAssetByCallIdAndClientId(callId2,clientId2,order2)
+  availAssetByCallIdAndClientId(callId2,clientId2)
 }
 availAssetByCallIdAndClientIdEx3 <- function(){
-  availAssetByCallIdAndClientId(callId3,clientId3,order3)
+  availAssetByCallIdAndClientId(callId3,clientId3)
 }
 availAssetByCallIdAndClientIdEx4 <- function(){
-  availAssetByCallIdAndClientId(callId4,clientId4,order4)
+  availAssetByCallIdAndClientId(callId4,clientId4)
 }
 availAssetByCallIdAndClientIdEx5 <- function(){
-  availAssetByCallIdAndClientId(callId5,clientId5,order5)
+  availAssetByCallIdAndClientId(callId5,clientId5)
 }
 availAssetByCallIdAndClientIdEx6 <- function(){
-  availAssetByCallIdAndClientId(callId6,clientId6,order6)
+  availAssetByCallIdAndClientId(callId6,clientId6)
 }
 
 #### EXAMPLES RESULTS ####################
