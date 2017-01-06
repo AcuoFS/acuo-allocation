@@ -2,29 +2,17 @@ library('RNeo4j')
 source('src/functionsOfDBRequestByExecutingCypher.R')
 
 #### CONSTANTS, PLASE DO NOT CHANGE #####
-callId1 <- c('mc1')
+callId1 <- c('mc45')
 clientId1 <- '999'
-order1 <- 'callId'
 
-callId2 <- c('mc2','mc3')
+callId2 <- c('mc46','mc43')
 clientId2 <- '999'
-order2 <- 'callId'
 
-callId3 <- c('mc1','mc2','mc4','mc5','mc6','mc8','mc9','mc10','mc11')
+callId3 <- c('mc45','mc46','mc48','mc49','mc50','mc51')
 clientId3 <- '999'
-order3 <- 'callId'
 
-callId4 <- c('mc12','mc15')
-clientId4 <- '999'
-order4 <- 'callId'
-
-callId5 <- c('mc13','mc14','mc16','mc18','mc19','mc20')
+callId5 <- c('mc53','mc54','mc56','mc58','mc59','mc60')
 clientId5 <- '999'
-order5 <- 'callId'
-
-callId6 <- c('mc2','mc3','mc7','mc13','mc14','mc16','mc18','mc19','mc20')
-clientId6 <- '999'
-order6 <- 'callId'
 
 
 #### EXAMPLE FUNCTIONS ##################
@@ -37,20 +25,12 @@ availAssetByCallIdAndClientIdEx2 <- function(){
 availAssetByCallIdAndClientIdEx3 <- function(){
   availAssetByCallIdAndClientId(callId3,clientId3)
 }
-availAssetByCallIdAndClientIdEx4 <- function(){
-  availAssetByCallIdAndClientId(callId4,clientId4)
-}
 availAssetByCallIdAndClientIdEx5 <- function(){
   availAssetByCallIdAndClientId(callId5,clientId5)
-}
-availAssetByCallIdAndClientIdEx6 <- function(){
-  availAssetByCallIdAndClientId(callId6,clientId6)
 }
 
 #### EXAMPLES RESULTS ####################
 availAssetByCallIdAndClientIdEx1()
 availAssetByCallIdAndClientIdEx2()
 availAssetByCallIdAndClientIdEx3()
-availAssetByCallIdAndClientIdEx4()
 availAssetByCallIdAndClientIdEx5()
-availAssetByCallIdAndClientIdEx6()
