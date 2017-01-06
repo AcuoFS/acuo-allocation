@@ -3,7 +3,7 @@ AS line
 WITH line
 WHERE line.clientId IS NOT NULL
 
-MATCH (c:Client {id:line.clientId})-[p:POSSESSES]->(a:Asset {id: line.id})
+MATCH (c:Client {id:line.clientId})-[:CLIENT_ASSET]->(:ClientAsset)-[p:POSSESSES]->[p:POSSESSES]->(a:Asset {id: line.id})
 WITH DISTINCT p, line
 SET
 	p.oriInternalCost = p.internalCost,

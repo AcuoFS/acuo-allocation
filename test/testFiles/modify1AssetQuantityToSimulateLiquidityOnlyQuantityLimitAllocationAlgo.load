@@ -10,7 +10,7 @@ SET
 
 WITH DISTINCT a
 
-MATCH path1 = (custac:CustodianAccount)-[h:HOLDS]->(a)<-[p:POSSESSES]-(c:Client)
+MATCH path1 = (custac:CustodianAccount)-[h:HOLDS]->(a)<-[:POSSESSES]-(:ClientAsset)<-[:CLIENT_ASSET]-(c:Client)
 WHERE (c)-[*3]->(custac)
 
 WITH DISTINCT p, SUM(h.quantities) AS hQ, SUM(h.availableQuantities) AS hAQ

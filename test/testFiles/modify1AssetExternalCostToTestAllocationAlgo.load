@@ -3,7 +3,7 @@ AS line
 WITH line
 WHERE line.clientId IS NOT NULL
 
-MATCH (c:Client {id:line.clientId})-[p:POSSESSES]->(a:Asset {id: line.id})-[is:IS_AVAILABLE_FOR]->(ag:Agreement {id:line.agreementId})
+MATCH (c:Client {id:line.clientId})-[:CLIENT_ASSET]->(:ClientAsset)-[p:POSSESSES]->(a:Asset {id: line.id})-[is:IS_AVAILABLE_FOR]->(ag:Agreement {id:line.agreementId})
 WITH DISTINCT is, line
 SET
 	is.oriExternalCost = is.externalCost,
