@@ -24,6 +24,7 @@ RETURN
     cu.countryShortName AS venue,
     ca.id AS custodianAccountId,
     'Available' AS status,
+    p.subStatus AS subStatus, //no subStatus in [p], value is NULL, 
     a.parValue AS unitValue,
     a.minUnit AS minUnit,
     a.minUnitValue AS minUnitValue,
