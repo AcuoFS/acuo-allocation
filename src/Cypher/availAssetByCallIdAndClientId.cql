@@ -2,7 +2,7 @@ MATCH (cu:Custodian)-[:MANAGES]->(ca:CustodianAccount)-[h:HOLDS]-(a:Asset)-[is:I
     (e:LegalEntity)<-[:MANAGES]-(c:Client)
 WHERE mc.id IN {callId}
 AND c.id = {clientId}
-AND mc.callType IN is.callType
+AND mc.marginType IN is.marginType
 AND (e)-[:CLIENT_SIGNS]-(ag)
 
 WITH *
@@ -15,7 +15,7 @@ MATCH (c)-[:CLIENT_ASSET]->(:ClientAsset)-[p:POSSESSES]->(a)
 RETURN DISTINCT
 //    ag.id AS agreementId,
     mc.id AS callId,
-    mc.callType AS callType,
+    mc.marginType AS marginType,
     mc.excessAmount AS callAmount,
     ca.id AS CustodianAccount,
     cu.countryShortName AS venue,
