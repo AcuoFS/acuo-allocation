@@ -21,6 +21,7 @@ RETURN DISTINCT
     ca.id AS CustodianAccount,
     cu.countryShortName AS venue,
     a.id AS assetId,
+    a.name AS assetName,
     a.ACUOCategory AS ACUOCategory,
 //    a.name AS assetName,
     a.parValue AS unitValue,
