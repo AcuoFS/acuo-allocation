@@ -13,11 +13,17 @@ WHERE (acc)-[:ACCESSES]->(ca)
 WITH *
 MATCH (c)-[:CLIENT_ASSET]->(:ClientAsset)-[p:POSSESSES]->(a)
 
+WITH *
+MATCH (ccy1:Currency {id:a.currency})-[fx1:FX_RATE]->(usd:Currency {id:'USD'}),
+      (ccy2:Currency {id:mc.currency})-[fx2:FX_RATE]->(usd:Currency {id:'USD'})
+
 RETURN DISTINCT
 //    ag.id AS agreementId,
     mc.id AS callId,
     mc.marginType AS marginType,
+    mc.currency AS callCurrency,
     mc.excessAmount AS callAmount,
+    mc.excessAmount/fx2.fxRate AS callAmountUSD,
     ca.id AS CustodianAccount,
     cu.countryShortName AS venue,
     a.id AS assetId,
@@ -38,4 +44,4 @@ RETURN DISTINCT
     is.FXHaircut AS FXHaircut,
     is.externalCost AS externalCost,
     is.interestRate AS interestRate,
-    is.FXRate AS FXRate
+    fx1.fxRate AS FXRate
