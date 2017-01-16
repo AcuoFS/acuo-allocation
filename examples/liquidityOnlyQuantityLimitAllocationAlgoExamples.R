@@ -3,10 +3,10 @@ source('src/functionsOfDBRequestByExecutingCypher.R')
 source('src/allocationFunction.R')
 
 #### CONSTANTS, PLEASE DO NOT CHANGE #####
-callId1 <- c('mc1','mc2','mc3','mc5'); clientId1 <- '999'
-callId2 <- c('mc1','mc2','mc3','mc4','mc5','mc8') ; clientId2 <- '999'
-callId3 <- c('mc4','mc8','mc12','mc13','mc16') ; clientId3 <- '999'
-callId4 <- c('mc2','mc9','mc10','mc11','mc14','mc15','mc17','mc19','mc20') ; clientId4 <- '999'
+callId1 <- c('mcp41','mcp42','mcp46','mcp47'); clientId1 <- '999'
+callId2 <- c('mcp41','mcp42','mcp43','mcp44','mcp45','mcp48') ; clientId2 <- '999'
+callId3 <- c('mcp44','mcp48','mcp52','mcp53') ; clientId3 <- '999'
+callId4 <- c('mcp42','mcp49','mcp50','mcp51','mcp54','mcp55','mcp57','mcp59','mcp60') ; clientId4 <- '999'
 
 modifyAssetQuantityCypherPath1 <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/modify1AssetQuantityToSimulateLiquidityOnlyQuantityLimitAllocationAlgo.load'
 restoreAssetQuantityCypherPath1 <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/restore1AssetQuantityDueToSimulateLiquidityOnlyQuantityLimitAllocationAlgo.load'

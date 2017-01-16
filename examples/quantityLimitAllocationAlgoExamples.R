@@ -3,16 +3,16 @@ source('src/functionsOfDBRequestByExecutingCypher.R')
 source('src/allocationFunction.R')
 
 #### CONSTANTS, PLEASE DO NOT CHANGE #####
-callId1 <- c('mc41','mc42','mc43','mc45'); clientId1 <- '999'
-callId2 <- c('mc41','mc42','mc43','mc44','mc45','mc48') ; clientId2 <- '999'
-callId3 <- c('mc44','mc48','mc52','mc53') ; clientId3 <- '999'
-callId4 <- c('mc42','mc49','mc50','mc51','mc54','mc55','mc57','mc59','mc60') ; clientId4 <- '999'
-
-modifyAssetQuantityCypherPath1 <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/modify1AssetQuantityToSimulatequantityLimitAllocationAlgo.load'
-restoreAssetQuantityCypherPath1 <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/restore1AssetQuantityDueToSimulatequantityLimitAllocationAlgo.load'
-
-modifyAssetQuantityCypherPath2 <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/modify2AssetQuantityToSimulatequantityLimitAllocationAlgo.load'
-restoreAssetQuantityCypherPath2 <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/restore2AssetQuantityDueToSimulatequantityLimitAllocationAlgo.load'
+callId1 <- c('mcp41','mcp42','mcp46','mcp47'); clientId1 <- '999'
+callId2 <- c('mcp41','mcp42','mcp43','mcp44','mcp45','mcp48') ; clientId2 <- '999'
+callId3 <- c('mcp44','mcp48','mcp52','mcp53') ; clientId3 <- '999'
+callId4 <- c('mcp42','mcp49','mcp50','mcp51','mcp54','mcp55','mcp57','mcp59','mcp60') ; clientId4 <- '999'
+callId5 <- c('mcp10','mcp11','mcp12','mcp13','mcp14','mcp15',
+             'mcp41','mcp42','mcp46','mcp47','mcp48','mcp49',
+             'mcp5','mcp50','mcp51','mcp55','mcp56','mcp57','mcp58','mcp59',
+             'mcp6','mcp60','mcp61','mcp64') ; clientId5 <- '999'
+callId6 <- c('mcp1','mcp3','mcp4','mcp5','mcp7','mcp8','mcp10','mcp14','mcp15','mcp16',
+             'mcp19','mcp20','mcp22','mcp23','mcp24','mcp26','mcp27','mcp30'); clientId6 <- '999'
 
 #### EXAMPLE FUNCTIONS ##################
 quantityLimitAllocationAlgoEx1 <- function(){
@@ -23,38 +23,38 @@ quantityLimitAllocationAlgoEx1 <- function(){
 }
 quantityLimitAllocationAlgoEx2 <- function(){
   
-  allocation.result1 <- allocationAlgo(callId=callId2,clientId=clientId2,pref=c(8,5,4))$output
+  allocation.result <- allocationAlgo(callId=callId2,clientId=clientId2,pref=c(8,5,4))
   
   return(allocation.result)
 }
 quantityLimitAllocationAlgoEx3 <- function(){
   
-  allocation.result2 <- allocationAlgo(callId=callId3,clientId=clientId3,pref=c(4,9,2))$output
+  allocation.result <- allocationAlgo(callId=callId3,clientId=clientId3,pref=c(4,9,2))
   
   return(allocation.result)
 }
 quantityLimitAllocationAlgoEx4 <- function(){
-  
-  executeCypher(path=modifyAssetQuantityCypherPath1)
-  
-  allocation.result3 <- allocationAlgo(callId=callId4,clientId=clientId4,pref=c(9,1,7))$output
-  
-  executeCypher(path=restoreAssetQuantityCypherPath1)
+
+  allocation.result <- allocationAlgo(callId=callId4,clientId=clientId4,pref=c(9,1,7))
   
   return(allocation.result)
 }
 quantityLimitAllocationAlgoEx5 <- function(){
   
-  allocation.result <- allocationAlgo(callId=callId4,clientId=clientId4,pref=c(10,1,0))
+  allocation.result <- allocationAlgo(callId=callId5,clientId=clientId5,pref=c(9,1,7))
   
   return(allocation.result)
 }
-
+quantityLimitAllocationAlgoEx6 <- function(){
+  
+  allocation.result <- allocationAlgo(callId=callId6,clientId=clientId6,pref=c(9,1,7))
+  
+  return(allocation.result)
+}
 #### EXAMPLES RESULTS ####################
 quantityLimitAllocationAlgoEx1()
 quantityLimitAllocationAlgoEx2()
 quantityLimitAllocationAlgoEx3()
 quantityLimitAllocationAlgoEx4()
 quantityLimitAllocationAlgoEx5()
-
 

@@ -3,11 +3,10 @@ source('src/functionsOfDBRequestByExecutingCypher.R')
 source('src/allocationFunction.R')
 
 #### CONSTANTS, PLEASE DO NOT CHANGE #####
-callId1 <- c('mc1','mc2','mc3','mc5'); clientId1 <- '999'
-callId2 <- c('mc1','mc2','mc3','mc4','mc5','mc8') ; clientId2 <- '999'
-callId3 <- c('mc4','mc8','mc12','mc13','mc16') ; clientId3 <- '999'
-callId4 <- c('mc2','mc3','mc8','mc12','mc13','mc16','mc17') ; clientId4 <- '999'
-callId5 <- c('mc2','mc9','mc10','mc11','mc14','mc15','mc17','mc19','mc20') ; clientId5 <- '999'
+callId1 <- c('mc41','mc42','mc43','mc45'); clientId1 <- '999'
+callId2 <- c('mc43','mc44','mc45','mc48','mc54','mc59') ; clientId2 <- '999'
+callId3 <- c('mc49','mc50','mc51','mc54','mc55','mc57','mc60') ; clientId3 <- '999'
+callId4 <- c('mc51','mc52','mc54','mc55','mc57','mc59','mc61') ; clientId4 <- '999'
 
 modifyAssetQuantityCypherPath1 <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/modify1AssetQuantityToSimulateCostOnlyQuantityLimitAllocationAlgo.load'
 restoreAssetQuantityCypherPath1 <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/test/testFiles/restore1AssetQuantityDueToSimulateCostOnlyQuantityLimitAllocationAlgo.load'
@@ -24,67 +23,61 @@ restoreAssetExternalCostCypherPath1 <- 'https://raw.githubusercontent.com/AcuoFS
 #### EXAMPLE FUNCTIONS ##################
 costOnlyQuantityLimitAllocationAlgoEx1 <- function(){
   
-  executeCypher(path=modifyAssetQuantityCypherPath1)
-  executeCypher(path=modifyAssetInternalCostCypherPath1)
-  executeCypher(path=modifyAssetExternalCostCypherPath1)
+  #executeCypher(path=modifyAssetQuantityCypherPath1)
+  #executeCypher(path=modifyAssetInternalCostCypherPath1)
+  #executeCypher(path=modifyAssetExternalCostCypherPath1)
   
   allocation.result <- allocationAlgo(callId=callId1,clientId=clientId1,pref=c(0,0,1))
   
-  executeCypher(path=restoreAssetQuantityCypherPath1)
-  executeCypher(path=restoreAssetInternalCostCypherPath1)
-  executeCypher(path=restoreAssetExternalCostCypherPath1)
+  #executeCypher(path=restoreAssetQuantityCypherPath1)
+  #executeCypher(path=restoreAssetInternalCostCypherPath1)
+  #executeCypher(path=restoreAssetExternalCostCypherPath1)
   
   return(allocation.result)
 }
 
 costOnlyQuantityLimitAllocationAlgoEx2 <- function(){
   
-  executeCypher(path=modifyAssetQuantityCypherPath1)
-  executeCypher(path=modifyAssetInternalCostCypherPath1)
-  executeCypher(path=modifyAssetExternalCostCypherPath1)
+  #executeCypher(path=modifyAssetQuantityCypherPath1)
+  #executeCypher(path=modifyAssetInternalCostCypherPath1)
+  #executeCypher(path=modifyAssetExternalCostCypherPath1)
   
   allocation.result <- allocationAlgo(callId=callId2,clientId=clientId2,pref=c(0,0,1))
   
-  executeCypher(path=restoreAssetQuantityCypherPath1)
-  executeCypher(path=restoreAssetInternalCostCypherPath1)
-  executeCypher(path=restoreAssetExternalCostCypherPath1)
+  #executeCypher(path=restoreAssetQuantityCypherPath1)
+  #executeCypher(path=restoreAssetInternalCostCypherPath1)
+  #executeCypher(path=restoreAssetExternalCostCypherPath1)
   
   return(allocation.result)
 }
 
 costOnlyQuantityLimitAllocationAlgoEx3 <- function(){
   
-  executeCypher(path=modifyAssetQuantityCypherPath2)
-  executeCypher(path=modifyAssetInternalCostCypherPath1)
-  executeCypher(path=modifyAssetExternalCostCypherPath1)
+  #executeCypher(path=modifyAssetQuantityCypherPath2)
+  #executeCypher(path=modifyAssetInternalCostCypherPath1)
+  #executeCypher(path=modifyAssetExternalCostCypherPath1)
   
   allocation.result <- allocationAlgo(callId=callId3,clientId=clientId3,pref=c(0,0,1))
   
-  executeCypher(path=restoreAssetQuantityCypherPath2)
-  executeCypher(path=restoreAssetInternalCostCypherPath1)
-  executeCypher(path=restoreAssetExternalCostCypherPath1)
+  #executeCypher(path=restoreAssetQuantityCypherPath2)
+  #executeCypher(path=restoreAssetInternalCostCypherPath1)
+  #executeCypher(path=restoreAssetExternalCostCypherPath1)
   
   return(allocation.result)
 }
 
 costOnlyQuantityLimitAllocationAlgoEx4 <- function(){
   
-  executeCypher(path=modifyAssetQuantityCypherPath2)
-  executeCypher(path=modifyAssetInternalCostCypherPath1)
-  executeCypher(path=modifyAssetExternalCostCypherPath1)
+  #executeCypher(path=modifyAssetQuantityCypherPath2)
+  #executeCypher(path=modifyAssetInternalCostCypherPath1)
+  #executeCypher(path=modifyAssetExternalCostCypherPath1)
   
   allocation.result <- allocationAlgo(callId=callId4,clientId=clientId4,pref=c(0,0,1))
   
-  executeCypher(path=restoreAssetQuantityCypherPath2)
-  executeCypher(path=restoreAssetInternalCostCypherPath1)
-  executeCypher(path=restoreAssetExternalCostCypherPath1)
+  #executeCypher(path=restoreAssetQuantityCypherPath2)
+  #executeCypher(path=restoreAssetInternalCostCypherPath1)
+  #executeCypher(path=restoreAssetExternalCostCypherPath1)
   
-  return(allocation.result)
-}
-
-costOnlyQuantityLimitAllocationAlgoEx5 <- function(){
-  
-  allocation.result <- allocationAlgo(callId=callId5,clientId=clientId5,pref=c(0,0,1))
   return(allocation.result)
 }
 
@@ -93,6 +86,5 @@ costOnlyQuantityLimitAllocationAlgoEx1()
 costOnlyQuantityLimitAllocationAlgoEx2()
 costOnlyQuantityLimitAllocationAlgoEx3()
 costOnlyQuantityLimitAllocationAlgoEx4()
-costOnlyQuantityLimitAllocationAlgoEx5()
 
 
