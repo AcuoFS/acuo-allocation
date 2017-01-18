@@ -1,12 +1,12 @@
 
 ############ ALGORITHM ##########################################
 secondAllocationFunction<- 
-  function(callIds,clientId,pref,deselectAssetId,deselectCallId,current.selection,availAssets){
+  function(callIds,assetIds,clientId,pref,deselectAssetId,deselectCallId,current.selection,availAssets,callInfo,assetInfo){
     
   pref <- pref/sum(pref)
   # update the asset quantity which can be used to allocate to the call
   call.num <- length(callIds)
-  assetIds <- availAssets$assetId
+  assetInfo <- assetInfo[match(assetIds,assetInfo$id),]
   asset.num <- length(assetIds)
   minUnit.vec <- availAssets$minUnit
   quantity.vec <- availAssets$quantity/minUnit.vec
