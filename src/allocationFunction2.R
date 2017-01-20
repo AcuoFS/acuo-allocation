@@ -2,12 +2,13 @@ library('RNeo4j')
 library('lpSolveAPI')
 
 #### ALLOCATION MAIN FUNCTION ############
-allocationAlgo <- function(callIds,clientId,callInfo,availAssets,assetInfo){
+allocationAlgo <- function(callIds,assetIds,clientId,callInfo,availAssets,assetInfo,pref){
   
   ########### CONSTANTS ################################
   order.method <- 2
   limit.VM <- 10
   limit.IM <- 6
+  limit.total <- 6
   ########### END ######################################
   
   
@@ -22,47 +23,8 @@ allocationAlgo <- function(callIds,clientId,callInfo,availAssets,assetInfo){
   ######## SPLIT the call ids in to several groups #######################
   # method 1: group by marginType
   # maximum 10 VM or 6 IM a time
-  splitCallIds <- function(limit.VM,limit.IM){
-    
-    group.list <- list()
-    
-    # index of VM and IM in the call list
-    idx.VM <- which(toupper(callInfo$marginType)=='VARIATION')
-    idx.IM <- which(toupper(callInfo$marginType)=='INITIAL')
-    
-    # number of VM and IM groups 
-    group.VM.num <- ceiling(length(idx.VM)/limit.VM) 
-    group.IM.num <- ceiling(length(idx.IM)/limit.IM)
-    
-    # make the group list, VM and IM in the same list
-    index <- 0
-    if(group.VM.num==1){
-      index <- index+1
-      group.list[[index]] <- callIds[idx.VM]
-    } else if(group.VM.num > 1){
-      for(i in 1:(group.VM.num-1)){
-        index <- index+1
-        group.list[[index]] <- callIds[idx.VM[(i-1)*limit.VM+(1:limit.VM)]]
-      } 
-      index <- index+1
-      group.list[[index]] <- callIds[tail(idx.VM,length(idx.VM)-(group.VM.num-1)*limit.VM)]
-    }
-    
-    if(group.IM.num==1){
-      index <- index+1
-      group.list[[index]] <- callIds[idx.IM]
-    } else if(group.IM.num > 1){
-      for(i in 1:(group.IM.num-1)){
-        index <- index+1
-        group.list[[index]] <- callIds[idx.IM[(i-1)*limit.IM+(1:limit.IM)]]
-      } 
-      index <- index+1
-      group.list[[index]] <- callIds[tail(idx.IM,length(idx.IM)-(group.IM.num-1)*limit.IM)]
-    }
-    return(group.list)
-  }
   
-  group.list <- splitCallIds(limit.VM,limit.IM)
+  group.list <- splitCallIds(limit.VM,limit.IM,limit.total,callInfo,callIds)
   ############# END ###################################################
   
   
@@ -195,42 +157,47 @@ orderCallIds <- function(order.method,callInfo){
   }
   return(callInfo)
 }
-splitCallIds <- function(limit.VM,limit.IM){
+splitCallIds <- function(limit.VM,limit.IM,limit.total,callInfo,callIds){
   
   group.list <- list()
   
-  # index of VM and IM in the call list
-  idx.VM <- which(toupper(callInfo$marginType)=='VARIATION')
-  idx.IM <- which(toupper(callInfo$marginType)=='INITIAL')
-  
-  # number of VM and IM groups 
-  group.VM.num <- ceiling(length(idx.VM)/limit.VM) 
-  group.IM.num <- ceiling(length(idx.IM)/limit.IM)
-  
-  # make the group list, VM and IM in the same list
-  index <- 0
-  if(group.VM.num==1){
-    index <- index+1
-    group.list[[index]] <- callIds[idx.VM]
-  } else if(group.VM.num > 1){
-    for(i in 1:(group.VM.num-1)){
+  # if the total call numbers is equal or less than 6, only one group
+  if(length(callInfo[,1])<=limit.total){
+    group.list[[1]] <- callIds
+  } else{
+    # index of VM and IM in the call list
+    idx.VM <- which(toupper(callInfo$marginType)=='VARIATION')
+    idx.IM <- which(toupper(callInfo$marginType)=='INITIAL')
+    
+    # number of VM and IM groups 
+    group.VM.num <- ceiling(length(idx.VM)/limit.VM) 
+    group.IM.num <- ceiling(length(idx.IM)/limit.IM)
+    
+    # make the group list, VM and IM in the same list
+    index <- 0
+    if(group.VM.num==1){
       index <- index+1
-      group.list[[index]] <- callIds[idx.VM[(i-1)*limit.VM+(1:limit.VM)]]
-    } 
-    index <- index+1
-    group.list[[index]] <- callIds[tail(idx.VM,length(idx.VM)-(group.VM.num-1)*limit.VM)]
-  }
-  
-  if(group.IM.num==1){
-    index <- index+1
-    group.list[[index]] <- callIds[idx.IM]
-  } else if(group.IM.num > 1){
-    for(i in 1:(group.IM.num-1)){
+      group.list[[index]] <- callIds[idx.VM]
+    } else if(group.VM.num > 1){
+      for(i in 1:(group.VM.num-1)){
+        index <- index+1
+        group.list[[index]] <- callIds[idx.VM[(i-1)*limit.VM+(1:limit.VM)]]
+      } 
       index <- index+1
-      group.list[[index]] <- callIds[idx.IM[(i-1)*limit.IM+(1:limit.IM)]]
-    } 
-    index <- index+1
-    group.list[[index]] <- callIds[tail(idx.IM,length(idx.IM)-(group.IM.num-1)*limit.IM)]
+      group.list[[index]] <- callIds[tail(idx.VM,length(idx.VM)-(group.VM.num-1)*limit.VM)]
+    }
+    
+    if(group.IM.num==1){
+      index <- index+1
+      group.list[[index]] <- callIds[idx.IM]
+    } else if(group.IM.num > 1){
+      for(i in 1:(group.IM.num-1)){
+        index <- index+1
+        group.list[[index]] <- callIds[idx.IM[(i-1)*limit.IM+(1:limit.IM)]]
+      } 
+      index <- index+1
+      group.list[[index]] <- callIds[tail(idx.IM,length(idx.IM)-(group.IM.num-1)*limit.IM)]
+    }
   }
   return(group.list)
 }
