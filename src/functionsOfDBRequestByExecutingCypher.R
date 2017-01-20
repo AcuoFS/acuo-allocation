@@ -5,8 +5,9 @@ neo4jLocalUrl <- 'http://localhost:7474/db/data/'
 
 callInfoByCallIdCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/src/Cypher/callInfoByCallId.cql'
 availAssetByCallIdAndClientIdCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/src/Cypher/availAssetByCallIdAndClientId.cql'
-eliAssetByClientIdCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/src/Cypher/eliAssetByClientId.cql'
 assetInfoByAssetIdCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/src/Cypher/assetInfoByAssetId.cql'
+eliAssetByClientIdCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/src/Cypher/eliAssetByClientId.cql'
+resAssetByClientIdCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/master/src/Cypher/resAssetByClientId.cql'
 
 
 executeCypher <- function(path,...){
@@ -25,10 +26,14 @@ assetInfoByAssetId <- function(assetId){
   executeCypher(path=assetInfoByAssetIdCypherPath,assetId=assetId)
 }
 
+availAssetByCallIdAndClientId <- function(callId,clientId) {
+  executeCypher(path=availAssetByCallIdAndClientIdCypherPath, callId=callId,clientId=clientId)
+}
+
 eliAssetByClientId <- function(clientId){
   executeCypher(path=eliAssetByClientIdCypherPath,clientId=clientId)
 }
 
-availAssetByCallIdAndClientId <- function(callId,clientId) {
-  executeCypher(path=availAssetByCallIdAndClientIdCypherPath, callId=callId,clientId=clientId)
+resAssetByClientId <- function(clientId){
+  executeCypher(path=resAssetByClientIdCypherPath,clientId=clientId)
 }
