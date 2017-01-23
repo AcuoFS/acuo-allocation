@@ -52,7 +52,8 @@ for(i in 1:37){
     
     start.time <- proc.time()[3]
     ## CALL THE ALLOCATION FUNCTION ###########
-    result <- allocationAlgo(callIds,assetIds,clientId,callInfo,availAssets,assetInfo,pref)
+    limit <- c(10,6,100)
+    result <- allocationAlgo(callIds,assetIds,clientId,callInfo,availAssets,assetInfo,pref,limit)
     end.time <- proc.time()[3]
     run.time <- end.time-start.time
     

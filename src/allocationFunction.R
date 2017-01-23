@@ -2,13 +2,13 @@ library('RNeo4j')
 library('lpSolveAPI')
 
 #### ALLOCATION MAIN FUNCTION ############
-allocationAlgo <- function(callIds,assetIds,clientId,callInfo,availAssets,assetInfo,pref){
+allocationAlgo <- function(callIds,assetIds,clientId,callInfo,availAssets,assetInfo,pref,limit=c(10,6,6)){
   
   ########### CONSTANTS ################################
   order.method <- 2
-  limit.VM <- 10
-  limit.IM <- 6
-  limit.total <- 6
+  limit.VM <- limit[1]
+  limit.IM <- limit[2]
+  limit.total <- limit[3]
   ########### END ######################################
   
   
@@ -482,7 +482,7 @@ coreAlgo <- function(input.list,availAssets){
     int.idx <- which(minUnitValue.vec[idx.eli]>=100)
     set.type(lps.model,int.idx,'integer')
     set.bounds(lps.model,lower=c(minMoveQuantity,rep(1,var.num)),upper=c(minUnitQuantity.vec[idx.eli],rep(1,var.num)))
-    lp.control(lps.model,epsd=1e-10,presolve='knapsack',timeout=5)
+    lp.control(lps.model,epsd=1e-10,presolve='knapsack',timeout=40)
     
     result.status <- solve(lps.model)                              # solve model
     
