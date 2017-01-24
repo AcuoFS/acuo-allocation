@@ -15,10 +15,13 @@
 
 callIds.all <- c('mcp1','mcp5','mcp7','mcp15','mcp19','mcp23','mcp25',                            # 7 lagacy VM
                  'mcp2','mcp4','mcp8','mcp10','mcp14','mcp16','mcp20','mcp22','mcp26','mcp30',    # 10 bilateral VM
-                 'mcp31','mcp32','mcp33','mcp34','mcp35','mcp36','mcp37','mcp38','mcp39','mcp42', # 10 cleared VM
-                 'mcp43','mcp44','mcp45','mcp46','mcp47','mcp48','mcp49','mcp50','mcp51','mcp54') # 10 cleared IM
-idx.VM.all <- c(1:27)
-idx.IM.all <- c(28:37)
+                 'mcp31','mcp32','mcp33','mcp37','mcp38','mcp39','mcp42',#'mcp34','mcp35','mcp36', #7/ 10 cleared VM
+                 'mcp43','mcp44','mcp45','mcp49','mcp50','mcp51','mcp54')#'mcp46','mcp47','mcp48',) # 7/10 cleared IM
+idx.VM.all <- c(1:24)
+idx.IM.all <- c(25:31)
+all.num <- length(callIds.all)
+
+clientId <- '999'
 
 # preference order: operation, liquidity, and cost
 pref.all <- list(c(10,0,0),c(10,10,0),c(10,0,10),
@@ -33,15 +36,15 @@ file.path <- "Result/testCloudServerRunningTime.xlsx"
 workbook <- loadWorkbook(file.path)
 read.params <- readWorksheet(workbook,sheet = 'Sheet1',header=TRUE)
 
-clientId <- '999'
+
 index <- 0
-for(i in 1:37){
+for(i in 1:2){
   callIds.num <- i
   sample.num <- 10
   for(k in 1:sample.num){
     index <- (i-1)*10+k
     pref <- pref.all[[k]]
-    idx.callIds <- sample(1:37,callIds.num)
+    idx.callIds <- sample(1:31,callIds.num)
     callIds <- callIds.all[idx.callIds]
     VM.num <- length(intersect(idx.callIds,idx.VM.all))
     callInfo <- callInfoByCallId(callIds)
@@ -57,8 +60,8 @@ for(i in 1:37){
     end.time <- proc.time()[3]
     run.time <- end.time-start.time
     
-    output.write <- c(callIds.num,VM.num,pref[3],pref[2],pref[1],run.time)
-    writeWorksheetToFile(file.path,data=output.write,sheet='Results',startRow=index+1,startCol=1,header=F)
+    output.write <- matrix(c(callIds.num,VM.num,pref[3],pref[2],pref[1],run.time,status),nrow=1)
+    writeWorksheetToFile(file.path,data=output.write,sheet='Sheet1',startRow=index+1,startCol=1,header=F)
   }
 }
 
