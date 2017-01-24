@@ -53,6 +53,7 @@ allocationAlgo <- function(callIds,assetIds,clientId,callInfo,availAssets,assetI
     
     result.group <- coreAlgo(input.list,availAssets)
     output.group <- result.group$output
+    status <- result.group$status
     check.call.group <- result.group$check.call
     availAssets <- result.group$availAssets
     
@@ -63,7 +64,7 @@ allocationAlgo <- function(callIds,assetIds,clientId,callInfo,availAssets,assetI
     }
   }
   
-  return(list(output=output.list,check.call=check.call))
+  return(list(output=output.list,check.call=check.call,status=status))
 }
 
 #### OTHER FUNCTIONS(CALLED IN THE MAIN FUNCTION)##########################
@@ -327,8 +328,30 @@ coreAlgo <- function(input.list,availAssets){
     }else{
       sortOptimal<-temp[,order(temp[1,])] # sort the cost, return the cost and asset idx in matrix
     }
-    reserve.list[[callIds[i]]]<- assetIds[sortOptimal[2,]] # 
-    optimalAsset[i,2] <- assetIds[sortOptimal[2,]][1]
+    reserve.list[[callIds[i]]]<- assetIds[sortOptimal[2,]] 
+    
+    # if there are more than one assets have the same score, we cannot simply select the first one
+    # because this may cause the case that there are 3 assets have the same score for 3 calls
+    # if we just select the first asset, then it's possible this single asset is not sufficient to fulfill 
+    # all these 3 calls, but these three assets can fulfill one of the call respectively
+
+    # selecting order:
+    # select the one which hasn't been selected to the previous call
+    # unless, they are from the same margin statment (deal with that in OW-379)
+    # Best approach, allocate the most sufficient asset to the largest call amount, deal with that later
+    min.idx <- sortOptimal[2,which(sortOptimal[1,]==min(sortOptimal[1,]))]
+    temp.optimal.asset <- assetIds[min.idx]
+    for(m in 1:length(min.idx)){
+      if(!is.element(temp.optimal.asset[m],optimalAsset[,2])){
+        optimalAsset[i,2] <- temp.optimal.asset[m]
+        break
+      }
+    }
+    # if all possible assets have been selected as optimal of previous margin calls
+    # then, select the first asset
+    if(optimalAsset[i,2]==''){
+      optimalAsset[i,2] <- temp.optimal.asset[1]
+    }
   }
   
   optimal.suff.qty <- call.mat/(1-haircut.mat)/minUnitValue.mat # quantity needed for a single asset to fulfill each call
@@ -343,7 +366,7 @@ coreAlgo <- function(input.list,availAssets){
   
   #### In case of OW-291, optimal assets are sufficient
   if(!is.element(0,suff.select.unique)){ 
-    
+    status <- 'solved'
     for(i in 1:call.num){
       select.asset.idx <- which(assetInfo$id==reserve.list[[i]][1])
       select.asset.id <- assetIds[select.asset.idx]
@@ -485,19 +508,23 @@ coreAlgo <- function(input.list,availAssets){
     lp.control(lps.model,epsd=1e-10,presolve='knapsack',timeout=40)
     
     result.status <- solve(lps.model)                              # solve model
-    
+    status <- 'solved'
     if(is.element(result.status,c(2,13))){
       #errorMsg <- 'Error: Asset inventory might be insufficient!'
       #return(errorMsg)
-      stop('Asset inventory might be insufficient!')
+      #stop('Asset inventory might be insufficient!')
+      status <- 'insufficient'
     } else if(is.element(result.status,c(5,6,10))){                            # solve model
       #errorMsg <- 'Error: Fail to calculate!'
       #return(errorMsg)
-      stop('Fail to calculate!')
+      #stop('Fail to calculate!')
+      status <- 'fail'
     } else if(result.status==1){
-      warning('sub-optimal result!')
+      #warning('sub-optimal result!')
+      status<-'sub-optimal'
     } else if(result.status==7){
-      stop('Time out!')
+      #stop('Time out!')
+      status<-'timeout'
     }
     
     lpSolveAPI.solution <- get.variables(lps.model)
@@ -531,13 +558,14 @@ coreAlgo <- function(input.list,availAssets){
     asset.quantity.left <- minUnitQuantity.mat[1,]-asset.quantity.used
     excess.idx <- which(asset.quantity.used>minUnitQuantity.mat[1,])
     if(length(excess.idx)>=1){
-      for(i in excess.idx){
+      for(i in excess.idx){          # i: the index of the excess quantity asset in assetIds
         current.allocate <- matrix(c(which(result.mat[,i]>0),result.mat[which(result.mat[,i]>0),i]),nrow=2,byrow=T)
         if(length(current.allocate[1,])>1){
           current.allocate<-current.allocate[,order(current.allocate[2,])]
         }
-        for(k in 1:length(current.allocate[1,])){
-          j = current.allocate[1,k]
+        for(k in 1:length(current.allocate[1,])){ # k: the kth margin call which asset[i] allocated to
+          j = current.allocate[1,k]  # j: the index of the the kth margin call in callIds
+          # current allocated quantity < excess quanity
           if(current.allocate[2,k]< (-asset.quantity.left[i])){
             # the amount missing for the margin call j if excluding the asset i
             new.quantity <- 0
@@ -548,6 +576,9 @@ coreAlgo <- function(input.list,availAssets){
             # least quantity(already 0) which can meet the margin call requirement, no swaps occur
             if(missing.amount<=0){
               result.mat[j,i]<- new.quantity
+              
+              asset.quantity.used <- apply(result.mat,2,sum)
+              asset.quantity.left <- minUnitQuantity.mat[1,]-asset.quantity.used
               break
             }
             # first check whether the other previous allocated assets are sufficient,based on the operation efficiency
@@ -574,12 +605,17 @@ coreAlgo <- function(input.list,availAssets){
             }
             # update the result.mat
             result.mat[j,c(i,swap.new.idx)]<- c(new.quantity,swap.new.quantity)
+            
+            asset.quantity.used <- apply(result.mat,2,sum)
+            asset.quantity.left <- minUnitQuantity.mat[1,]-asset.quantity.used
           }
           else{
             # the amount missing for the margin call j if excluding the asset i
+            # shouldn't exclude the asset i, just reduce to the sufficient amount, and use other assets to fulfil the left call amount
             new.quantity<- current.allocate[2,which(current.allocate[1,]==j)]+asset.quantity.left[i]
-            other.amount <- sum(result.mat[j,1+which(result.mat[j,-i]>0)]*minUnitValue.mat[j,1+which(result.mat[j,-i]>0)]*
-                                  (1-haircut.mat[j,1+which(result.mat[j,-i]>0)]))
+            
+            other.amount <- sum(result.mat[,-i][j,which(result.mat[j,-i]>0)]*minUnitValue.mat[,-i][j,which(result.mat[j,-i]>0)]*
+                                  (1-haircut.mat[,-i][j,which(result.mat[j,-i]>0)]))
             missing.amount <- call.mat[j,1]-(other.amount+new.quantity*minUnitValue.mat[j,i]*(1-haircut.mat[j,i]))
             # missing.amount<0, means even we substract the exceed quantity of the asset, 
             # the sub-total is still larger than call amount, then, we update asset to the 
@@ -587,6 +623,8 @@ coreAlgo <- function(input.list,availAssets){
             if(missing.amount<=0){
               new.quantity <-  ceiling((call.mat[j,1]-other.amount)/minUnitValue.mat[j,i]/(1-haircut.mat[j,i]))
               result.mat[j,i]<- new.quantity
+              asset.quantity.used <- apply(result.mat,2,sum)
+              asset.quantity.left <- minUnitQuantity.mat[1,]-asset.quantity.used
               break
             }
             
@@ -595,27 +633,49 @@ coreAlgo <- function(input.list,availAssets){
             missing.quantity <- ceiling((missing.amount/(1-haircut.mat)/minUnitValue.mat)[j,])
             suff.idx <- intersect(which(missing.quantity<=asset.quantity.left),which(eli.mat[j,]==1))
             
-            # whether there are other assets allocated to call j
-            swap.prob.idx <- intersect(which(result.mat[j,]>0),suff.idx)
-            if(length(swap.prob.idx)>=1){
-              swap.new.idx <- swap.prob.idx[1]
-            }else{
-              swap.new.idx <- suff.idx[1]
+            if(length(suff.idx)==0){
+              # sacrifice the fulfilled call amount if the it is still larger than the shreshod
+              if((call.mat[j,1]-missing.amount)>=callInfo$callAmount[j]){
+                result.mat[j,i]<- new.quantity
+              }
+              # left quantity of each available asset for this call is not sufficient
+              # need more than one assets to allocate to this call
+              # compare the missing amount and the sum of the left asset left amount
+              # asset.amount.left <- matrix(c(1:asset.num,asset.quantity.left*minUnitValue.mat[j,]),nrow=2,byrow=T)
+              
+              # there should be more than one assets available(else will be detected in the pre-check sufficiency part)
+              # order by amount from larger to smaller, make sure the least movements
+              # asset.amount.left <- asset.amount.left[,order(asset.amount.left[2,])]
+              
+              # the index of available assets, excluding the 
+              # temp.idx <- intersect(which(asset.quantity.left>0),which(eli.mat[j,]==1))
+            } else{
+              # whether there are other assets allocated to call j
+              swap.prob.idx <- intersect(which(result.mat[j,]>0),suff.idx)
+              if(length(swap.prob.idx)>=1){
+                swap.new.idx <- swap.prob.idx[1]
+              } else{
+                swap.new.idx <- suff.idx[1]
+              }
+              swap.new.quantity <- missing.quantity[swap.new.idx]+result.mat[j,swap.new.idx]
+              
+              new.allocate <- current.allocate
+              new.allocate[,-which(current.allocate[1,]==j)] <- new.quantity
+              
+              if(length(which(result.mat[,swap.new.idx]>0))){
+                swap.allocate<- matrix(c(which(result.mat[,swap.new.idx]>0),result.mat[which(result.mat[,swap.new.idx]>0),swap.new.idx]),nrow=2,byrow=T)
+                swap.allocate[2,which(swap.allocate[1,]==j)] <- swap.new.quantity
+              }else{
+                swap.allocate<- matrix(c(swap.new.idx,swap.new.quantity),nrow=2)
+              }
+              
+              # update the result.mat
+              result.mat[j,c(i,swap.new.idx)]<- c(new.quantity,swap.new.quantity)
             }
-            swap.new.quantity <- missing.quantity[swap.new.idx]+result.mat[j,swap.new.idx]
             
-            new.allocate <- current.allocate
-            new.allocate[,-which(current.allocate[1,]==j)] <- new.quantity
             
-            if(length(which(result.mat[,swap.new.idx]>0))){
-              swap.allocate<- matrix(c(which(result.mat[,swap.new.idx]>0),result.mat[which(result.mat[,swap.new.idx]>0),swap.new.idx]),nrow=2,byrow=T)
-              swap.allocate[2,which(swap.allocate[1,]==j)] <- swap.new.quantity
-            }else{
-              swap.allocate<- matrix(c(swap.new.idx,swap.new.quantity),nrow=2)
-            }
-            # update the result.mat
-            result.mat[j,c(i,swap.new.idx)]<- c(new.quantity,swap.new.quantity)
-            
+            asset.quantity.used <- apply(result.mat,2,sum)
+            asset.quantity.left <- minUnitQuantity.mat[1,]-asset.quantity.used
             # break
             break
           }
@@ -626,8 +686,9 @@ coreAlgo <- function(input.list,availAssets){
     # 3. whether meet all margin call requirements
     asset.quantity.used <- apply(result.mat,2,sum)
     asset.quantity.left <- minUnitQuantity.mat[1,]-asset.quantity.used
+    # compare with the call amount, not the custimized amount based on the user preference
     call.fulfilled <- apply(result.mat*minUnitValue.mat*(1-haircut.mat),1,sum)
-    call.missing.amount <- call.mat[,1]-call.fulfilled
+    call.missing.amount <- callInfo$callAmount-call.fulfilled
     call.missing.idx <- which(call.missing.amount>0)
     if(length(call.missing.idx)>=1){
       for(i in call.missing.idx){
@@ -706,5 +767,5 @@ coreAlgo <- function(input.list,availAssets){
     subtotal.fulfilled[i,2] <- sum(select.list[[callIds[i]]]$`NetAmount(USD)`)
   }
   check.call <- subtotal.fulfilled
-  return(list(output=output.list,check.call=check.call,availAssets=availAssets))
+  return(list(output=output.list,check.call=check.call,availAssets=availAssets,status=status))
 }
