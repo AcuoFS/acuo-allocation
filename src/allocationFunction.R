@@ -39,7 +39,7 @@ allocationAlgo <- function(callIds,assetIds,clientId,callInfo,availAssets,assetI
   ############ ITERATE THE GROUP, RUN THE ALGO #########################
   for(i in 1:length(group.list)){
     callIds.group <- group.list[[i]]
-    cat(' group:',i,'\n','callIds:',callIds.group,'\n')
+    #cat(' group:',i,'\n','callIds:',callIds.group,'\n')
     callInfo.group <- callInfo[match(callIds.group,callInfo$id),]
     availAssets.group <- availAssets[which(availAssets$callId %in% callIds.group),]
     assetIds.group <- unique(availAssets.group$assetId)
@@ -49,7 +49,6 @@ allocationAlgo <- function(callIds,assetIds,clientId,callInfo,availAssets,assetI
     input.list <- allocationInputData(callIds.group,assetIds.group,clientId,callInfo.group,availAssets.group,assetInfo.group,pref)
     
     # core Algo, assume all data comes in a list
-    source("src/coreAlgo.R")
     result.group <- coreAlgo(input.list,availAssets)
     output.group <- result.group$output
     status <- result.group$status
