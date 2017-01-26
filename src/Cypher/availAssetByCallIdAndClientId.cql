@@ -21,7 +21,7 @@ MATCH (ccy2:Currency {id:mc.currency})-[fx2:FX_RATE]->(usd:Currency {id:'USD'})
 RETURN DISTINCT
 //    ag.id AS agreementId,
     mc.id AS callId,
-    mc.excessAmount/fx2.fxRate AS callAmountUSD,
+    ABS(mc.excessAmount/fx2.fxRate) AS callAmountUSD,
     a.id AS assetId,
     a.name AS assetName,
     h.availableQuantities AS quantity,
