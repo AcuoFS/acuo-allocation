@@ -27,7 +27,7 @@ RETURN DISTINCT
     h.availableQuantities AS quantity,
     mc.marginType AS marginType,
     mc.currency AS callCurrency,
-    mc.excessAmount AS callAmount,
+    ABS(mc.excessAmount) AS callAmount,
     a.ACUOCategory AS ACUOCategory,
     h.quantities AS totalQuantity,
     a.parValue AS unitValue,
