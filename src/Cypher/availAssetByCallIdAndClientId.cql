@@ -11,9 +11,6 @@ MATCH (e)-[:HAS]-(acc:TradingAccount)
 WHERE (acc)-[:ACCESSES]->(ca)
 
 WITH *
-MATCH (c)-[:CLIENT_ASSET]->(:ClientAsset)-[p:POSSESSES]->(a)
-
-WITH *
 MATCH (ccy1:Currency {id:a.currency})-[fx1:FX_RATE]->(usd:Currency {id:'USD'})
 WITH *
 MATCH (ccy2:Currency {id:mc.currency})-[fx2:FX_RATE]->(usd:Currency {id:'USD'})
@@ -24,20 +21,19 @@ RETURN DISTINCT
     ABS(mc.excessAmount/fx2.fxRate) AS callAmountUSD,
     a.id AS assetId,
     a.name AS assetName,
-    h.availableQuantities AS quantity,
+    h.availableQuantity AS quantity,
     mc.marginType AS marginType,
     mc.currency AS callCurrency,
     ABS(mc.excessAmount) AS callAmount,
     a.ACUOCategory AS ACUOCategory,
-    h.quantities AS totalQuantity,
     a.parValue AS unitValue,
     a.minUnit AS minUnit,
     a.minUnitValue AS minUnitValue,
     a.currency AS currency,
     ca.id AS CustodianAccount,
     cu.countryShortName AS venue,
-    p.internalCost AS internalCost,
-    p.opptCost AS opptCost,
+    h.internalCost AS internalCost,
+    h.opptCost AS opptCost,
     a.yield AS yield,
     is.haircut AS haircut,
     is.FXHaircut AS FXHaircut,
