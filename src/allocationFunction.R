@@ -2,13 +2,13 @@ library('RNeo4j')
 library('lpSolveAPI')
 
 #### ALLOCATION MAIN FUNCTION ############
-allocationAlgo <- function(callIds,assetIds,clientId,callInfo,availAssets,assetInfo,pref,limit=c(10,6,6)){
+allocationAlgo <- function(callIds,assetIds,clientId,callInfo,availAssets,assetInfo,pref,time.limit,call.limit){
   
   ########### CONSTANTS ################################
   order.method <- 2
-  limit.VM <- limit[1]
-  limit.IM <- limit[2]
-  limit.total <- limit[3]
+  limit.VM <- call.limit[1]
+  limit.IM <- call.limit[2]
+  limit.total <- call.limit[3]
   ########### END ######################################
   
   #### ORDER THE CALL ID ################################################
@@ -49,7 +49,7 @@ allocationAlgo <- function(callIds,assetIds,clientId,callInfo,availAssets,assetI
     input.list <- allocationInputData(callIds.group,assetIds.group,clientId,callInfo.group,availAssets.group,assetInfo.group,pref)
     
     # core Algo, assume all data comes in a list
-    result.group <- coreAlgo(input.list,availAssets)
+    result.group <- coreAlgo(input.list,availAssets,time.limit)
     output.group <- result.group$output
     status <- result.group$status
     check.call.group <- result.group$check.call
@@ -108,13 +108,20 @@ allocationInputData = function(callIds,assetIds,clientId,callInfo,availAssets,as
   call.mat[callIds,] <- matrix(rep(callInfo$callAmount,asset.num),nrow=call.num,byrow=F)
   quantity.mat[,]<- matrix(rep(as.numeric(unique(cbind(availAssets$assetId,availAssets$quantity))[,2]),call.num),nrow=call.num,byrow=T)
   
+  temp.callIds.idx <- match(availAssets$callId,callIds)
+  temp.assetIds.idx <- match(availAssets$assetId,assetIds)
+  eli.mat[cbind(temp.callIds.idx,temp.assetIds.idx)]<- 1
+  haircut.mat[cbind(temp.callIds.idx,temp.assetIds.idx)]<- availAssets$haircut+availAssets$FXHaircut
+  cost.mat[cbind(temp.callIds.idx,temp.assetIds.idx)]<- availAssets$internalCost+availAssets$externalCost+availAssets$opptCost-(availAssets$interestRate+availAssets$yield)
+  
+  
   eli.mat[cbind(availAssets$callId,availAssets$assetId)]<-1
   haircut.mat[cbind(availAssets$callId,availAssets$assetId)]<- availAssets$haircut+availAssets$FXHaircut
   cost.mat[cbind(availAssets$callId,availAssets$assetId)]<- availAssets$internalCost+availAssets$externalCost+availAssets$opptCost-(availAssets$interestRate+availAssets$yield)
   
-  unitValue.mat[,] <- matrix(rep(assetInfo$unitValue,call.num),nrow=call.num,byrow=TRUE)
+  unitValue.mat[,] <- matrix(rep(assetInfo$unitValue/assetInfo$FXRate,call.num),nrow=call.num,byrow=TRUE)
   minUnit.mat[,]<- matrix(rep(assetInfo$minUnit,call.num),nrow=call.num,byrow=TRUE)
-  minUnitValue.mat[,] <- matrix(rep(assetInfo$minUnitValue,call.num),nrow=call.num,byrow=TRUE)
+  minUnitValue.mat[,] <- matrix(rep(assetInfo$minUnitValue/assetInfo$FXRate,call.num),nrow=call.num,byrow=TRUE)
   
   minUnitQuantity.mat[,]<- floor(quantity.mat/minUnit.mat) # round down to the nearest integer
   
@@ -201,7 +208,7 @@ splitCallIds <- function(limit.VM,limit.IM,limit.total,callInfo,callIds){
   }
   return(group.list)
 }
-coreAlgo <- function(input.list,availAssets){
+coreAlgo <- function(input.list,availAssets,time.limit){
   pref=pref
   callIds=input.list$callIds
   assetIds=input.list$assetIds
@@ -445,7 +452,7 @@ coreAlgo <- function(input.list,availAssets){
     #    specified by constraint 0 and 1. 
     # variable kind: semi-continuous, value below 'a' will automately set to 0
     #
-    ######
+    ######################################################################
     
     # objective function
     operation.obj <-  c(rep(0,var.num),norm.operation.vec[idx.eli]*max(call.mat)*10)
@@ -523,7 +530,7 @@ coreAlgo <- function(input.list,availAssets){
     set.type(lps.model,int.idx,'integer')
     set.bounds(lps.model,lower=c(minMoveQuantity,rep(1,var.num)),upper=c(minUnitQuantity.vec[idx.eli],rep(1,var.num)))
     presolve <- ifelse(call.num<=2,'none','knapsack')
-    lp.control(lps.model,epsd=1e-10,presolve=presolve,timeout=5)
+    lp.control(lps.model,epsd=1e-10,presolve=presolve,timeout=time.limit)
     for(k in 1:var.num){
       set.branch.mode(lps.model,k,'floor') 
     }
@@ -700,10 +707,8 @@ coreAlgo <- function(input.list,availAssets){
               result.mat[j,c(i,swap.new.idx)]<- c(new.quantity,swap.new.quantity)
             }
             
-            
             asset.quantity.used <- apply(result.mat,2,sum)
             asset.quantity.left <- minUnitQuantity.mat[1,]-asset.quantity.used
-            # break
             break
           }
         } 
@@ -740,9 +745,7 @@ coreAlgo <- function(input.list,availAssets){
         result.mat[i,add.new.idx] <- add.new.quantity
       }
     }
-    ##########################################################
     ############## END #######################################
-    
     
     
     for(i in 1:call.num){                          # store the result into select list
@@ -769,7 +772,9 @@ coreAlgo <- function(input.list,availAssets){
       select.asset.unitValue <- unitValue.mat[i,select.asset.idx]
       select.asset.Amount <- select.asset.quantity*select.asset.unitValue
       select.asset.NetAmount <- select.asset.Amount*(1-haircut.mat[i,select.asset.idx])
-      
+      #######
+      # netAmount(in local currency) is surfacing in UI
+      #######
       select.asset.df <- data.frame(select.asset.id,select.asset.name,select.asset.NetAmount,select.asset.haircut,select.asset.Amount,select.asset.currency,
                                     select.asset.quantity,select.asset.custodianAccount,select.asset.venue)
       colnames(select.asset.df)<- c('Asset','Name','NetAmount(USD)','Haircut','Amount','Currency','Quantity','CustodianAccount','venue')
