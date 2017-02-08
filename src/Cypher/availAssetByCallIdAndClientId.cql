@@ -11,34 +11,29 @@ MATCH (e)-[:HAS]-(acc:TradingAccount)
 WHERE (acc)-[:ACCESSES]->(ca)
 
 WITH *
-MATCH (c)-[:CLIENT_ASSET]->(:ClientAsset)-[p:POSSESSES]->(a)
-
+MATCH (ccy1:Currency {id:a.currency})-[fx1:FX_RATE]->(usd:Currency {id:'USD'})
 WITH *
-MATCH (ccy1:Currency {id:a.currency})-[fx1:FX_RATE]->(usd:Currency {id:'USD'}),
-      (ccy2:Currency {id:mc.currency})-[fx2:FX_RATE]->(usd:Currency {id:'USD'})
+MATCH (ccy2:Currency {id:mc.currency})-[fx2:FX_RATE]->(usd:Currency {id:'USD'})
 
 RETURN DISTINCT
 //    ag.id AS agreementId,
     mc.id AS callId,
-    mc.marginType AS marginType,
-    mc.currency AS callCurrency,
-    mc.excessAmount AS callAmount,
-    mc.excessAmount/fx2.fxRate AS callAmountUSD,
-    ca.id AS CustodianAccount,
-    cu.countryShortName AS venue,
+    //ABS(mc.excessAmount/fx2.fxRate) AS callAmountUSD,
     a.id AS assetId,
-    a.name AS assetName,
-    a.ACUOCategory AS ACUOCategory,
-//    a.name AS assetName,
+    //a.name AS assetName,
+    h.availableQuantity AS quantity,
+    //mc.marginType AS marginType,
+    //mc.currency AS callCurrency,
+    //ABS(mc.excessAmount) AS callAmount,
+    //a.ACUOCategory AS ACUOCategory,
     a.parValue AS unitValue,
     a.minUnit AS minUnit,
     a.minUnitValue AS minUnitValue,
     a.currency AS currency,
- //   h.quantities AS quantity,
-    h.availableQuantities AS quantity,
-    h.quantities AS totalQuantity,
-    p.internalCost AS internalCost,
-    p.opptCost AS opptCost,
+    ca.id AS CustodianAccount,
+    cu.countryShortName AS venue,
+    h.internalCost AS internalCost,
+    h.opptCost AS opptCost,
     a.yield AS yield,
     is.haircut AS haircut,
     is.FXHaircut AS FXHaircut,
