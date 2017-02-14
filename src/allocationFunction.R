@@ -2,7 +2,7 @@ library('RNeo4j')
 library('lpSolveAPI')
 
 #### ALLOCATION MAIN FUNCTION ############
-allocationAlgo <- function(callIds,assetIds,clientId,callInfo,availAssets,assetInfo,pref,time.limit,call.limit){
+allocationAlgo <- function(callIds,assetCustacIds,clientId,callInfo,availAssets,assetInfo,pref,time.limit,call.limit){
   
   ########### CONSTANTS ################################
   order.method <- 2
@@ -28,7 +28,8 @@ allocationAlgo <- function(callIds,assetIds,clientId,callInfo,availAssets,assetI
   
   ############### PROCESSING DATA #####################################
   
-  asset.num <- length(assetIds)
+  ### new identifer ####
+  assetCustac.num <- length(assetCustacIds)
   call.num <- length(callIds)
   
   # allocate one group a time
@@ -42,16 +43,21 @@ allocationAlgo <- function(callIds,assetIds,clientId,callInfo,availAssets,assetI
     #cat(' group:',i,'\n','callIds:',callIds.group,'\n')
     callInfo.group <- callInfo[match(callIds.group,callInfo$id),]
     availAssets.group <- availAssets[which(availAssets$callId %in% callIds.group),]
-    assetIds.group <- unique(availAssets.group$assetId)
+    
+    ### new identifer ####
+    assetCustacIds.group <- unique(availAssets.group$assetCustacId)
+    assetIds.group <- as.character(data.frame(strsplit(assetCustacIds.group,'-'))[1,])
+    
     assetInfo.group <- assetInfo[match(assetIds.group,assetInfo$id),]
     
     # input data to the core Algo
-    input.list <- allocationInputData(callIds.group,assetIds.group,clientId,callInfo.group,availAssets.group,assetInfo.group,pref)
+    input.list <- allocationInputData(callIds.group,assetCustacIds.group,clientId,callInfo.group,availAssets.group,assetInfo.group,pref)
     
     # core Algo, assume all data comes in a list
     result.group <- coreAlgo(input.list,availAssets,time.limit)
     output.group <- result.group$output
     status <- result.group$status
+    lpsolveRun <- result.group$lpsolveRun
     check.call.group <- result.group$check.call
     availAssets <- result.group$availAssets
     
@@ -62,22 +68,25 @@ allocationAlgo <- function(callIds,assetIds,clientId,callInfo,availAssets,assetI
     }
   }
   
-  return(list(output=output.list,check.call=check.call,status=status))
+  return(list(output=output.list,check.call=check.call,status=status,lpsolveRun=lpsolveRun))
 }
 
 
 #### OTHER FUNCTIONS(CALLED IN THE MAIN FUNCTION)##########################
-allocationInputData = function(callIds,assetIds,clientId,callInfo,availAssets,assetInfo,pref){
+allocationInputData = function(callIds,assetCustacIds,clientId,callInfo,availAssets,assetInfo,pref){
   
-  asset.num <- length(assetIds)
+  ### new identifer ####
+  assetIds <- as.character(data.frame(strsplit(assetCustacIds,'-'))[1,])
+  assetCustac.num <- length(assetCustacIds)
   call.num <- length(callIds)
   
   callInfo$currency[which(is.na(callInfo$currency))] <- 'ZZZ' 
   
   availAssets <- availAssets[order(availAssets$callId),] # order the availAssets by callIds
   
-  custodianAccount <- availAssets$CustodianAccount[match(assetIds,availAssets$assetId)]
-  venue <- availAssets$venue[match(assetIds,availAssets$assetId)]
+  custodianAccount <- as.character(data.frame(strsplit(assetCustacIds,'-'))[2,])
+  venue <- availAssets$venue[match(assetCustacIds,availAssets$assetCustacId)]
+  
   ###############################################
   # eligibility matrix: 1-eligible, 0-ineligible
   # haircut matrix: haircut+FX haircut
@@ -90,7 +99,8 @@ allocationInputData = function(callIds,assetIds,clientId,callInfo,availAssets,as
   #     To start with, we use (i>=1) for non-cash securities; 0.01 for cash, apply to all margin calls.
   ############################################
   
-  base.mat <- matrix(0,nrow=call.num,ncol=asset.num, dimnames = list(callIds,assetIds))
+  
+  base.mat <- matrix(0,nrow=call.num,ncol=assetCustac.num, dimnames = list(callIds,assetCustacIds))
   
   eli.mat <- base.mat
   haircut.mat <- base.mat
@@ -103,28 +113,30 @@ allocationInputData = function(callIds,assetIds,clientId,callInfo,availAssets,as
   minUnit.mat <- base.mat  
   minUnitValue.mat <- base.mat
   
-  
   # fill in matrixes with the data from availAssets
-  call.mat[callIds,] <- matrix(rep(callInfo$callAmount,asset.num),nrow=call.num,byrow=F)
-  quantity.mat[,]<- matrix(rep(as.numeric(unique(cbind(availAssets$assetId,availAssets$quantity))[,2]),call.num),nrow=call.num,byrow=T)
+  
+  ## new identifer ####
+  call.mat[callIds,] <- matrix(rep(callInfo$callAmount,assetCustac.num),nrow=call.num,byrow=F)
   
   temp.callIds.idx <- match(availAssets$callId,callIds)
-  temp.assetIds.idx <- match(availAssets$assetId,assetIds)
-  eli.mat[cbind(temp.callIds.idx,temp.assetIds.idx)]<- 1
-  haircut.mat[cbind(temp.callIds.idx,temp.assetIds.idx)]<- availAssets$haircut+availAssets$FXHaircut
-  cost.mat[cbind(temp.callIds.idx,temp.assetIds.idx)]<- availAssets$internalCost+availAssets$externalCost+availAssets$opptCost-(availAssets$interestRate+availAssets$yield)
+  temp.assetCustacIds.idx <- match(availAssets$assetCustacId,assetCustacIds)
+  
+  quantity.mat[cbind(temp.callIds.idx,temp.assetCustacIds.idx)]<- availAssets$quantity
+  eli.mat[cbind(temp.callIds.idx,temp.assetCustacIds.idx)]<- 1
+  haircut.mat[cbind(temp.callIds.idx,temp.assetCustacIds.idx)]<- availAssets$haircut+availAssets$FXHaircut
+  cost.mat[cbind(temp.callIds.idx,temp.assetCustacIds.idx)]<- availAssets$internalCost+availAssets$externalCost+availAssets$opptCost-(availAssets$interestRate+availAssets$yield)
   
   
-  eli.mat[cbind(availAssets$callId,availAssets$assetId)]<-1
-  haircut.mat[cbind(availAssets$callId,availAssets$assetId)]<- availAssets$haircut+availAssets$FXHaircut
-  cost.mat[cbind(availAssets$callId,availAssets$assetId)]<- availAssets$internalCost+availAssets$externalCost+availAssets$opptCost-(availAssets$interestRate+availAssets$yield)
+  eli.mat[cbind(availAssets$callId,availAssets$assetCustacId)]<-1
+  haircut.mat[cbind(availAssets$callId,availAssets$assetCustacId)]<- availAssets$haircut+availAssets$FXHaircut
+  cost.mat[cbind(availAssets$callId,availAssets$assetCustacId)]<- availAssets$internalCost+availAssets$externalCost+availAssets$opptCost-(availAssets$interestRate+availAssets$yield)
   
   unitValue.mat[,] <- matrix(rep(assetInfo$unitValue/assetInfo$FXRate,call.num),nrow=call.num,byrow=TRUE)
   minUnit.mat[,]<- matrix(rep(assetInfo$minUnit,call.num),nrow=call.num,byrow=TRUE)
   minUnitValue.mat[,] <- matrix(rep(assetInfo$minUnitValue/assetInfo$FXRate,call.num),nrow=call.num,byrow=TRUE)
   
   minUnitQuantity.mat[,]<- floor(quantity.mat/minUnit.mat) # round down to the nearest integer
-  
+
   
   # convert the matrix format data to vector format
   eli.vec <- as.vector(t(eli.mat))
@@ -136,7 +148,7 @@ allocationInputData = function(callIds,assetIds,clientId,callInfo,availAssets,as
   minUnit.vec <- as.vector(t(minUnit.mat))
   minUnitValue.vec <- as.vector(t(minUnitValue.mat))
   
-  output.list <- list(assetIds=assetIds,callIds=callIds,assetInfo=assetInfo,callInfo=callInfo,pref=pref,
+  output.list <- list(assetCustacIds=assetCustacIds,callIds=callIds,assetInfo=assetInfo,callInfo=callInfo,pref=pref,
                       custodianAccount=custodianAccount,venue=venue,
                       eli.mat=eli.mat, eli.vec = eli.vec,
                       haircut.mat=haircut.mat, haircut.vec=haircut.vec,
@@ -148,7 +160,6 @@ allocationInputData = function(callIds,assetIds,clientId,callInfo,availAssets,as
                       minUnitValue.mat=minUnitValue.mat,minUnitValue.vec= minUnitValue.vec,
                       call.mat = call.mat
   )
-  
   return (output.list)
 }
 orderCallIds <- function(order.method,callInfo){
@@ -209,16 +220,17 @@ splitCallIds <- function(limit.VM,limit.IM,limit.total,callInfo,callIds){
   return(group.list)
 }
 coreAlgo <- function(input.list,availAssets,time.limit){
-  pref=pref
-  callIds=input.list$callIds
-  assetIds=input.list$assetIds
+  pref<-pref
+  callIds<-input.list$callIds
+  assetCustacIds<-input.list$assetCustacIds
+  assetIds <- as.character(data.frame(strsplit(assetCustacIds,'-'))[1,])
   callInfo=input.list$callInfo
   assetInfo=input.list$assetInfo
   custodianAccount <- input.list$custodianAccount  
   venue <- input.list$venue
   
   call.num <- length(callIds)            # total margin call number
-  asset.num <- length(assetIds)          # total asset number
+  assetCustac.num <- length(assetCustacIds)          # total asset number
   
   eli.mat <- input.list$eli.mat; eli.vec <- input.list$eli.vec                    # eligibility matrix & vector
   haircut.mat<-input.list$haircut.mat; haircut.vec <- input.list$haircut.vec      # haircut mat & vec
@@ -273,7 +285,7 @@ coreAlgo <- function(input.list,availAssets,time.limit){
   #### calculate the optimal asset sufficiency
   reserve.list <-list()    # store all available assets for each call, list by callIds
   select.list  <-list()    # store selected assets for each call, list by callIds
-  optimalAsset <- matrix(c(callIds,rep('', call.num)),nrow=call.num,ncol=2,dimnames = list(callIds,c('callIds','assetIds')))
+  optimalAsset <- matrix(c(callIds,rep('', call.num)),nrow=call.num,ncol=2,dimnames = list(callIds,c('callId','assetCustacId')))
   
   call.ccy <- callInfo$currency
   excess.call.percent <- 0.2
@@ -286,10 +298,10 @@ coreAlgo <- function(input.list,availAssets,time.limit){
   cost.mat<-integer.call.mat/(1-haircut.mat)*cost.percent.mat  # cost amount
   
   asset.liquid <- apply((1-haircut.mat*eli.mat)^2,2,min) # define asset liquidity
-  liquidity.mat <- matrix(rep(asset.liquid,call.num),nrow=call.num,byrow=TRUE,dimnames=list(callIds,assetIds)) 
+  liquidity.mat <- matrix(rep(asset.liquid,call.num),nrow=call.num,byrow=TRUE,dimnames=list(callIds,assetCustacIds)) 
   liquidity.vec <- as.vector(t(liquidity.mat))
   
-  operation.mat <- matrix(rep(1,asset.num*call.num),nrow=call.num,byrow=TRUE,dimnames=list(callIds,assetIds)) 
+  operation.mat <- matrix(rep(1,assetCustac.num*call.num),nrow=call.num,byrow=TRUE,dimnames=list(callIds,assetCustacIds)) 
   for(i in 1:call.num){
     ccy.idx <- which(call.ccy[i]==assetIds)    # return the index of mc[i] currency cash in the assetIds list
     idx1 <- which(eli.mat[i,]!=0)             # return elegible asset idx for mc[i]
@@ -323,7 +335,7 @@ coreAlgo <- function(input.list,availAssets,time.limit){
   norm.operation.vec <- as.vector(t(norm.operation.mat))
   
   optimal.mat <- norm.operation.mat*pref[1]+norm.liquidity.mat*pref[2]+norm.cost.mat*pref[3]
-  colnames(optimal.mat) <- assetIds; rownames(optimal.mat)<-callIds
+  colnames(optimal.mat) <- assetCustacIds; rownames(optimal.mat)<-callIds
   
   
   temp.minUnitQuantity.mat <- minUnitQuantity.mat
@@ -351,18 +363,18 @@ coreAlgo <- function(input.list,availAssets,time.limit){
     min.idx <- sortOptimal[2,which(round(sortOptimal[1,],2)==round(min(sortOptimal[1,]),2))]
     # if min.idx contains only one element, don't need to sort
     if(length(min.idx) > 1){
-      temp.optimal.asset <- assetIds[min.idx]
+      temp.optimal.assetCustac <- assetCustacIds[min.idx]
       
       # temp.largestAmount.asset: the least score assets score and index(>=1)
-      temp.largestAmount.asset <- matrix(c(temp.minUnitQuantity.mat[i,min.idx]*minUnitValue.mat[i,min.idx],min.idx),nrow=2,byrow=T)
-      if(length(temp.largestAmount.asset[1,])>1){  
-        temp.largestAmount.asset <- temp.largestAmount.asset[,order(temp.largestAmount.asset[1,],decreasing=T)]
+      temp.largestAmount.assetCustac <- matrix(c(temp.minUnitQuantity.mat[i,min.idx]*minUnitValue.mat[i,min.idx],min.idx),nrow=2,byrow=T)
+      if(length(temp.largestAmount.assetCustac[1,])>1){  
+        temp.largestAmount.assetCustac <- temp.largestAmount.assetCustac[,order(temp.largestAmount.assetCustac[1,],decreasing=T)]
         # substitute in sortOptimal
-        sortOptimal[,1:length(temp.largestAmount.asset[1,])]<- temp.largestAmount.asset
-        colnames(sortOptimal)[1:length(temp.largestAmount.asset[1,])] <- colnames(temp.largestAmount.asset)
+        sortOptimal[,1:length(temp.largestAmount.assetCustac[1,])]<- temp.largestAmount.assetCustac
+        colnames(sortOptimal)[1:length(temp.largestAmount.assetCustac[1,])] <- colnames(temp.largestAmount.assetCustac)
       }
     }
-    optimalAsset[i,2] <- assetIds[sortOptimal[2,1]]
+    optimalAsset[i,2] <- assetCustacIds[sortOptimal[2,1]]
     temp.minUnitQuantity <- temp.minUnitQuantity.mat[,sortOptimal[2,1]]
     temp.minUnitQuantity.mat[,sortOptimal[2,1]]<- temp.minUnitQuantity-call.mat[i,1]/(1-haircut.mat[i,1])/minUnitValue.mat[,sortOptimal[2,1]]
     #for(m in 1:length(min.idx)){
@@ -374,7 +386,7 @@ coreAlgo <- function(input.list,availAssets,time.limit){
     # if all possible assets have been selected as optimal of previous margin calls
     # then, select the first asset
     if(optimalAsset[i,2]==''){
-      optimalAsset[i,2] <- temp.optimal.asset[1]
+      optimalAsset[i,2] <- temp.optimal.assetCustac[1]
     }
   }
   
@@ -390,37 +402,45 @@ coreAlgo <- function(input.list,availAssets,time.limit){
   #### In case of OW-291, optimal assets are sufficient
   if(!is.element(0,suff.select.unique)){ 
     status <- 'solved'
+    lpsolveRun <- FALSE
     for(i in 1:call.num){
-      select.asset.idx <- which(assetInfo$id==optimalAsset[i,2])
-      select.asset.id <- assetIds[select.asset.idx]
-      select.asset.custodianAccount <- custodianAccount[select.asset.idx]
-      select.asset.venue <- venue[select.asset.idx]
-      select.asset.name <- assetInfo$name[select.asset.idx]
-      select.asset.NetAmount <- integer.call.mat[i,1]
-      select.asset.haircut <- haircut.mat[i,select.asset.idx]
-      select.asset.Amount <- select.asset.NetAmount/(1-haircut.mat[i,select.asset.idx])
-      select.asset.currency <- assetInfo$currency[select.asset.idx]
-      select.asset.minUnitQuantity <- select.asset.Amount/minUnitValue.mat[i,select.asset.idx]
-      select.asset.quantity <- select.asset.minUnitQuantity*minUnit.mat[i,select.asset.idx]
+      select.assetCustac.idx <- which(assetCustacIds==optimalAsset[i,2])
+      select.asset.id <- assetIds[select.assetCustac.idx]
+      select.asset.custodianAccount <- custodianAccount[select.assetCustac.idx]
+      select.asset.venue <- venue[select.assetCustac.idx]
+      select.asset.name <- assetInfo$name[select.assetCustac.idx]
+      select.asset.NetAmountUSD <- integer.call.mat[i,1]
+      select.asset.haircut <- haircut.mat[i,select.assetCustac.idx]
+      select.asset.AmountUSD <- select.asset.NetAmountUSD/(1-haircut.mat[i,select.assetCustac.idx])
+      select.asset.currency <- assetInfo$currency[select.assetCustac.idx]
+      select.asset.minUnitQuantity <- select.asset.AmountUSD/minUnitValue.mat[i,select.assetCustac.idx]
+      select.asset.quantity <- select.asset.minUnitQuantity*minUnit.mat[i,select.assetCustac.idx]
+      select.marginType <- rep(callInfo$marginType[i],length(select.assetCustac.idx))
+      select.asset.FX <- assetInfo$FXRate[select.assetCustac.idx]
+      select.asset.Amount <- select.asset.AmountUSD*select.asset.FX
+      select.asset.NetAmount <- select.asset.NetAmountUSD*select.asset.FX
       
       #### UPDATE THE ASSET QUANTITY ########
-      availQuantity <- availAssets$quantity[which(availAssets$assetId==select.asset.id)]
-      quantity <- availAssets$totalQuantity[which(availAssets$assetId==select.asset.id)]
-      availAssets$quantity[which(availAssets$assetId==select.asset.id)]<- availQuantity-select.asset.quantity
-      availAssets$totalQuantity[which(availAssets$assetId==select.asset.id)]<- quantity-select.asset.quantity
+      availQuantity <- availAssets$quantity[which(availAssets$assetCustacId==select.assetCustac.idx)]
+      quantity <- availAssets$totalQuantity[which(availAssets$assetCustacId==select.assetCustac.idx)]
+      availAssets$quantity[which(availAssets$assetCustacId==select.assetCustac.idx)]<- availQuantity-select.asset.quantity
+      availAssets$totalQuantity[which(availAssets$assetCustacId==select.assetCustac.idx)]<- quantity-select.asset.quantity
       #### END ##############################
       
-      select.asset.custodianAccount <- custodianAccount[select.asset.idx]
-      select.asset.df <- data.frame(select.asset.id,select.asset.name,select.asset.NetAmount,select.asset.haircut,select.asset.Amount,select.asset.currency,
-                                    select.asset.quantity,select.asset.custodianAccount,select.asset.venue)
-      colnames(select.asset.df)<- c('Asset','Name','NetAmount(USD)','Haircut','Amount','Currency','Quantity','CustodianAccount','Venue')
+      select.asset.custodianAccount <- custodianAccount[select.assetCustac.idx]
+      select.asset.df <- data.frame(select.asset.id,select.asset.name,select.asset.NetAmount,select.asset.NetAmountUSD,select.asset.FX,select.asset.haircut,select.asset.Amount,select.asset.AmountUSD,select.asset.currency,
+                                    select.asset.quantity,select.asset.custodianAccount,select.asset.venue,select.marginType)
+      colnames(select.asset.df)<- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType')
       
       select.list[[callIds[i]]] <- select.asset.df       
     }
     output.list<- select.list
+    
   }
   
   else if(1){
+    lpsolveRun<-TRUE
+    
     ##### In case of OW-292, consider all preference, with quantity limits ##########
     
     idx.eli <- which(eli.vec==1)  # Exclude the non-eligible asset variable for each margin call
@@ -441,9 +461,9 @@ coreAlgo <- function(input.list,availAssets,time.limit){
     # Constraints are specified below:
     # 0. quantity used of an asset should be a non-negative value
     #    quantity used >= 0
-    # 1. quantity limit of each asset for one margin call (call.num*asset.num)
+    # 1. quantity limit of each asset for one margin call (call.num*assetCustac.num)
     #    quantity used <= quantity limit; (quantity or minUnitQuantity)
-    # 2. quantity limit of each asset for all margin calls(asset.num)
+    # 2. quantity limit of each asset for all margin calls(assetCustac.num)
     #    total quantity used <= total quantity (for an asset) (quantity or minUnitQuantity)
     # 3. margin call requirement (call.num)
     #    total net amount of assets for one margin call >= call amount
@@ -473,19 +493,19 @@ coreAlgo <- function(input.list,availAssets,time.limit){
     f.dir.1 <- rep('<=',var.num2)
     f.rhs.1 <- c(eli.vec[idx.eli]*minUnitQuantity.vec[idx.eli],rep(1,var.num))
     
-    f.con.2 <- matrix(0,nrow=asset.num,ncol=var.num)
-    temp1 <- 1+(0:(call.num-1))*asset.num
-    idx.con.2 <- rep(temp1,asset.num)+rep(c(0:(asset.num-1)),rep(call.num,asset.num))
+    f.con.2 <- matrix(0,nrow=assetCustac.num,ncol=var.num)
+    temp1 <- 1+(0:(call.num-1))*assetCustac.num
+    idx.con.2 <- rep(temp1,assetCustac.num)+rep(c(0:(assetCustac.num-1)),rep(call.num,assetCustac.num))
     idx.con.2 <- match(idx.con.2,idx.eli)
-    f.con.2[na.omit(cbind(rep(c(1:asset.num),rep(call.num,asset.num)),idx.con.2))]<-1
+    f.con.2[na.omit(cbind(rep(c(1:assetCustac.num),rep(call.num,assetCustac.num)),idx.con.2))]<-1
     f.con.2 <- cbind(f.con.2,f.con.2*0)
-    f.dir.2 <- rep('<=',asset.num)
+    f.dir.2 <- rep('<=',assetCustac.num)
     f.rhs.2 <- minUnitQuantity.mat[1,]
     
     f.con.3 <- matrix(0,nrow=call.num,ncol=var.num)
-    idx.con.3 <- 1:(asset.num*call.num)
+    idx.con.3 <- 1:(assetCustac.num*call.num)
     idx.con.3 <- match(idx.con.3,idx.eli)
-    f.con.3[na.omit(cbind(rep(c(1:call.num),rep(asset.num,call.num)),idx.con.3))] <- minUnitValue.vec[idx.eli]*(1-haircut.vec[idx.eli])
+    f.con.3[na.omit(cbind(rep(c(1:call.num),rep(assetCustac.num,call.num)),idx.con.3))] <- minUnitValue.vec[idx.eli]*(1-haircut.vec[idx.eli])
     f.con.3 <- cbind(f.con.3,f.con.3*0)
     f.dir.3 <- rep('>=',call.num)
     f.rhs.3 <- call.mat[,1]
@@ -565,7 +585,7 @@ coreAlgo <- function(input.list,availAssets,time.limit){
     
     # round up the decimal quantity to the nearest integer.
     # if it's larger than 0.5
-    result.mat <- matrix(0,nrow=call.num,ncol=asset.num,dimnames=list(callIds,assetIds))
+    result.mat <- matrix(0,nrow=call.num,ncol=assetCustac.num,dimnames=list(callIds,assetCustacIds))
     result.mat <- t(result.mat)
     result.mat[idx.eli]<-lpSolveAPI.solution[1:var.num]
     result.mat[which(result.mat>0.5)] <- ceiling(result.mat[which(result.mat>0.5)])
@@ -675,7 +695,7 @@ coreAlgo <- function(input.list,availAssets,time.limit){
               # left quantity of each available asset for this call is not sufficient
               # need more than one assets to allocate to this call
               # compare the missing amount and the sum of the left asset left amount
-              # asset.amount.left <- matrix(c(1:asset.num,asset.quantity.left*minUnitValue.mat[j,]),nrow=2,byrow=T)
+              # asset.amount.left <- matrix(c(1:assetCustac.num,asset.quantity.left*minUnitValue.mat[j,]),nrow=2,byrow=T)
               
               # there should be more than one assets available(else will be detected in the pre-check sufficiency part)
               # order by amount from larger to smaller, make sure the least movements
@@ -724,10 +744,12 @@ coreAlgo <- function(input.list,availAssets,time.limit){
     call.missing.idx <- which(call.missing.amount>0)
     if(length(call.missing.idx)>=1){
       for(i in call.missing.idx){
+        
         current.allocate <- matrix(c(which(result.mat[i,]>0),result.mat[i,which(result.mat[i,]>0)]),nrow=2,byrow=T)
+        
         missing.amount <- call.missing.amount[i]
-        missing.quantity <- ceiling((missing.amount/(1-haircut.mat)/minUnitValue.mat)[j,])
-        suff.idx <- intersect(which(missing.quantity<=asset.quantity.left),which(eli.mat[j,]==1))
+        missing.quantity <- ceiling((missing.amount/(1-haircut.mat)/minUnitValue.mat)[i,])
+        suff.idx <- intersect(which(missing.quantity<=asset.quantity.left),which(eli.mat[i,]==1))
         if(length(suff.idx)==0){
           # which means none of the asset itself is enough to to fulfill the left amount of the margin call
           # This should be a very extreme case, and it's more complicated to develop for this case
@@ -749,35 +771,40 @@ coreAlgo <- function(input.list,availAssets,time.limit){
     
     
     for(i in 1:call.num){                          # store the result into select list
-      select.asset.idx <- which(result.mat[i,]!=0)
-      select.asset.id <- assetIds[select.asset.idx]
-      select.asset.custodianAccount <- custodianAccount[select.asset.idx]
-      select.asset.venue <- venue[select.asset.idx]
-      select.asset.name <- assetInfo$name[select.asset.idx]
-      select.asset.haircut <- haircut.mat[i,select.asset.idx]
-      select.asset.currency <- assetInfo$currency[select.asset.idx]
-      select.asset.minUnitQuantity <- result.mat[i,select.asset.idx]
-      select.asset.quantity <- result.mat[i,select.asset.idx]*minUnit.mat[i,select.asset.idx]
+      select.assetCustac.idx <- which(result.mat[i,]!=0)
+      select.assetCustac.id <- assetCustacIds[select.assetCustac.idx]
+      select.asset.id <- assetIds[select.assetCustac.idx]
+      select.asset.custodianAccount <- custodianAccount[select.assetCustac.idx]
+      select.asset.venue <- venue[select.assetCustac.idx]
+      select.asset.name <- assetInfo$name[select.assetCustac.idx]
+      select.asset.haircut <- haircut.mat[i,select.assetCustac.idx]
+      select.asset.currency <- assetInfo$currency[select.assetCustac.idx]
+      select.asset.minUnitQuantity <- result.mat[i,select.assetCustac.idx]
+      select.asset.quantity <- result.mat[i,select.assetCustac.idx]*minUnit.mat[i,select.assetCustac.idx]
+      select.marginType <- rep(callInfo$marginType[i],length(select.assetCustac.idx))
       
       #### UPDATE THE ASSET QUANTITY ########
       for(k in 1:length(select.asset.id)){
-        assetId <- select.asset.id[k]
-        availQuantity <- availAssets$quantity[which(availAssets$assetId==assetId)]
-        quantity <- availAssets$totalQuantity[which(availAssets$assetId==assetId)]
-        availAssets$quantity[which(availAssets$assetId==assetId)]<- availQuantity-select.asset.quantity[k]
-        availAssets$totalQuantity[which(availAssets$assetId==assetId)]<- quantity-select.asset.quantity[k]
+        assetCustacId <- select.assetCustac.id[k]
+        availQuantity <- availAssets$quantity[which(availAssets$assetCustacId==assetCustacId)]
+        quantity <- availAssets$totalQuantity[which(availAssets$assetCustacId==assetCustacId)]
+        availAssets$quantity[which(availAssets$assetCustacId==assetCustacId)]<- availQuantity-select.asset.quantity[k]
+        availAssets$totalQuantity[which(availAssets$assetCustacId==assetCustacId)]<- quantity-select.asset.quantity[k]
       }
       #### END ##############################
       
-      select.asset.unitValue <- unitValue.mat[i,select.asset.idx]
-      select.asset.Amount <- select.asset.quantity*select.asset.unitValue
-      select.asset.NetAmount <- select.asset.Amount*(1-haircut.mat[i,select.asset.idx])
+      select.asset.unitValue <- unitValue.mat[i,select.assetCustac.idx]
+      select.asset.AmountUSD <- select.asset.quantity*select.asset.unitValue
+      select.asset.NetAmountUSD <- select.asset.AmountUSD*(1-haircut.mat[i,select.assetCustac.idx])      
+      select.asset.FX <- assetInfo$FXRate[select.assetCustac.idx]
+      select.asset.Amount <- select.asset.AmountUSD*select.asset.FX
+      select.asset.NetAmount <- select.asset.NetAmountUSD*select.asset.FX
       #######
       # netAmount(in local currency) is surfacing in UI
       #######
-      select.asset.df <- data.frame(select.asset.id,select.asset.name,select.asset.NetAmount,select.asset.haircut,select.asset.Amount,select.asset.currency,
-                                    select.asset.quantity,select.asset.custodianAccount,select.asset.venue)
-      colnames(select.asset.df)<- c('Asset','Name','NetAmount(USD)','Haircut','Amount','Currency','Quantity','CustodianAccount','venue')
+      select.asset.df <- data.frame(select.asset.id,select.asset.name,select.asset.NetAmount,select.asset.NetAmountUSD,select.asset.FX,select.asset.haircut,select.asset.Amount,select.asset.AmountUSD,select.asset.currency,
+                                    select.asset.quantity,select.asset.custodianAccount,select.asset.venue,select.marginType)
+      colnames(select.asset.df)<- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType')
       
       select.list[[callIds[i]]] <- select.asset.df       
     }
@@ -790,5 +817,5 @@ coreAlgo <- function(input.list,availAssets,time.limit){
     subtotal.fulfilled[i,2] <- sum(select.list[[callIds[i]]]$`NetAmount(USD)`)
   }
   check.call <- subtotal.fulfilled
-  return(list(output=output.list,check.call=check.call,availAssets=availAssets,status=status))
+  return(list(output=output.list,check.call=check.call,availAssets=availAssets,status=status,lpsolveRun=lpsolveRun))
 }
