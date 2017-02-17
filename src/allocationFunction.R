@@ -163,15 +163,17 @@ allocationInputData = function(callIds,assetCustacIds,clientId,callInfo,availAss
   return (output.list)
 }
 orderCallIds <- function(order.method,callInfo){
-  if(order.method==1){
+  if(order.method==1){ # by call amount, decreasing
     callInfo <- callInfo[order(callInfo$callAmount,decreasing=T),]
-  }else if(order.method==2){
+  }else if(order.method==2){ # by margin type(VM first) and call amount, decreasing
     callInfoVM <- callInfo[which(toupper(callInfo$marginType)=='VARIATION'),]
     callInfoVM <- callInfoVM[order(callInfoVM$callAmount,decreasing=T),]
     callInfoIM <- callInfo[which(toupper(callInfo$marginType)=='INITIAL'),]
     callInfoIM <- callInfoIM[order(callInfoIM$callAmount,decreasing=T),]
     
     callInfo <- rbind(callInfoVM,callInfoIM)
+  }else if(order.method==3){ # by margin statement, call amount in margin statement, decreasing
+    
   }
   return(callInfo)
 }
@@ -179,7 +181,7 @@ splitCallIds <- function(limit.VM,limit.IM,limit.total,callInfo,callIds){
   
   group.list <- list()
   
-  # if the total call numbers is equal or less than 6, only one group
+  # if the total call numbers is equal or less than limit.total, only one group
   if(length(callInfo[,1])<=limit.total){
     group.list[[1]] <- callIds
   } else{
@@ -443,9 +445,84 @@ coreAlgo <- function(input.list,availAssets,time.limit){
     
     ##### In case of OW-292, consider all preference, with quantity limits ##########
     
-    idx.eli <- which(eli.vec==1)  # Exclude the non-eligible asset variable for each margin call
+    # matrix store the index number, by row
+    idx.mat <- matrix(1:length(base.mat),nrow=call.num,byrow = TRUE,dimnames = dimnames(base.mat))
+    # matrix store the variable name("msId_mcId_assetCustId"), by row
+    name.mat <-  matrix('',nrow=call.num,ncol=assetCustac.num,byrow = TRUE,dimnames = dimnames(base.mat))
+    for(i in 1:call.num){
+      msId <- callInfo$marginStatement[i]
+      name.mat[i,]<-paste(msId,callIds[i],assetCustacIds,sep='_')
+    }
+    name.dummy.mat <- name.mat
+    name.dummy.mat[] <- paste(name.mat,'dummy',sep='-')
+    
+    name.full.mat <- rbind(name.mat,name.dummy.mat)
+    
+    full.mat <- data.matrix(t(data.frame(strsplit(t(name.full.mat),'_'))))
+    full.mat <- cbind(full.mat,1:(2*length(base.mat)))
+    colnames(full.mat) <- c('msId','callId','assetCustId','index'); rownames(full.mat)<- 1:(2*length(base.mat))
+    
+    ## filter the eligible/available asset variables
+    idx.eli <- which(eli.vec==1)  
+    ## variable numbers
     var.num <- length(idx.eli)    # variable numbers
     var.num2 <- var.num*2
+    
+    var.names <- c(t(name.mat)[idx.eli],t(name.dummy.mat[idx.eli]))
+    var.mat <- rbind(full.mat[idx.eli,],full.mat[length(base.mat)+idx.eli,])
+    
+    # update the variable index
+    var.mat[,4]<-1:var.num2
+    var.dummy.mat <- var.mat[(var.num+1):var.num2,]
+    
+  ### Margin Statement ###
+  marginType.num <- 2
+  current.var.num <- 0
+  new.var.mat <- matrix(0,nrow=ceiling(var.num/2),ncol=3,dimnames=list(1:ceiling(var.num/2),c("index_1","index_2","index")))
+  
+  msIds <- unique(callInfo$marginStatement)
+  for(i in 1:length(msIds)){
+    temp.callIds <- which(callInfo$marginStatement==msIds[i])
+    temp.length <- length(temp.callIds)
+    if(temp.length==2){
+      temp.idx <- which(var.dummy.mat[,1]==msIds[i])
+      temp.df <- as.data.frame(table(var.dummy.mat[which(var.dummy.mat[,1]==msIds[i]),3]))
+      temp.rep.idx <- which(temp.df[,2]==2)
+      temp.assetCustIds <- as.character(temp.df[temp.rep.idx,1])
+
+      temp.mat <- var.dummy.mat[temp.idx,]
+      temp.mat2 <- temp.mat[which(!is.na(match(temp.mat[,3],temp.assetCustIds))),]
+      temp.fun <- function(x1='',x2=''){
+        temp=paste(x1,x2,sep='_',collapse = '')
+        return(temp)
+      }
+      temp.res <- aggregate(index~msId+assetCustId,data=temp.mat2,temp.fun)
+      temp.pairs <- temp.res[,3]
+      temp.new.idx <- current.var.num+1:length(temp.pairs)
+      current.var.num <- current.var.num + length(temp.pairs)
+      new.var.mat[temp.new.idx,c(1,2)] <- as.numeric(t(data.frame((strsplit(temp.pairs,'_')))))
+      new.var.mat[temp.new.idx,3] <- temp.new.idx+var.num2
+    }
+  }
+  # update new.var.mat
+  new.var.mat <- new.var.mat[1:current.var.num,]
+  new.var.mat <- matrix(as.numeric(new.var.mat),ncol=3)
+  
+  ## add new auxiliary variables
+  var.num3 <- var.num2+current.var.num
+  new.var.name.mat <- var.mat[new.var.mat[,1],]
+  new.var.name.mat[,2] <- new.var.name.mat[,1]
+  new.var.name.mat[,4] <- new.var.mat[,3]
+  paste.fun2 <- function(x){
+      temp=paste(x,collapse='_')
+      return(temp)
+  }
+  
+  new.var.name <- apply(new.var.name.mat[,1:3],1,paste.fun2)
+  var.names <- c(var.names,new.var.name)
+  
+  ### end ###############
+  
     
     ############# MODEL SETUP ###########################################
     # decision variables: x, qunatity used of each asset for each margin call
@@ -467,6 +544,10 @@ coreAlgo <- function(input.list,availAssets,time.limit){
     #    total quantity used <= total quantity (for an asset) (quantity or minUnitQuantity)
     # 3. margin call requirement (call.num)
     #    total net amount of assets for one margin call >= call amount
+    # 4.& 5. movements
+    #    Similating the dummy of each x
+    # 6.& 7. in same margin statement
+    #   
     #
     # variable bounds: a < x < x_quantity
     #    specified by constraint 0 and 1. 
@@ -475,66 +556,78 @@ coreAlgo <- function(input.list,availAssets,time.limit){
     ######################################################################
     
     # objective function
-    operation.obj <-  c(rep(0,var.num),norm.operation.vec[idx.eli]*max(call.mat)*10)
-    liquidity.obj <-  c(minUnitValue.vec[idx.eli]*norm.liquidity.vec[idx.eli],rep(0,var.num))
-    cost.obj <-  c(minUnitValue.vec[idx.eli]*norm.cost.vec[idx.eli],rep(0,var.num))
+    operation.temp <- norm.operation.vec[idx.eli]
+    operation.obj <-  c(rep(0,var.num),operation.temp*max(call.mat)*10,-operation.temp[new.var.mat[,1]-var.num]*max(call.mat)*10)
+    liquidity.obj <-  c(minUnitValue.vec[idx.eli]*norm.liquidity.vec[idx.eli],rep(0,var.num3-var.num))
+    cost.obj <-  c(minUnitValue.vec[idx.eli]*norm.cost.vec[idx.eli],rep(0,var.num3-var.num))
     
     f.obj <- operation.obj*pref[1]+liquidity.obj*pref[2]+cost.obj*pref[3]
-    #names(f.obj) <- paste('var',1:var.num2)
+    names(f.obj) <- var.names
     
     # constraints
-    f.con.0 <- matrix(0,nrow=var.num2,ncol=var.num2)
-    f.con.0[cbind(1:var.num2,1:var.num2)] <- 1
-    f.dir.0 <- rep('>=',var.num2)
-    f.rhs.0 <- rep(0,var.num2)
+    f.con.0 <- matrix(0,nrow=var.num,ncol=var.num3)
+    f.con.0[cbind(1:var.num,1:var.num)] <- 1
+    f.dir.0 <- rep('>=',var.num)
+    f.rhs.0 <- rep(0,var.num)
     
-    f.con.1 <- matrix(0,nrow=var.num2,ncol=var.num2)
-    f.con.1[cbind(1:var.num2,1:var.num)] <- 1
-    f.dir.1 <- rep('<=',var.num2)
+    f.con.1 <- matrix(0,nrow=var.num,ncol=var.num3)
+    f.con.1[cbind(1:var.num,1:var.num)] <- 1
+    f.dir.1 <- rep('<=',var.num)
     f.rhs.1 <- c(eli.vec[idx.eli]*minUnitQuantity.vec[idx.eli],rep(1,var.num))
     
     f.con.2 <- matrix(0,nrow=assetCustac.num,ncol=var.num)
+    f.con.temp <- matrix(0,nrow=assetCustac.num,ncol=var.num3-var.num2)
     temp1 <- 1+(0:(call.num-1))*assetCustac.num
     idx.con.2 <- rep(temp1,assetCustac.num)+rep(c(0:(assetCustac.num-1)),rep(call.num,assetCustac.num))
     idx.con.2 <- match(idx.con.2,idx.eli)
     f.con.2[na.omit(cbind(rep(c(1:assetCustac.num),rep(call.num,assetCustac.num)),idx.con.2))]<-1
-    f.con.2 <- cbind(f.con.2,f.con.2*0)
+    f.con.2 <- cbind(f.con.2,f.con.2*0,f.con.temp)
     f.dir.2 <- rep('<=',assetCustac.num)
     f.rhs.2 <- minUnitQuantity.mat[1,]
     
     f.con.3 <- matrix(0,nrow=call.num,ncol=var.num)
+    f.con.temp <- matrix(0,nrow=call.num,ncol=var.num3-var.num2)
     idx.con.3 <- 1:(assetCustac.num*call.num)
     idx.con.3 <- match(idx.con.3,idx.eli)
     f.con.3[na.omit(cbind(rep(c(1:call.num),rep(assetCustac.num,call.num)),idx.con.3))] <- minUnitValue.vec[idx.eli]*(1-haircut.vec[idx.eli])
-    f.con.3 <- cbind(f.con.3,f.con.3*0)
+    f.con.3 <- cbind(f.con.3,f.con.3*0,f.con.temp)
     f.dir.3 <- rep('>=',call.num)
     f.rhs.3 <- call.mat[,1]
     
     f.con.4 <- matrix(0,nrow=var.num,ncol=var.num)
+    f.con.temp <- matrix(0,nrow=var.num,ncol=var.num3-var.num2)
     f.con.4[cbind(1:var.num,1:var.num)] <- 1
-    f.con.4 <- cbind(f.con.4,f.con.4*(-10000000000))
+    f.con.4 <- cbind(f.con.4,f.con.4*(-10000000000),f.con.temp)
     f.dir.4 <- rep('<=',var.num)
     f.rhs.4 <- rep(0,var.num)
     
     f.con.5 <- matrix(0,nrow=var.num,ncol=var.num)
+    f.con.temp <- matrix(0,nrow=var.num,ncol=var.num3-var.num2)
     f.con.5[cbind(1:var.num,1:var.num)] <- 1
-    f.con.5 <- cbind(f.con.5,-f.con.5)
+    f.con.5 <- cbind(f.con.5,-f.con.5,f.con.temp)
     f.dir.5 <- rep('>=',var.num)
     f.rhs.5 <- rep(0,var.num)
     
-    # constraints we input to the model
-    lp.con <- rbind(f.con.2,f.con.3,f.con.4,f.con.5)
-    lp.dir <- c(f.dir.2,f.dir.3,f.dir.4,f.dir.5)
-    lp.rhs <- c(f.rhs.2,f.rhs.3,f.rhs.4,f.rhs.5)
+    f.con.6 <- matrix(0,nrow=var.num3-var.num2,ncol=var.num3)
+    f.con.6[cbind(1:(var.num3-var.num2),new.var.mat[,1])] <- 1
+    f.con.6[cbind(1:(var.num3-var.num2),new.var.mat[,2])] <- 1
+    f.con.6[cbind(1:(var.num3-var.num2),new.var.mat[,3])] <- -2
+    f.dir.6 <- rep(">=",var.num3-var.num2)
+    f.rhs.6 <- rep(0,var.num3-var.num2)
     
-    lps.model <- make.lp(length(lp.con),var.num2)  # make model
+    # constraints we input to the model
+    lp.con <- rbind(f.con.2,f.con.3,f.con.4,f.con.5,f.con.6)
+    lp.dir <- c(f.dir.2,f.dir.3,f.dir.4,f.dir.5,f.dir.6)
+    lp.rhs <- c(f.rhs.2,f.rhs.3,f.rhs.4,f.rhs.5,f.rhs.6)
+    
+    lps.model <- make.lp(length(lp.con),var.num3)  # make model
     set.objfn(lps.model,f.obj)                    # set objective
     
     for (i in 1:length(lp.con[,1])){              # set constraints
       add.constraint(lps.model,lp.con[i,],lp.dir[i],lp.rhs[i])
     }
     
-    set.semicont(lps.model,1:var.num2,TRUE)        # set semi-continuous variables
+    set.semicont(lps.model,1:var.num3,TRUE)        # set semi-continuous variables
     
     minMoveQuantity <- ceiling(minMoveValue/minUnitValue.vec[idx.eli])
     if(length(call.vec[which(minMoveValue > call.vec[idx.eli]/(1-haircut.vec[idx.eli]))])!=0){
@@ -548,8 +641,8 @@ coreAlgo <- function(input.list,availAssets,time.limit){
     # if the minUnitValue >=100, set to integer
     int.idx <- which(minUnitValue.vec[idx.eli]>=100)
     set.type(lps.model,int.idx,'integer')
-    set.bounds(lps.model,lower=c(minMoveQuantity,rep(1,var.num)),upper=c(minUnitQuantity.vec[idx.eli],rep(1,var.num)))
-    presolve <- ifelse(call.num<=2,'none','knapsack')
+    set.bounds(lps.model,lower=c(minMoveQuantity,rep(1,var.num),rep(1,var.num3-var.num2)),upper=c(minUnitQuantity.vec[idx.eli],rep(1,var.num),rep(1,var.num3-var.num2)))
+    presolve <- ifelse(call.num<=5,'none','knapsack')
     lp.control(lps.model,epsd=1e-10,presolve=presolve,timeout=time.limit)
     for(k in 1:var.num){
       set.branch.mode(lps.model,k,'floor') 
