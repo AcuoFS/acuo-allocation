@@ -1,4 +1,3 @@
-library('RNeo4j')
 library('lpSolveAPI')
 
 #### ALLOCATION MAIN FUNCTION ############
@@ -150,6 +149,7 @@ allocationInputData = function(callIds,assetCustacIds,clientId,callInfo,availAss
   
   output.list <- list(assetCustacIds=assetCustacIds,callIds=callIds,assetInfo=assetInfo,callInfo=callInfo,pref=pref,
                       custodianAccount=custodianAccount,venue=venue,
+                      base.mat=base.mat,
                       eli.mat=eli.mat, eli.vec = eli.vec,
                       haircut.mat=haircut.mat, haircut.vec=haircut.vec,
                       cost.mat = cost.mat, cost.vec = cost.vec,
@@ -221,6 +221,72 @@ splitCallIds <- function(limit.VM,limit.IM,limit.total,callInfo,callIds){
   }
   return(group.list)
 }
+callLpSolve <- function(lp.obj,lp.con,lp.dir,lp.rhs,lp.type,lp.kind,lp.bounds.lower,lp.bounds.upper,lp.branch.mode,...){
+  
+  # var.num 
+  var.num <- length(lp.con[1,])
+  
+  # make model
+  lps.model <- make.lp(0,var.num)  
+  
+  # set objective
+  set.objfn(lps.model,lp.obj)                    
+  
+  # set constraints
+  for (i in 1:length(lp.con[,1])){              
+    add.constraint(lps.model,lp.con[i,],lp.dir[i],lp.rhs[i])
+  }
+  
+  # set semi-continuous variables
+  semi.idx <- which(lp.kind=='semi-continuous')
+  set.semicont(lps.model,semi.idx,TRUE)        
+  
+  # set integer variables
+  int.idx <- which(lp.type=='integer')
+  set.type(lps.model,int.idx,'integer')
+  
+  # set variables bounds
+  set.bounds(lps.model,lower=lp.bounds.lower,upper=lp.bounds.upper)
+  
+  # set branch mode
+  for(k in 1:length(lp.branch.mode)){
+    set.branch.mode(lps.model,k,lp.branch.mode[k])
+  }
+  
+  # set control options
+  lp.control(lps.model,...)
+ 
+  # solve the problem
+  result.status <- solve(lps.model)  
+  
+  status <- 'solved'
+  if(is.element(result.status,c(2,13))){
+    #errorMsg <- 'Error: Asset inventory might be insufficient!'
+    #return(errorMsg)
+    stop('Asset inventory might be insufficient!')
+    status <- 'insufficient'
+  } else if(is.element(result.status,c(5,6,10))){                            # solve model
+    #errorMsg <- 'Error: Fail to calculate!'
+    #return(errorMsg)
+    stop('Fail to calculate!')
+    status <- 'fail'
+  } else if(result.status==1){
+    #warning('sub-optimal result!')
+    status<-'sub-optimal'
+  } else if(result.status==7){
+    #stop('Time out!')
+    status<-'timeout'
+  }
+  
+  # get the variables(minUnitQuantity)
+  lpSolveAPI.solution <- get.variables(lps.model)
+  
+  # get the objective
+  result.objective <- get.objective(lps.model)
+  
+  return(list(status=status,lpSolveAPI.solution=lpSolveAPI.solution,result.objective=result.objective))
+}
+
 coreAlgo <- function(input.list,availAssets,time.limit){
   pref<-pref
   callIds<-input.list$callIds
@@ -234,6 +300,7 @@ coreAlgo <- function(input.list,availAssets,time.limit){
   call.num <- length(callIds)            # total margin call number
   assetCustac.num <- length(assetCustacIds)          # total asset number
   
+  base.mat <- input.list$base.mat
   eli.mat <- input.list$eli.mat; eli.vec <- input.list$eli.vec                    # eligibility matrix & vector
   haircut.mat<-input.list$haircut.mat; haircut.vec <- input.list$haircut.vec      # haircut mat & vec
   quantity.mat<- input.list$quantity.mat; quantity.vec <- input.list$quantity.vec # asset quantity mat & vec
@@ -475,55 +542,55 @@ coreAlgo <- function(input.list,availAssets,time.limit){
     var.mat[,4]<-1:var.num2
     var.dummy.mat <- var.mat[(var.num+1):var.num2,]
     
-  ### Margin Statement ###
-  marginType.num <- 2
-  current.var.num <- 0
-  new.var.mat <- matrix(0,nrow=ceiling(var.num/2),ncol=3,dimnames=list(1:ceiling(var.num/2),c("index_1","index_2","index")))
-  
-  msIds <- unique(callInfo$marginStatement)
-  for(i in 1:length(msIds)){
-    temp.callIds <- which(callInfo$marginStatement==msIds[i])
-    temp.length <- length(temp.callIds)
-    if(temp.length==2){
-      temp.idx <- which(var.dummy.mat[,1]==msIds[i])
-      temp.df <- as.data.frame(table(var.dummy.mat[which(var.dummy.mat[,1]==msIds[i]),3]))
-      temp.rep.idx <- which(temp.df[,2]==2)
-      temp.assetCustIds <- as.character(temp.df[temp.rep.idx,1])
-
-      temp.mat <- var.dummy.mat[temp.idx,]
-      temp.mat2 <- temp.mat[which(!is.na(match(temp.mat[,3],temp.assetCustIds))),]
-      temp.fun <- function(x1='',x2=''){
-        temp=paste(x1,x2,sep='_',collapse = '')
-        return(temp)
-      }
-      temp.res <- aggregate(index~msId+assetCustId,data=temp.mat2,temp.fun)
-      temp.pairs <- temp.res[,3]
-      temp.new.idx <- current.var.num+1:length(temp.pairs)
-      current.var.num <- current.var.num + length(temp.pairs)
-      new.var.mat[temp.new.idx,c(1,2)] <- as.numeric(t(data.frame((strsplit(temp.pairs,'_')))))
-      new.var.mat[temp.new.idx,3] <- temp.new.idx+var.num2
-    }
-  }
-  # update new.var.mat
-  new.var.mat <- new.var.mat[1:current.var.num,]
-  new.var.mat <- matrix(as.numeric(new.var.mat),ncol=3)
-  
-  ## add new auxiliary variables
-  var.num3 <- var.num2+current.var.num
-  new.var.name.mat <- var.mat[new.var.mat[,1],]
-  new.var.name.mat[,2] <- new.var.name.mat[,1]
-  new.var.name.mat[,4] <- new.var.mat[,3]
-  paste.fun2 <- function(x){
-      temp=paste(x,collapse='_')
-      return(temp)
-  }
-  
-  new.var.name <- apply(new.var.name.mat[,1:3],1,paste.fun2)
-  var.names <- c(var.names,new.var.name)
-  
-  ### end ###############
-  
+    ### Margin Statement ###
+    marginType.num <- 2
+    current.var.num <- 0
+    new.var.mat <- matrix(0,nrow=ceiling(var.num/2),ncol=3,dimnames=list(1:ceiling(var.num/2),c("index_1","index_2","index")))
     
+    msIds <- unique(callInfo$marginStatement)
+    for(i in 1:length(msIds)){
+      temp.callIds <- which(callInfo$marginStatement==msIds[i])
+      temp.length <- length(temp.callIds)
+      if(temp.length==2){
+        temp.idx <- which(var.dummy.mat[,1]==msIds[i])
+        temp.df <- as.data.frame(table(var.dummy.mat[which(var.dummy.mat[,1]==msIds[i]),3]))
+        temp.rep.idx <- which(temp.df[,2]==2)
+        temp.assetCustIds <- as.character(temp.df[temp.rep.idx,1])
+  
+        temp.mat <- var.dummy.mat[temp.idx,]
+        temp.mat2 <- temp.mat[which(!is.na(match(temp.mat[,3],temp.assetCustIds))),]
+        temp.fun <- function(x1='',x2=''){
+          temp=paste(x1,x2,sep='_',collapse = '')
+          return(temp)
+        }
+        temp.res <- aggregate(index~msId+assetCustId,data=temp.mat2,temp.fun)
+        temp.pairs <- temp.res[,3]
+        temp.new.idx <- current.var.num+1:length(temp.pairs)
+        current.var.num <- current.var.num + length(temp.pairs)
+        new.var.mat[temp.new.idx,c(1,2)] <- as.numeric(t(data.frame((strsplit(temp.pairs,'_')))))
+        new.var.mat[temp.new.idx,3] <- temp.new.idx+var.num2
+      }
+    }
+    # update new.var.mat
+    new.var.mat <- new.var.mat[1:current.var.num,]
+    new.var.mat <- matrix(as.numeric(new.var.mat),ncol=3)
+    
+    ## add new auxiliary variables
+    var.num3 <- var.num2+current.var.num
+    new.var.name.mat <- var.mat[new.var.mat[,1],]
+    new.var.name.mat[,2] <- new.var.name.mat[,1]
+    new.var.name.mat[,4] <- new.var.mat[,3]
+    paste.fun2 <- function(x){
+        temp=paste(x,collapse='_')
+        return(temp)
+    }
+    
+    new.var.name <- apply(new.var.name.mat[,1:3],1,paste.fun2)
+    var.names <- c(var.names,new.var.name)
+    
+    ### end ###############
+    
+      
     ############# MODEL SETUP ###########################################
     # decision variables: x, qunatity used of each asset for each margin call
     #                 quantity or minUnitQuantity
@@ -546,7 +613,7 @@ coreAlgo <- function(input.list,availAssets,time.limit){
     #    total net amount of assets for one margin call >= call amount
     # 4.& 5. movements
     #    Similating the dummy of each x
-    # 6.& 7. in same margin statement
+    # 6. in same margin statement
     #   
     #
     # variable bounds: a < x < x_quantity
@@ -615,20 +682,7 @@ coreAlgo <- function(input.list,availAssets,time.limit){
     f.dir.6 <- rep(">=",var.num3-var.num2)
     f.rhs.6 <- rep(0,var.num3-var.num2)
     
-    # constraints we input to the model
-    lp.con <- rbind(f.con.2,f.con.3,f.con.4,f.con.5,f.con.6)
-    lp.dir <- c(f.dir.2,f.dir.3,f.dir.4,f.dir.5,f.dir.6)
-    lp.rhs <- c(f.rhs.2,f.rhs.3,f.rhs.4,f.rhs.5,f.rhs.6)
-    
-    lps.model <- make.lp(length(lp.con),var.num3)  # make model
-    set.objfn(lps.model,f.obj)                    # set objective
-    
-    for (i in 1:length(lp.con[,1])){              # set constraints
-      add.constraint(lps.model,lp.con[i,],lp.dir[i],lp.rhs[i])
-    }
-    
-    set.semicont(lps.model,1:var.num3,TRUE)        # set semi-continuous variables
-    
+    # minimum movement quantity of each asset
     minMoveQuantity <- ceiling(minMoveValue/minUnitValue.vec[idx.eli])
     if(length(call.vec[which(minMoveValue > call.vec[idx.eli]/(1-haircut.vec[idx.eli]))])!=0){
       temp.idx <- which(minMoveValue > call.vec[idx.eli]/(1-haircut.vec[idx.eli]))
@@ -636,39 +690,34 @@ coreAlgo <- function(input.list,availAssets,time.limit){
       minUnitValue.eli.vec <- minUnitValue.vec[idx.eli]
       minMoveQuantity[temp.idx] <- ceiling(call.eli.vec[temp.idx]/minUnitValue.eli.vec[temp.idx])
     }
+      
+      
+    ### solver inputs #####
+    lp.obj <- f.obj
+    lp.con <- rbind(f.con.2,f.con.3,f.con.4,f.con.5,f.con.6)
+    lp.dir <- c(f.dir.2,f.dir.3,f.dir.4,f.dir.5,f.dir.6)
+    lp.rhs <- c(f.rhs.2,f.rhs.3,f.rhs.4,f.rhs.5,f.rhs.6)
+    lp.kind <- rep('semi-continuous',var.num3)
+    lp.type <- rep('real',var.num3)
+    lp.type[which(minUnitValue.vec[idx.eli]>=100)] <- 'integer'
+    lp.bounds.lower <- c(minMoveQuantity,rep(1,var.num3-var.num))
+    lp.bounds.upper <- c(minUnitQuantity.vec[idx.eli],rep(1,var.num3-var.num))
+    lp.branch.mode <- c(rep('floor',var.num),rep('auto',var.num3-var.num))
     
-    # set integer constraint
-    # if the minUnitValue >=100, set to integer
-    int.idx <- which(minUnitValue.vec[idx.eli]>=100)
-    set.type(lps.model,int.idx,'integer')
-    set.bounds(lps.model,lower=c(minMoveQuantity,rep(1,var.num),rep(1,var.num3-var.num2)),upper=c(minUnitQuantity.vec[idx.eli],rep(1,var.num),rep(1,var.num3-var.num2)))
-    presolve <- ifelse(call.num<=5,'none','knapsack')
-    lp.control(lps.model,epsd=1e-10,presolve=presolve,timeout=time.limit)
-    for(k in 1:var.num){
-      set.branch.mode(lps.model,k,'floor') 
-    }
+    lp.presolve <- ifelse(call.num<=5,'none','knapsack')
+    lp.epsd <- 1e-11
+    lp.timeout <- time.limit
+    ### end ###############
     
-    result.status <- solve(lps.model)                              # solve model
-    status <- 'solved'
-    if(is.element(result.status,c(2,13))){
-      #errorMsg <- 'Error: Asset inventory might be insufficient!'
-      #return(errorMsg)
-      stop('Asset inventory might be insufficient!')
-      status <- 'insufficient'
-    } else if(is.element(result.status,c(5,6,10))){                            # solve model
-      #errorMsg <- 'Error: Fail to calculate!'
-      #return(errorMsg)
-      #stop('Fail to calculate!')
-      status <- 'fail'
-    } else if(result.status==1){
-      #warning('sub-optimal result!')
-      status<-'sub-optimal'
-    } else if(result.status==7){
-      #stop('Time out!')
-      status<-'timeout'
-    }
+    ### call lpSolve solver####
+    lpSolve.output <- callLpSolve(f.obj,lp.con,lp.dir,lp.rhs,lp.type,lp.kind,lp.bounds.lower,lp.bounds.upper,lp.branch.mode,presolve=lp.presolve,epsd=lp.epsd,timeout=lp.timeout)
+    ### end ##################
     
-    lpSolveAPI.solution <- get.variables(lps.model) # the variables are minUnitQuantity
+    #### solver outputs########
+    status<- lpSolve.output$status
+    lpSolveAPI.solution <- lpSolve.output$lpSolveAPI.solution
+    result.objective <- lpSolve.output$result.objective
+    #### end ##################
     
     #cost.obj.result <- sum(cost.obj*lpSolveAPI.solution)
     #liquidity.obj.result <- sum(liquidity.obj*lpSolveAPI.solution)
@@ -685,7 +734,6 @@ coreAlgo <- function(input.list,availAssets,time.limit){
     result.mat <- t(result.mat)                   # convert solution into matrix format
     
     ##### CHECK ALLOCATION RESULT #############################
-    ###########################################################
     # STATUS: Developing
     #
     # 1. whether all variables are non-negative
