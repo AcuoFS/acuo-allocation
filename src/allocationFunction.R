@@ -1,13 +1,13 @@
 library('lpSolveAPI')
 
 #### ALLOCATION MAIN FUNCTION ############
-allocationAlgo <- function(callIds,assetIds,clientId,callInfo,availAssets,assetInfo,pref,time.limit,call.limit=c(10,6,6)){
+allocationAlgo <- function(callIds,assetIds,clientId,callInfo,availAssets,assetInfo,pref,time.limit,call.limit){
 
     ########### CONSTANTS ################################
     order.method <- 2
-    limit.VM <- limit[1]
-    limit.IM <- limit[2]
-    limit.total <- limit[3]
+    limit.VM <- call.limit[1]
+    limit.IM <- call.limit[2]
+    limit.total <- call.limit[3]
     ########### END ######################################
 
     #### ORDER THE CALL ID ################################################
@@ -39,7 +39,7 @@ allocationAlgo <- function(callIds,assetIds,clientId,callInfo,availAssets,assetI
     ############ ITERATE THE GROUP, RUN THE ALGO #########################
     for(i in 1:length(group.list)){
         callIds.group <- group.list[[i]]
-        cat(' group:',i,'\n','callIds:',callIds.group,'\n')
+        #cat(' group:',i,'\n','callIds:',callIds.group,'\n')
         callInfo.group <- callInfo[match(callIds.group,callInfo$id),]
         availAssets.group <- availAssets[which(availAssets$callId %in% callIds.group),]
         assetIds.group <- unique(availAssets.group$assetId)
@@ -49,7 +49,6 @@ allocationAlgo <- function(callIds,assetIds,clientId,callInfo,availAssets,assetI
         input.list <- allocationInputData(callIds.group,assetIds.group,clientId,callInfo.group,availAssets.group,assetInfo.group,pref)
 
         # core Algo, assume all data comes in a list
-
         result.group <- coreAlgo(input.list,availAssets,time.limit)
         output.group <- result.group$output
 
@@ -242,15 +241,6 @@ buildMatrix2 <- function(x, y, value){
   nx = length(x)
   ny = length(y)
   m = value
-  dim(m) = c(nx, ny)
-  dimnames(m) = list(x, y)
-  return(m)
-}
-
-buildMatrix <- function(x, y){
-  nx = length(x)
-  ny = length(y)
-  m = rep(1, nx*ny)
   dim(m) = c(nx, ny)
   dimnames(m) = list(x, y)
   return(m)

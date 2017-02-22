@@ -247,7 +247,8 @@ var.num2 <- var.num*2
 #    total quantity used <= total quantity (for an asset) (quantity or minUnitQuantity)
 # 3. margin call requirement (call.num)
 #    total net amount of assets for one margin call >= call amount
-#
+# 4.& 5. movements
+#    Similating the dummy of each x
 # variable bounds: a < x < x_quantity
 #    specified by constraint 0 and 1.
 # variable kind: semi-continuous, value below 'a' will automately set to 0
@@ -335,10 +336,29 @@ lpSolve.output <- callLpSolve(f.obj,lp.con,lp.dir,lp.rhs,lp.type,lp.kind,lp.boun
 ### end ##################
 
 #### solver outputs########
-status<- lpSolve.output$status
+result.status<- lpSolve.output$result.status
 lpSolveAPI.solution <- lpSolve.output$lpSolveAPI.solution
 result.objective <- lpSolve.output$result.objective
 #### end ##################
+
+status <- 'solved'
+if(is.element(result.status,c(2,13))){
+  #errorMsg <- 'Error: Asset inventory might be insufficient!'
+  #return(errorMsg)
+  stop('Asset inventory might be insufficient!')
+  status <- 'insufficient'
+} else if(is.element(result.status,c(5,6,10))){                            # solve model
+  #errorMsg <- 'Error: Fail to calculate!'
+  #return(errorMsg)
+  stop('Fail to calculate!')
+  status <- 'fail'
+} else if(result.status==1){
+  #warning('sub-optimal result!')
+  status<-'sub-optimal'
+} else if(result.status==7){
+  #stop('Time out!')
+  status<-'timeout'
+}
 
 # round up the decimal quantity to the nearest integer.
 # if it's larger than 0.5
@@ -585,7 +605,6 @@ renjinFix <- function(frame, name) {
 callLpSolve <- function(lp.obj,lp.con,lp.dir,lp.rhs,
                         lp.type=lp.type,lp.kind=lp.kind,lp.bounds.lower=lp.bounds.lower,lp.bounds.upper=lp.bounds.upper,lp.branch.mode=lp.branch.mode,
                         ...){
-  
   # input variables
   # must have: lp.obj,lp.con,lp.dir,lp.rhs
   # optional: lp.type,lp.kind,lp.bounds.lower,lp.bounds.upper,lp.branch.mode
@@ -593,7 +612,7 @@ callLpSolve <- function(lp.obj,lp.con,lp.dir,lp.rhs,
   # if optional, then the default parameters will apply
   
   # number of decision variables
-  var.num <- length(lp.dir)
+  var.num <- length(lp.con[1,])
   
   # make model
   lps.model <- make.lp(0,var.num)  
@@ -636,30 +655,11 @@ callLpSolve <- function(lp.obj,lp.con,lp.dir,lp.rhs,
   # solve the problem
   result.status <- solve(lps.model)  
   
-  status <- 'solved'
-  if(is.element(result.status,c(2,13))){
-    #errorMsg <- 'Error: Asset inventory might be insufficient!'
-    #return(errorMsg)
-    stop('Asset inventory might be insufficient!')
-    status <- 'insufficient'
-  } else if(is.element(result.status,c(5,6,10))){                            # solve model
-    #errorMsg <- 'Error: Fail to calculate!'
-    #return(errorMsg)
-    stop('Fail to calculate!')
-    status <- 'fail'
-  } else if(result.status==1){
-    #warning('sub-optimal result!')
-    status<-'sub-optimal'
-  } else if(result.status==7){
-    #stop('Time out!')
-    status<-'timeout'
-  }
-  
   # get the variables(minUnitQuantity)
   lpSolveAPI.solution <- get.variables(lps.model)
   
   # get the objective
   result.objective <- get.objective(lps.model)
   
-  return(list(status=status,lpSolveAPI.solution=lpSolveAPI.solution,result.objective=result.objective))
+  return(list(result.status=result.status,lpSolveAPI.solution=lpSolveAPI.solution,result.objective=result.objective))
 }
