@@ -16,37 +16,30 @@
 
 source('src/functionsOfDBRequestByExecutingCypher.R')
 source("src/allocationFunction.R")
+source("src/coreAlgo.R")
 
 # input #
-callIds = c("mcp1","mcp5","mcp7","mcp50")
-callIds = c("mcp1","mcp5","mcp7","mcp38","mcp20","mcp22","mcp15","mcp20","mcp22","mcp30","mcp50","mcp51")
-callIds = c("mcp32","mcp33","mcp37","mcp26","mcp39","mcp50");
 clientId = '999';
+callIds = c("mcp1","mcp5","mcp7")
+callIds = c("mcp45","mcp50","mcp43")
+callIds = c("mcp1","mcp5","mcp7","mcp38","mcp50")
+callIds = c("mcp1","mcp5","mcp7","mcp38","mcp20","mcp22","mcp15","mcp30","mcp50","mcp51")
+callIds = c("mcp32","mcp33","mcp37","mcp26","mcp38","mcp50");
+
 
 # get info #
 callInfo <- callInfoByCallId(callIds)
 availAssets <- availAssetByCallIdAndClientId(callIds,clientId) # available asset for the margin call
 availAssets <- availAssets[order(availAssets$callId),]
 
-# change quantity for testing
-availAssets$quantity <- availAssets$quantity/5
-# add custodianAccount for testing
-availAssets <- rbind(availAssets,availAssets)
-availAssets$CustodianAccount[1:length(availAssets[,1])/2] <- 'custodianAccountTest'
-
-asset.custac.id <- paste(availAssets$assetId,availAssets$CustodianAccount,sep='-')
-availAssets$assetCustacId <- asset.custac.id
-assetCustacIds <- unique(asset.custac.id)
-
-assetIds <- as.character(data.frame(strsplit(assetCustacIds,'-'))[1,])
 assetInfo <- assetInfoByAssetId(assetIds)
 assetInfo <- assetInfo[match(assetIds,assetInfo$id),]
 
 ## CALL THE ALLOCATION FUNCTION ###########
-call.limit <- c(7,7,7); time.limit=3
+call.limit <- c(7,7,10); time.limit=10
 start.time <- proc.time()[3]
 pref = c(5,8,3);
-result <- allocationAlgo(callIds,assetCustacIds,clientId,callInfo,availAssets,assetInfo,pref,time.limit,call.limit)
+result <- allocationAlgo(callIds,assetIds,clientId,callInfo,availAssets,assetInfo,pref,time.limit,call.limit)
 end.time <- proc.time()[3]
 run.time <- end.time-start.time
 
