@@ -7,11 +7,11 @@ source('src/secondAllocationFunction.R')
 # Triggered after the user deselects an asset from a call
 
 ########## DATA BELOW SHOULD COME FROM THE JAVA LAYER ###########
-callIds <- c('mcp47','mcp46','mcp42','mcp31','mcp10')
+callIds <- c('mcp47','mcp46','mcp42','mcp35','mcp10')
 clientId <- '999'
 pref<-c(2,3,5)
 deselectAssetId <- 'SGD'
-deselectCallId <- 'mcp46'
+deselectCallId <- 'mcp47'
 
 ########### Get the result from Algo for testing purposes ##############
 callInfo <- callInfoByCallId(callIds)
@@ -45,7 +45,9 @@ availAssets <- availAssets[which(availAssets$callId==deselectCallId),] # availab
 assetCustacIds <- unique(availAssets$assetCustacId)
 assetIds <- as.character(data.frame(strsplit(assetCustacIds,'-'))[1,])
 assetInfo <- assetInfoByAssetId(assetIds)
-callInfo <- callInfoByCallId(deselectCallId)
+
+#callInfo <- callInfoByCallId(deselectCallId)
+#msIds <- callInfo$marginStatement
 ############ END ###################################
 
-result1 <- secondAllocationFunction(callIds,assetCustacIds,pref,deselectAssetId,deselectCallId,current.selection,availAssets,callInfo,assetInfo)
+result1 <- secondAllocationFunction(callIds,callInfo,assetCustacIds,pref,deselectAssetId,deselectCallId,current.selection,availAssets,assetInfo)
