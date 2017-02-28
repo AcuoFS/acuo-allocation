@@ -1,7 +1,7 @@
 library('lpSolveAPI')
 
 #### ALLOCATION MAIN FUNCTION ############
-allocationAlgo <- function(callIds,assetCustacIds,clientId,callInfo,availAssets,assetInfo,pref,time.limit,call.limit){
+allocationAlgo <- function(callIds,assetCustacIds,callInfo,availAssets,assetInfo,pref,time.limit,call.limit){
   
   ########### CONSTANTS ################################
   order.method <- 2
@@ -50,7 +50,7 @@ allocationAlgo <- function(callIds,assetCustacIds,clientId,callInfo,availAssets,
     assetInfo.group <- assetInfo[match(assetIds.group,assetInfo$id),]
     
     # input data to the core Algo
-    input.list <- allocationInputData(callIds.group,assetCustacIds.group,clientId,callInfo.group,availAssets.group,assetInfo.group,pref)
+    input.list <- allocationInputData(callIds.group,assetCustacIds.group,callInfo.group,availAssets.group,assetInfo.group,pref)
     
     # core Algo, assume all data comes in a list
     result.group <- coreAlgo(input.list,availAssets,time.limit)
@@ -72,7 +72,7 @@ allocationAlgo <- function(callIds,assetCustacIds,clientId,callInfo,availAssets,
 
 
 #### OTHER FUNCTIONS(CALLED IN THE MAIN FUNCTION)##########################
-allocationInputData = function(callIds,assetCustacIds,clientId,callInfo,availAssets,assetInfo,pref){
+allocationInputData = function(callIds,assetCustacIds,callInfo,availAssets,assetInfo,pref){
   
   ### new identifer ####
   assetIds <- as.character(data.frame(strsplit(assetCustacIds,'-'))[1,])
@@ -572,8 +572,13 @@ coreAlgo <- function(input.list,availAssets,time.limit){
       }
     }
     # update new.var.mat
-    new.var.mat <- new.var.mat[1:current.var.num,]
-    new.var.mat <- matrix(as.numeric(new.var.mat),ncol=3)
+    if(current.var.num==0){
+      new.var.mat <- new.var.mat[-c(1:length(new.var.mat[,1])),]
+    } else{
+      new.var.mat <- new.var.mat[1:current.var.num,]
+      new.var.mat <- matrix(as.numeric(new.var.mat),ncol=3)
+    }
+
     
     ## add new auxiliary variables
     var.num3 <- var.num2+current.var.num
@@ -624,6 +629,7 @@ coreAlgo <- function(input.list,availAssets,time.limit){
     
     # objective function
     operation.temp <- norm.operation.vec[idx.eli]
+    #print(length(operation.temp));print(var.num); print(new.var.mat)
     operation.obj <-  c(rep(0,var.num),operation.temp*max(call.mat)*10,-operation.temp[new.var.mat[,1]-var.num]*max(call.mat)*10)
     liquidity.obj <-  c(minUnitValue.vec[idx.eli]*norm.liquidity.vec[idx.eli],rep(0,var.num3-var.num))
     cost.obj <-  c(minUnitValue.vec[idx.eli]*norm.cost.vec[idx.eli],rep(0,var.num3-var.num))
@@ -675,12 +681,14 @@ coreAlgo <- function(input.list,availAssets,time.limit){
     f.dir.5 <- rep('>=',var.num)
     f.rhs.5 <- rep(0,var.num)
     
-    f.con.6 <- matrix(0,nrow=var.num3-var.num2,ncol=var.num3)
-    f.con.6[cbind(1:(var.num3-var.num2),new.var.mat[,1])] <- 1
-    f.con.6[cbind(1:(var.num3-var.num2),new.var.mat[,2])] <- 1
-    f.con.6[cbind(1:(var.num3-var.num2),new.var.mat[,3])] <- -2
-    f.dir.6 <- rep(">=",var.num3-var.num2)
-    f.rhs.6 <- rep(0,var.num3-var.num2)
+    if(var.num3>var.num2){
+      f.con.6 <- matrix(0,nrow=var.num3-var.num2,ncol=var.num3)
+      f.con.6[cbind(1:(var.num3-var.num2),new.var.mat[,1])] <- 1
+      f.con.6[cbind(1:(var.num3-var.num2),new.var.mat[,2])] <- 1
+      f.con.6[cbind(1:(var.num3-var.num2),new.var.mat[,3])] <- -2
+      f.dir.6 <- rep(">=",var.num3-var.num2)
+      f.rhs.6 <- rep(0,var.num3-var.num2)
+    }
     
     # minimum movement quantity of each asset
     minMoveQuantity <- ceiling(minMoveValue/minUnitValue.vec[idx.eli])
@@ -694,9 +702,17 @@ coreAlgo <- function(input.list,availAssets,time.limit){
       
     ### solver inputs #####
     lp.obj <- f.obj
-    lp.con <- rbind(f.con.2,f.con.3,f.con.4,f.con.5,f.con.6)
-    lp.dir <- c(f.dir.2,f.dir.3,f.dir.4,f.dir.5,f.dir.6)
-    lp.rhs <- c(f.rhs.2,f.rhs.3,f.rhs.4,f.rhs.5,f.rhs.6)
+    if(var.num3>var.num2){
+      lp.con <- rbind(f.con.2,f.con.3,f.con.4,f.con.5,f.con.6)
+      lp.dir <- c(f.dir.2,f.dir.3,f.dir.4,f.dir.5,f.dir.6)
+      lp.rhs <- c(f.rhs.2,f.rhs.3,f.rhs.4,f.rhs.5,f.rhs.6)
+    } else{
+      lp.con <- rbind(f.con.2,f.con.3,f.con.4,f.con.5)
+      lp.dir <- c(f.dir.2,f.dir.3,f.dir.4,f.dir.5)
+      lp.rhs <- c(f.rhs.2,f.rhs.3,f.rhs.4,f.rhs.5)      
+    }
+
+    
     lp.kind <- rep('semi-continuous',var.num3)
     lp.type <- rep('real',var.num3)
     lp.type[which(minUnitValue.vec[idx.eli]>=100)] <- 'integer'

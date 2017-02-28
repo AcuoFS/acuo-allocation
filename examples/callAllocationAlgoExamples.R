@@ -18,6 +18,7 @@ source('src/functionsOfDBRequestByExecutingCypher.R')
 source("src/allocationFunction.R")
 
 # input #
+callIds = c("mcp45","mcp50","mcp43")
 callIds = c("mcp1","mcp5","mcp7","mcp50")
 callIds = c("mcp1","mcp5","mcp7","mcp38","mcp20","mcp22","mcp15","mcp20","mcp22","mcp30","mcp50","mcp51")
 callIds = c("mcp32","mcp33","mcp37","mcp26","mcp39","mcp50");
@@ -46,7 +47,7 @@ assetInfo <- assetInfo[match(assetIds,assetInfo$id),]
 call.limit <- c(7,7,7); time.limit=3
 start.time <- proc.time()[3]
 pref = c(5,8,3);
-result <- allocationAlgo(callIds,assetCustacIds,clientId,callInfo,availAssets,assetInfo,pref,time.limit,call.limit)
+result <- allocationAlgo(callIds,assetCustacIds,callInfo,availAssets,assetInfo,pref,time.limit,call.limit)
 end.time <- proc.time()[3]
 run.time <- end.time-start.time
 
