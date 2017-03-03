@@ -21,6 +21,7 @@ secondAllocationFunction<-
   minUnit.vec <- availAssets$minUnit
   quantity.vec <- availAssets$quantity/minUnit.vec
   haircut.vec <- availAssets$haircut+availAssets$FXHaircut
+  FXRate.vec <- availAssets$FXRate
   minUnitValue.vec <- availAssets$minUnitValue
   cost.percent.vec <- availAssets$internalCost+availAssets$externalCost+availAssets$opptCost-availAssets$interestRate
   quantity.used <- rep(0,assetCustac.num)
@@ -42,7 +43,9 @@ secondAllocationFunction<-
   
   allocation.deselectCall <- current.selection[[deselectCallId]]
   lackAmount <- callAmount- sum(allocation.deselectCall$`NetAmount(USD)`)  # the amount left needs to be fulfilled after deseleting one asset
-  lackQuantity.vec <- ceiling(lackAmount/(1-haircut.vec)/minUnitValue.vec) # quantity needed for a single asset to fulfill each call
+  # got incorrect result 03/03/2017
+  # reason: calculation of lackQuantity didn't include the FX Rate
+  lackQuantity.vec <- ceiling(lackAmount/(1-haircut.vec)/minUnitValue.vec*FXRate.vec) # quantity needed for a single asset to fulfill each call
                                                        # could either add the amount of the original selection or add another one or several assets.
   new.allocation.deselectCall <- allocation.deselectCall
   
@@ -100,12 +103,17 @@ norm.operation.vec <- operation.vec
 optimal.vec <- norm.operation.vec*pref[1]+norm.liquidity.vec*pref[2]+norm.cost.vec*pref[3]
 names(optimal.vec) <- assetCustacIds
 optimal.vec <-sort(optimal.vec)  # sort the 'cost' of the assets, from the most to the least optimal
-
+# optimal.idx: the index of the optimal assets in the assetCustacIds
+optimal.idx <- match(names(optimal.vec),assetCustacIds)
+  
 # check whether the first optimal asset is already allocated to that margin statement
 # check whether the first optimal asset is enough to fulfill the margin call
 scenario <- 0
-for(i in 1:length(optimal.vec)){
-  temp.assetCustac <- names(optimal.vec[i])
+for(i in optimal.idx){
+  # incorrect answer: 03/03/2017
+  # reason: the order in optimal.vec and assetCustadIds are not unified
+  temp.assetCustac <- assetCustacIds[i]
+  
   temp.asset <- as.character(data.frame(strsplit(temp.assetCustac,'-'))[1,])
   # create the new line
   assetInfo.line <- assetInfo[which(assetInfo$id==temp.asset),]
@@ -126,10 +134,10 @@ for(i in 1:length(optimal.vec)){
       quantity.left[i] <- quantity.left[i]-add.quantity[i]
       quantity.used[i] <- quantity.vec[i] -quantity.left[i]
       
-      add.amountUSD <- add.quantity*minUnitValue.vec[i]
-      add.amount <- add.amountUSD*assetInfo.line$FXRate
-      add.netAmountUSD <- add.amount*(1-haircut.vec[i])
-      add.netAmount <- add.netAmountUSD*assetInfo.line$FXRate
+      add.amount <- add.quantity*minUnitValue.vec[i]
+      add.amountUSD <- add.amount/assetInfo.line$FXRate
+      add.netAmountUSD <- add.amountUSD*(1-haircut.vec[i])
+      add.netAmount <- add.netAmountUSD*FXRate.vec[i]
 
       new.quantity <- new.allocation.deselectCall$Quantity[assetCustac.idx]+add.quantity
       new.amountUSD <- new.allocation.deselectCall$`Amount(USD)`[assetCustac.idx]+add.amountUSD
@@ -144,7 +152,7 @@ for(i in 1:length(optimal.vec)){
       new.allocation.deselectCall$Quantity <- new.quantity
       
       # update the lackAmount and lackQuantity.vec
-      lackAmount <- lackAmount-add.netAmount
+      lackAmount <- lackAmount-add.netAmountUSD
       lackQuantity.vec[] <- 0
       
       break
@@ -156,10 +164,10 @@ for(i in 1:length(optimal.vec)){
       add.quantity <- quantity.left[i]
       quantity.left[i] <- quantity.left[i]-add.quantity[i]
       quantity.used[i] <- quantity.vec[i] -quantity.left[i]
-      add.amountUSD <- add.quantity*minUnitValue.vec[i]
-      add.amount <- add.amountUSD*assetInfo.line$FXRate
-      add.netAmountUSD <- add.amount*(1-haircut.vec[i])
-      add.netAmount <- add.netAmountUSD*assetInfo.line$FXRate
+      add.amount <- add.quantity*minUnitValue.vec[i]
+      add.amountUSD <- add.amount/assetInfo.line$FXRate
+      add.netAmountUSD <- add.amountUSD*(1-haircut.vec[i])
+      add.netAmount <- add.netAmountUSD*FXRate.vec[i]
       
       new.quantity <- new.allocation.deselectCall$Quantity[assetCustac.idx]+add.quantity
       new.amountUSD <- new.allocation.deselectCall$`Amount(USD)`[assetCustac.idx]+add.amountUSD
@@ -174,7 +182,7 @@ for(i in 1:length(optimal.vec)){
       new.allocation.deselectCall$Quantity[assetCustac.idx] <- round(new.quantity,2)
       
       # update the lackAmount and lackQuantity.vec
-      lackAmount <- lackAmount-new.netAmount
+      lackAmount <- lackAmount-new.netAmountUSD
       lackQuantity.vec <- lackAmount/(1-haircut.vec)/minUnitValue.vec 
     }
   } else {
@@ -184,25 +192,21 @@ for(i in 1:length(optimal.vec)){
       # scenario 3: asset[i] left quantity is larger than the insufficient quantity
       scenario <- 3
       
-      new.quantity <- lackQuantity.vec[i]
+      new.quantity <- lackQuantity.vec[i] 
       quantity.left[i] <- quantity.left[i]-lackQuantity.vec[i]
       quantity.used[i] <- quantity.vec[i] -quantity.left[i]
-      
-      # create the new line
-      assetInfo.line <- assetInfo[which(assetInfo$id==temp.asset),]
-      availAssets.line <- availAssets[which(availAssets$assetCustacId==temp.assetCustac),]
-      callInfo.line <- callInfo[which(callInfo$id==deselectCallId),]
-      new.amountUSD <- new.quantity*minUnitValue.vec[i]
-      new.amount <- new.amountUSD*assetInfo.line$FXRate
-      new.netAmountUSD <- new.amount*(1-haircut.vec[i])
-      new.netAmount <- new.netAmountUSD*assetInfo.line$FXRate
+
+      new.amount <- new.quantity*minUnitValue.vec[i]
+      new.amountUSD <- new.amount/assetInfo.line$FXRate
+      new.netAmountUSD <- new.amountUSD*(1-haircut.vec[i])
+      new.netAmount <- new.netAmountUSD*FXRate.vec[i]
       
       new.asset <- c(temp.asset,assetInfo.line$name,new.netAmount,new.netAmountUSD,assetInfo.line$FXRate,haircut.vec[i],new.amount,new.amountUSD,
                      assetInfo.line$currency,new.quantity,availAssets.line$CustodianAccount,availAssets.line$venue,callInfo.line$marginType)
       new.allocation.deselectCall[length(allocation.deselectCall[,1])+1,]<- new.asset
       
       # update the lackAmount and lackQuantity.vec
-      lackAmount <- lackAmount-new.netAmount
+      lackAmount <- lackAmount-new.netAmountUSD
       lackQuantity.vec[] <- 0        
       break
     } else if(quantity.left[i] > 0){
@@ -213,26 +217,23 @@ for(i in 1:length(optimal.vec)){
       quantity.left[i] <- 0
       quantity.used[i] <- quantity.vec[i] -quantity.left[i]
       
-      assetInfo.line <- assetInfo[which(assetInfo$id==temp.asset),]
-      availAssets.line <- availAssets[which(availAssets$assetCustacId==temp.assetCustac),]
-      
-      new.amountUSD <- new.quantity*minUnitValue.vec[i]
-      new.amount <- new.amountUSD*assetInfo.line$FXRate
-      new.netAmountUSD <- new.amount*(1-haircut.vec[i])
-      new.netAmount <- new.netAmountUSD*assetInfo.line$FXRate
+      new.amount <- new.quantity*minUnitValue.vec[i]
+      new.amountUSD <- new.amount/assetInfo.line$FXRate
+      new.netAmountUSD <- new.amountUSD*(1-haircut.vec[i])
+      new.netAmount <- new.netAmountUSD*FXRate.vec[i]
       
       new.asset <- c(temp.asset,assetInfo.line$name,new.netAmount,new.netAmountUSD,assetInfo.line$FXRate,haircut.vec[i],new.amount,new.amountUSD,
                      assetInfo.line$currency,new.quantity,availAssets.line$CustodianAccount,availAssets.line$venue,callInfo.line$marginType)
       new.allocation.deselectCall[length(allocation.deselectCall[,1])+1,]<- new.asset
       
       # update the lackAmount and lackQuantity.vec
-      lackAmount <- lackAmount-new.netAmount
+      lackAmount <- lackAmount-new.netAmountUSD
       lackQuantity.vec <- lackAmount/(1-haircut.vec)/minUnitValue.vec 
     }
   }
 }
-cat('scenario: ',scenario,'\n')
-cat('asset: ',i,'  ',temp.assetCustac,'\n')
+#cat('scenario: ',scenario,'\n')
+#cat('asset: ',i,'  ',temp.assetCustac,'\n')
 
 current.selection[[deselectCallId]]<- new.allocation.deselectCall
 output.list <- list(new.selection=current.selection)
