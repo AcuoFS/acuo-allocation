@@ -1,4 +1,3 @@
-library('lpSolveAPI')
 
 #### ALLOCATION MAIN FUNCTION ############
 allocationAlgo <- function(callIds,assetCustacIds,callInfo,availAssets,assetInfo,pref,time.limit,call.limit){
@@ -221,9 +220,17 @@ splitCallIds <- function(limit.VM,limit.IM,limit.total,callInfo,callIds){
   }
   return(group.list)
 }
-callLpSolve <- function(lp.obj,lp.con,lp.dir,lp.rhs,lp.type,lp.kind,lp.bounds.lower,lp.bounds.upper,lp.branch.mode,...){
+callLpSolve <- function(lp.obj,lp.con,lp.dir,lp.rhs,
+         lp.type=lp.type,lp.kind=lp.kind,lp.bounds.lower=lp.bounds.lower,lp.bounds.upper=lp.bounds.upper,lp.branch.mode=lp.branch.mode,
+         ...){
+  library(lpSolveAPI)
+  # input variables
+  # must have: lp.obj,lp.con,lp.dir,lp.rhs
+  # optional: lp.type,lp.kind,lp.bounds.lower,lp.bounds.upper,lp.branch.mode
+  # optional: ...
+  # if optional, then the default parameters will apply
   
-  # var.num 
+  # number of decision variables
   var.num <- length(lp.con[1,])
   
   # make model
@@ -237,46 +244,35 @@ callLpSolve <- function(lp.obj,lp.con,lp.dir,lp.rhs,lp.type,lp.kind,lp.bounds.lo
     add.constraint(lps.model,lp.con[i,],lp.dir[i],lp.rhs[i])
   }
   
-  # set semi-continuous variables
-  semi.idx <- which(lp.kind=='semi-continuous')
-  set.semicont(lps.model,semi.idx,TRUE)        
+  if(!missing(lp.kind)){
+    # set semi-continuous variables
+    semi.idx <- which(lp.kind=='semi-continuous')
+    set.semicont(lps.model,semi.idx,TRUE)        
+  }
   
-  # set integer variables
-  int.idx <- which(lp.type=='integer')
-  set.type(lps.model,int.idx,'integer')
+  if(!missing(lp.type)){
+    # set integer variables
+    int.idx <- which(lp.type=='integer')
+    set.type(lps.model,int.idx,'integer')
+  }
   
-  # set variables bounds
-  set.bounds(lps.model,lower=lp.bounds.lower,upper=lp.bounds.upper)
+  if(!(missing(lp.bounds.lower)|| missing(lp.bounds.upper))){
+    # set variables bounds
+    set.bounds(lps.model,lower=lp.bounds.lower,upper=lp.bounds.upper)
+  }
   
-  # set branch mode
-  for(k in 1:length(lp.branch.mode)){
-    set.branch.mode(lps.model,k,lp.branch.mode[k])
+  if(!missing(lp.branch.mode)){
+    # set branch mode
+    for(k in 1:length(lp.branch.mode)){
+      set.branch.mode(lps.model,k,lp.branch.mode[k])
+    }  
   }
   
   # set control options
   lp.control(lps.model,...)
- 
+  
   # solve the problem
   result.status <- solve(lps.model)  
-  
-  status <- 'solved'
-  if(is.element(result.status,c(2,13))){
-    #errorMsg <- 'Error: Asset inventory might be insufficient!'
-    #return(errorMsg)
-    stop('Asset inventory might be insufficient!')
-    status <- 'insufficient'
-  } else if(is.element(result.status,c(5,6,10))){                            # solve model
-    #errorMsg <- 'Error: Fail to calculate!'
-    #return(errorMsg)
-    stop('Fail to calculate!')
-    status <- 'fail'
-  } else if(result.status==1){
-    #warning('sub-optimal result!')
-    status<-'sub-optimal'
-  } else if(result.status==7){
-    #stop('Time out!')
-    status<-'timeout'
-  }
   
   # get the variables(minUnitQuantity)
   lpSolveAPI.solution <- get.variables(lps.model)
@@ -284,8 +280,9 @@ callLpSolve <- function(lp.obj,lp.con,lp.dir,lp.rhs,lp.type,lp.kind,lp.bounds.lo
   # get the objective
   result.objective <- get.objective(lps.model)
   
-  return(list(status=status,lpSolveAPI.solution=lpSolveAPI.solution,result.objective=result.objective))
+  return(list(result.status=result.status,lpSolveAPI.solution=lpSolveAPI.solution,result.objective=result.objective))
 }
+
 
 coreAlgo <- function(input.list,availAssets,time.limit){
   pref<-pref

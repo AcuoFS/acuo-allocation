@@ -103,16 +103,22 @@ optimal.vec <-sort(optimal.vec)  # sort the 'cost' of the assets, from the most 
 
 # check whether the first optimal asset is already allocated to that margin statement
 # check whether the first optimal asset is enough to fulfill the margin call
+scenario <- 0
 for(i in 1:length(optimal.vec)){
   temp.assetCustac <- names(optimal.vec[i])
   temp.asset <- as.character(data.frame(strsplit(temp.assetCustac,'-'))[1,])
   # create the new line
   assetInfo.line <- assetInfo[which(assetInfo$id==temp.asset),]
-  availAssets.line <- availAssets[which(availAssets$assetCustacId==temp.assetCustac),]
+  availAssets.line <- availAssets[which(availAssets$callId==deselectCallId),]
   callInfo.line <- callInfo[which(callInfo$id==deselectCallId),]
   
   if(is.element(temp.assetCustac,assetCustacIds.allocated.deselctCall)){
+    # if asset[i] is alreadly selected in the margin statment
+    
     if(quantity.left[i]>=lackQuantity.vec[i]){
+      # scenario 1: asset[i] left quantity is larger than the insufficient quantity
+      
+      scenario <- 1
       assetCustac.idx <- match(temp.assetCustac,assetCustacIds.allocated.deselctMs)
       add.quantity <- lackQuantity.vec[i]
       
@@ -143,6 +149,9 @@ for(i in 1:length(optimal.vec)){
       
       break
     }else if(quantity.left[i] > 0){
+      # scenario 2: asset[i] is less than the insufficient quantity but larger than 0
+      scenario <- 2
+      
       assetCustac.idx <- match(temp.assetCustac,assetCustacIds.allocated.deselctMs)
       add.quantity <- quantity.left[i]
       quantity.left[i] <- quantity.left[i]-add.quantity[i]
@@ -169,7 +178,12 @@ for(i in 1:length(optimal.vec)){
       lackQuantity.vec <- lackAmount/(1-haircut.vec)/minUnitValue.vec 
     }
   } else {
+    # if asset[i] is not in the current selection for margin statement
+    
     if(quantity.left[i]>=lackQuantity.vec[i]){
+      # scenario 3: asset[i] left quantity is larger than the insufficient quantity
+      scenario <- 3
+      
       new.quantity <- lackQuantity.vec[i]
       quantity.left[i] <- quantity.left[i]-lackQuantity.vec[i]
       quantity.used[i] <- quantity.vec[i] -quantity.left[i]
@@ -192,6 +206,9 @@ for(i in 1:length(optimal.vec)){
       lackQuantity.vec[] <- 0        
       break
     } else if(quantity.left[i] > 0){
+      # scenario 4: asset[i] left quantity is less than the insufficient quantity but larger than 0
+      scenario <- 4
+      
       new.quantity <- quantity.left[i]
       quantity.left[i] <- 0
       quantity.used[i] <- quantity.vec[i] -quantity.left[i]
@@ -214,6 +231,8 @@ for(i in 1:length(optimal.vec)){
     }
   }
 }
+cat('scenario: ',scenario,'\n')
+cat('asset: ',i,'  ',temp.assetCustac,'\n')
 
 current.selection[[deselectCallId]]<- new.allocation.deselectCall
 output.list <- list(new.selection=current.selection)

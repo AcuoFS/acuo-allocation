@@ -14,7 +14,7 @@ deselectAssetId <- 'SGD'
 deselectCallId <- 'mcp47'
 
 ########### Get the result from Algo for testing purposes ##############
-callInfo <- callInfoByCallId(callIds)
+callInfo <- callInfoByCallId(callIds); callIds <- unique(callInfo$id)
 availAssets <- availAssetByCallIdAndClientId(callIds,clientId) # available asset for the margin call
 availAssets <- availAssets[order(availAssets$callId),]
 
