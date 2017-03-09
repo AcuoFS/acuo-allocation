@@ -52,7 +52,7 @@ allocationAlgo <- function(callIds,assetCustacIds,callInfo,availAssets,assetInfo
     input.list <- allocationInputData(callIds.group,assetCustacIds.group,callInfo.group,availAssets.group,assetInfo.group,pref)
     
     # core Algo, assume all data comes in a list
-    result.group <- coreAlgo(input.list,availAssets,time.limit)
+    result.group <- coreAlgo(input.list,availAssets,time.limit,pref)
     output.group <- result.group$output
     status <- result.group$status
     lpsolveRun <- result.group$lpsolveRun
@@ -161,6 +161,7 @@ allocationInputData = function(callIds,assetCustacIds,callInfo,availAssets,asset
   )
   return (output.list)
 }
+
 orderCallIds <- function(order.method,callInfo){
   if(order.method==1){ # by call amount, decreasing
     callInfo <- callInfo[order(callInfo$callAmount,decreasing=T),]
@@ -176,6 +177,7 @@ orderCallIds <- function(order.method,callInfo){
   }
   return(callInfo)
 }
+
 splitCallIds <- function(limit.VM,limit.IM,limit.total,callInfo,callIds){
   
   group.list <- list()
@@ -220,6 +222,7 @@ splitCallIds <- function(limit.VM,limit.IM,limit.total,callInfo,callIds){
   }
   return(group.list)
 }
+
 callLpSolve <- function(lp.obj,lp.con,lp.dir,lp.rhs,
          lp.type=lp.type,lp.kind=lp.kind,lp.bounds.lower=lp.bounds.lower,lp.bounds.upper=lp.bounds.upper,lp.branch.mode=lp.branch.mode,
          ...){
@@ -284,7 +287,7 @@ callLpSolve <- function(lp.obj,lp.con,lp.dir,lp.rhs,
 }
 
 
-coreAlgo <- function(input.list,availAssets,time.limit){
+coreAlgo <- function(input.list,availAssets,time.limit,pref){
   pref<-pref
   callIds<-input.list$callIds
   assetCustacIds<-input.list$assetCustacIds
