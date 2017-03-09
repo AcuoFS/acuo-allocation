@@ -10,9 +10,7 @@ existentClientId1 <- '999'
 nonexistentCallIdsGroup1 <- c('asdd','null','adhajk')
 existentCallIdsToClient1Group1 <- c('mcp1')
 existentCallIdsToClient1Group2 <- c('mcp1','mcp5','mcp7')
-existentCallIdsToClient1Group3 <- c('mc1','mc2','mc3','mc4','mc5','mc8')
-existentCallIdsToClient1Group4 <- c('mc4','mc8','mc12','mc13','mc16')
-existentCallIdsToClient1Group5 <- c('mc2','mc9','mc10','mc11','mc14','mc15','mc17','mc19','mc20')
+existentCallIdsToClient1Group3 <- c('mcp1','mcp5','mcp38','mcp50')
 
 prefForCostOnly <- c(0,0,10)
 prefForLiquidityOnly <- c(0,10,0)
@@ -27,7 +25,8 @@ time.limit1 <- 1
 time.limit2 <- 3
 time.limit3 <- 10
 
-tempGetInputR <- function(clientId,callIds){
+# the real data from database
+tempGetInputROri <- function(clientId,callIds){
   
   # get info #
   callInfo <- callInfoByCallId(callIds)
@@ -45,8 +44,33 @@ tempGetInputR <- function(clientId,callIds){
               assetInfo=assetInfo))
 }
 
+# change the asset quantity, add custodianAccountTest
+tempGetInputROW374 <- function(clientId,callIds){
+  
+  # get info #
+  callInfo <- callInfoByCallId(callIds)
+  availAssets <- availAssetByCallIdAndClientId(callIds,clientId) # available asset for the margin call
+  
+  # change quantity for testing
+  availAssets$quantity <- availAssets$quantity/5
+  # add custodianAccount for testing
+  availAssets <- rbind(availAssets,availAssets)
+  availAssets$CustodianAccount[1:length(availAssets[,1])/2] <- 'custodianAccountTest'
+  
+  asset.custac.id <- paste(availAssets$assetId,availAssets$CustodianAccount,sep='-')
+  availAssets$assetCustacId <- asset.custac.id
+  assetCustacIds <- unique(asset.custac.id)
+  
+  assetIds <- as.character(data.frame(strsplit(assetCustacIds,'-'))[1,])
+  assetInfo <- assetInfoByAssetId(assetIds)
+  assetInfo <- assetInfo[match(assetIds,assetInfo$id),]
+  
+  return(list(callIds=callIds,assetCustacIds=assetCustacIds,callInfo=callInfo,availAssets=availAssets,
+              assetInfo=assetInfo))
+}
+
 ###### TEST FUNCTIONS ##############################################
-testCostOnlyAllocationAlgoByPassingAExistentClientIdAndAListOfExistentCallIdsGroup2<-function(){
+testCostOnlyAllocationAlgoInputROriExistentClientIdExistentCallIdsGroup2<-function(){
   # test input: a existent client id; a list of existent margin call ids, which direct to the client
   
   callIds <- existentCallIdsToClient1Group2
@@ -55,7 +79,7 @@ testCostOnlyAllocationAlgoByPassingAExistentClientIdAndAListOfExistentCallIdsGro
   call.limit <- call.limit1
   time.limit <- time.limit2
   
-  input.list <- tempGetInputR(clientId,callIds)
+  input.list <- tempGetInputROri(clientId,callIds)
   callIds<-input.list$callIds;assetCustacIds<-input.list$assetCustacIds;callInfo<-input.list$callInfo;
   availAssets<-input.list$availAssets;  assetInfo<-input.list$assetInfo
 
@@ -103,7 +127,7 @@ testCostOnlyAllocationAlgoByPassingAExistentClientIdAndAListOfExistentCallIdsGro
   checkEquals(result[[existentCallIdsToClient1Group2[3]]]$CustodianAccount,'CustodianAccount1D')
 }
 
-testPrefRandom1AllocationAlgoByPassingAndAnExistentClientIdAndAListOfExistentCallIdsGroup2<-function(){
+testPrefRandom1AllocationAlgoInputROriExistentClientIdExistentCallIdsGroup2<-function(){
   # test input: a existent client id; a list of existent margin call ids, which direct to the client
   callIds <- existentCallIdsToClient1Group2
   clientId <- existentClientId1
@@ -111,7 +135,7 @@ testPrefRandom1AllocationAlgoByPassingAndAnExistentClientIdAndAListOfExistentCal
   call.limit <- call.limit1
   time.limit <- time.limit2
   
-  input.list <- tempGetInputR(clientId,callIds)
+  input.list <- tempGetInputROri(clientId,callIds)
   callIds <-input.list$callIds; assetCustacIds<-input.list$assetCustacIds; callInfo<-input.list$callInfo;
   availAssets<-input.list$availAssets;  assetInfo <-input.list$assetInfo
  
@@ -164,3 +188,79 @@ testPrefRandom1AllocationAlgoByPassingAndAnExistentClientIdAndAListOfExistentCal
   checkEquals(result[[existentCallIdsToClient1Group2[3]]]$CustodianAccount,'CustodianAccount1D')
 }
 
+testPrefRandom1AllocationAlgoInputROW374ExistentClientIdExistentCallIdsGroup3<-function(){
+  # test input: a existent client id; a list of existent margin call ids, which direct to the client
+  callIds <- existentCallIdsToClient1Group3
+  clientId <- existentClientId1
+  pref <- prefRandom1
+  call.limit <- call.limit1
+  time.limit <- time.limit2
+  
+  input.list <- tempGetInputROW374(clientId,callIds)
+  callIds <-input.list$callIds; assetCustacIds<-input.list$assetCustacIds; callInfo<-input.list$callInfo;
+  availAssets<-input.list$availAssets;  assetInfo <-input.list$assetInfo
+  
+  # test function: allocationAlgo(callId,clientId,pref)
+  algoOutput <-allocationAlgo(callIds,assetCustacIds,callInfo,availAssets,assetInfo,pref,time.limit,call.limit)
+  result <- algoOutput$output
+  
+  # test output:
+  # check whether each margin call has been fulfilled with the correct asset and amount
+  checkEquals(result[[existentCallIdsToClient1Group3[1]]]$Asset,'GBP')
+  checkEquals(result[[existentCallIdsToClient1Group3[1]]]$Name,'British Pound')
+  checkEquals(round(result[[existentCallIdsToClient1Group3[1]]]$`NetAmount(USD)`,2),19529.60)
+  checkEquals(round(result[[existentCallIdsToClient1Group3[1]]]$NetAmount,2),15233.09)
+  checkEquals(round(result[[existentCallIdsToClient1Group3[1]]]$`Amount(USD)`,2),19529.60)
+  checkEquals(round(result[[existentCallIdsToClient1Group3[1]]]$Amount,2),15233.09)
+  checkEquals(round(result[[existentCallIdsToClient1Group3[1]]]$Quantity,2),15233.09)
+  checkEquals(result[[existentCallIdsToClient1Group3[1]]]$Haircut,0)
+  checkEquals(result[[existentCallIdsToClient1Group3[1]]]$Currency,'GBP')
+  checkEquals(result[[existentCallIdsToClient1Group3[1]]]$FXRate,0.78)
+  checkEquals(result[[existentCallIdsToClient1Group3[1]]]$venue,'SG')
+  checkEquals(result[[existentCallIdsToClient1Group3[1]]]$marginType,'Variation')
+  checkEquals(result[[existentCallIdsToClient1Group3[1]]]$CustodianAccount,'custodianAccountTest')
+  
+  
+  checkEquals(result[[existentCallIdsToClient1Group3[2]]]$Asset,'GBP')
+  checkEquals(result[[existentCallIdsToClient1Group3[2]]]$Name,'British Pound')
+  checkEquals(round(result[[existentCallIdsToClient1Group3[2]]]$`NetAmount(USD)`,2),23109.33)
+  checkEquals(round(result[[existentCallIdsToClient1Group3[2]]]$NetAmount,2),18025.28)
+  checkEquals(round(result[[existentCallIdsToClient1Group3[2]]]$`Amount(USD)`,2),23109.33)
+  checkEquals(round(result[[existentCallIdsToClient1Group3[2]]]$Amount,2),18025.28)
+  checkEquals(round(result[[existentCallIdsToClient1Group3[2]]]$Quantity,2),18025.28)
+  checkEquals(result[[existentCallIdsToClient1Group3[2]]]$Haircut,0)
+  checkEquals(result[[existentCallIdsToClient1Group3[2]]]$Currency,'GBP')
+  checkEquals(result[[existentCallIdsToClient1Group3[2]]]$FXRate,0.78)
+  checkEquals(result[[existentCallIdsToClient1Group3[2]]]$venue,'SG')
+  checkEquals(result[[existentCallIdsToClient1Group3[2]]]$marginType,'Variation')
+  checkEquals(result[[existentCallIdsToClient1Group3[2]]]$CustodianAccount,'custodianAccountTest')
+  
+  
+  checkEquals(result[[existentCallIdsToClient1Group3[3]]]$Asset,'GBP')
+  checkEquals(result[[existentCallIdsToClient1Group3[3]]]$Name,'British Pound')
+  checkEquals(round(result[[existentCallIdsToClient1Group3[3]]]$`NetAmount(USD)`,2),85542.41)
+  checkEquals(round(result[[existentCallIdsToClient1Group3[3]]]$NetAmount,2),66723.08)
+  checkEquals(round(result[[existentCallIdsToClient1Group3[3]]]$`Amount(USD)`,2),85542.41)
+  checkEquals(round(result[[existentCallIdsToClient1Group3[3]]]$Amount,2),66723.08)
+  checkEquals(round(result[[existentCallIdsToClient1Group3[3]]]$Quantity,2),66723.08)
+  checkEquals(result[[existentCallIdsToClient1Group3[3]]]$Haircut,0)
+  checkEquals(result[[existentCallIdsToClient1Group3[3]]]$Currency,'GBP')
+  checkEquals(result[[existentCallIdsToClient1Group3[3]]]$FXRate,0.78)
+  checkEquals(result[[existentCallIdsToClient1Group3[3]]]$venue,'SG')
+  checkEquals(result[[existentCallIdsToClient1Group3[3]]]$marginType,'Variation')
+  checkEquals(result[[existentCallIdsToClient1Group3[3]]]$CustodianAccount,'custodianAccountTest')
+  
+  checkEquals(result[[existentCallIdsToClient1Group3[4]]]$Asset,'GBP')
+  checkEquals(result[[existentCallIdsToClient1Group3[4]]]$Name,'British Pound')
+  checkEquals(round(result[[existentCallIdsToClient1Group3[4]]]$`NetAmount(USD)`,2),1407436.81)
+  checkEquals(round(result[[existentCallIdsToClient1Group3[4]]]$NetAmount,2),1097800.71)
+  checkEquals(round(result[[existentCallIdsToClient1Group3[4]]]$`Amount(USD)`,2),1407436.81)
+  checkEquals(round(result[[existentCallIdsToClient1Group3[4]]]$Amount,2),1097800.71)
+  checkEquals(round(result[[existentCallIdsToClient1Group3[4]]]$Quantity,2),1097800.71)
+  checkEquals(result[[existentCallIdsToClient1Group3[4]]]$Haircut,0)
+  checkEquals(result[[existentCallIdsToClient1Group3[4]]]$Currency,'GBP')
+  checkEquals(result[[existentCallIdsToClient1Group3[4]]]$FXRate,0.78)
+  checkEquals(result[[existentCallIdsToClient1Group3[4]]]$venue,'SG')
+  checkEquals(result[[existentCallIdsToClient1Group3[4]]]$marginType,'Initial')
+  checkEquals(result[[existentCallIdsToClient1Group3[4]]]$CustodianAccount,'custodianAccountTest')
+}
