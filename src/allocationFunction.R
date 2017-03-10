@@ -730,7 +730,7 @@ coreAlgo <- function(input.list,availAssets,time.limit,pref){
     ### end ##################
     
     #### solver outputs########
-    status<- lpSolve.output$status
+    status<- lpSolve.output$result.status
     lpSolveAPI.solution <- lpSolve.output$lpSolveAPI.solution
     result.objective <- lpSolve.output$result.objective
     #### end ##################
