@@ -6,8 +6,7 @@ emptyList <- c()
 
 nonexistentClientId1 <- 'c001'
 nonexistentClientId2 <- 'adhknj'
-existentClientId1 <- 'c1'
-existentClientId2 <- 'c2'
+existentClientId1 <- '999'
 
 nonexistentCallIdGroup1 <- c('asdd','null','adhajk')
 nonexistentCallIdGroup2 <- c('mc001d','mc01010')
@@ -261,29 +260,6 @@ testClientEliAssetDetailsByPassingAExistentClientIdc1 <- function(){
   
 }
 
-testClientEliAssetDetailsByPassingAExistentClientIdc2 <- function(){
-  # test input: a existent client id
-  clientId <- existentClientId2
-  
-  # test function: eliAssetByClientId(clientId)
-  result <- eliAssetByClientId(clientId) # function output
-  assetId <- result$assetId
-  
-  # result should has unitValue specified below
-  checkEquals(assetId,NULL)
-}
-
-testClientEliAssetDetailsByPassingMoreThanOneExistentClientIds <- function(){
-  # test input: more than one client ids
-  clientId <- c(existentClientId1,existentClientId2)
-  
-  # test function: eliAssetByClientId(clientId)
-  result <- eliAssetByClientId(clientId) # function output
-  
-  # test ouput: result should be NULL
-  checkEquals(result,NULL)
-}
-
 testClientAvailAssetDetailsByPassingAnEmptyListOfCallIdAndAExistentClientId<- function(){
   
   # test input: an empty List of call
@@ -324,17 +300,6 @@ testClientAvailAssetDetailsByPassingANonexistentListOfCallIdsAndAExistentClientI
   checkEquals(result,NULL)
 }
 
-testClientAvailAssetDetailsByPassingAExistentClientIdAndAListOfExistentCallIdsButNotDirectToTheClient <- function(){
-  # test input: a nonexistent List of call ids but not direct to the client; a existent client id,
-  callId <- existentCallIdToClient1Group1
-  clientId <- existentClientId2
-  
-  # test function: availAssetByCallId(callId,clientId)
-  result <- availAssetByCallIdAndClientId(callId,clientId) # function output
-  
-  # test ouput: result should be NULL
-  checkEquals(result,NULL)
-}
 
 testClientAvailAssetDetailsByPassingAExistentClientIdAndAListOfExistentCallIdsWhichDirectToTheClient <- function(){ 
   # test input: a List of existent calls ids direct to the client; a existent client id
