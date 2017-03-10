@@ -7,11 +7,11 @@ source('src/secondAllocationFunction.R')
 # Triggered after the user deselects an asset from a call
 
 ########## DATA BELOW SHOULD COME FROM THE JAVA LAYER ###########
-callIds <- c('mcp47','mcp46','mcp42','mcp35','mcp10')
+callIds <- c('mcp47','mcp46','mcp42','mcp35','mcp34')
 clientId <- '999'
 pref<-c(2,3,5)
 deselectAssetId <- 'SGD'
-deselectCallId <- 'mcp47'
+deselectCallId <- 'mcp46'
 
 ########### Get the result from Algo for testing purposes ##############
 callInfo <- callInfoByCallId(callIds); callIds <- unique(callInfo$id)
