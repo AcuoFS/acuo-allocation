@@ -1,6 +1,6 @@
 
 #### ALLOCATION MAIN FUNCTION ############
-allocationAlgo <- function(callIds,assetCustacIds,callInfo,availAssets,assetInfo,pref,time.limit,call.limit){
+AllocationAlgo <- function(callIds,assetCustacIds,callInfo,availAssets,assetInfo,pref,time.limit,call.limit){
   
   ########### CONSTANTS ################################
   order.method <- 2
