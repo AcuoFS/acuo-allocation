@@ -1,62 +1,62 @@
-CallLpSolve <- function(lp.obj,lp.con,lp.dir,lp.rhs,
-                        lp.type=lp.type,lp.kind=lp.kind,lp.bounds.lower=lp.bounds.lower,lp.bounds.upper=lp.bounds.upper,lp.branch.mode=lp.branch.mode,
+CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
+                        lpType_vec=lpType_vec,lpKind_vec=lpKind_vec,lpLowerBound_vec=lpLowerBound_vec,lpUpperBound_vec=lpUpperBound_vec,lpBranchMode_vec=lpBranchMode_vec,
                         ...){
   library(lpSolveAPI)
   # input variables
-  # must have: lp.obj,lp.con,lp.dir,lp.rhs
-  # optional: lp.type,lp.kind,lp.bounds.lower,lp.bounds.upper,lp.branch.mode
+  # must have: lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec
+  # optional: lpType_vec,lpKind_vec,lpLowerBound_vec,lpUpperBound_vec,lpBranchMode_vec
   # optional: ...
   # if optional, then the default parameters will apply
   
   # number of decision variables
-  varNum <- length(lp.con[1,])
+  varNum <- length(lpCon_mat[1,])
   
   # make model
-  lps.model <- make.lp(0,varNum)  
+  lpModel <- make.lp(0,varNum)  
   
   # set objective
-  set.objfn(lps.model,lp.obj)                    
+  set.objfn(lpModel,lpObj_vec)                    
   
   # set constraints
-  for (i in 1:length(lp.con[,1])){              
-    add.constraint(lps.model,lp.con[i,],lp.dir[i],lp.rhs[i])
+  for (i in 1:length(lpCon_mat[,1])){              
+    add.constraint(lpModel,lpCon_mat[i,],lpDir_vec[i],lpRhs_vec[i])
   }
   
-  if(!missing(lp.kind)){
+  if(!missing(lpKind_vec)){
     # set semi-continuous variables
-    semi.idx <- which(lp.kind=='semi-continuous')
-    set.semicont(lps.model,semi.idx,TRUE)        
+    idxSemi_vec <- which(lpKind_vec=='semi-continuous')
+    set.semicont(lpModel,idxSemi_vec,TRUE)        
   }
   
-  if(!missing(lp.type)){
+  if(!missing(lpType_vec)){
     # set integer variables
-    int.idx <- which(lp.type=='integer')
-    set.type(lps.model,int.idx,'integer')
+    idxInt_vec <- which(lpType_vec=='integer')
+    set.type(lpModel,idxInt_vec,'integer')
   }
   
-  if(!(missing(lp.bounds.lower)|| missing(lp.bounds.upper))){
+  if(!(missing(lpLowerBound_vec)|| missing(lpUpperBound_vec))){
     # set variables bounds
-    set.bounds(lps.model,lower=lp.bounds.lower,upper=lp.bounds.upper)
+    set.bounds(lpModel,lower=lpLowerBound_vec,upper=lpUpperBound_vec)
   }
   
-  if(!missing(lp.branch.mode)){
+  if(!missing(lpBranchMode_vec)){
     # set branch mode
-    for(k in 1:length(lp.branch.mode)){
-      set.branch.mode(lps.model,k,lp.branch.mode[k])
+    for(k in 1:length(lpBranchMode_vec)){
+      set.branch.mode(lpModel,k,lpBranchMode_vec[k])
     }  
   }
   
   # set control options
-  lp.control(lps.model,...)
+  lp.control(lpModel,...)
   
   # solve the problem
-  resultStatus <- solve(lps.model)  
+  resultStatus <- solve(lpModel)  
   
   # get the variables(minUnitQuantity)
-  solverSolution_vec <- get.variables(lps.model)
+  solverSolution_vec <- get.variables(lpModel)
   
   # get the objective
-  solverObjValue <- get.objective(lps.model)
+  solverObjValue <- get.objective(lpModel)
   
   return(list(resultStatus=resultStatus,solverSolution_vec=solverSolution_vec,solverObjValue=solverObjValue))
 }
@@ -375,7 +375,7 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
     # decision variables: x, qunatity used of each asset for each margin call
     #                 quantity or minUnitQuantity
     # 
-    # objective function: f.obj, minimize  x*value*cost
+    # objective function: fObj_vec, minimize  x*value*cost
     # 
     # constraints: A*x (direction) b
     # A-- constraint matrix: f.con;
@@ -403,66 +403,66 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
     ######################################################################
     
     # objective function
-    operation.temp <- normOperation_vec[idxEli_vec]
-    #print(length(operation.temp));print(varNum); print(msVar_mat)
-    operation.obj <-  c(rep(0,varNum),operation.temp*max(callAmount_mat)*10,-operation.temp[msVar_mat[,1]-varNum]*max(callAmount_mat)*10)
-    liquidity.obj <-  c(minUnitValue_vec[idxEli_vec]*normLiquidity_vec[idxEli_vec],rep(0,varNum3-varNum))
-    cost.obj <-  c(minUnitValue_vec[idxEli_vec]*normCost_vec[idxEli_vec],rep(0,varNum3-varNum))
+    operationTemp_vec <- normOperation_vec[idxEli_vec]
+    #print(length(operationTemp_vec));print(varNum); print(msVar_mat)
+    operationObj_vec <-  c(rep(0,varNum),operationTemp_vec*max(callAmount_mat)*10,-operationTemp_vec[msVar_mat[,1]-varNum]*max(callAmount_mat)*10)
+    liquidityObj_vec <-  c(minUnitValue_vec[idxEli_vec]*normLiquidity_vec[idxEli_vec],rep(0,varNum3-varNum))
+    costObj_vec <-  c(minUnitValue_vec[idxEli_vec]*normCost_vec[idxEli_vec],rep(0,varNum3-varNum))
     
-    f.obj <- operation.obj*pref_vec[1]+liquidity.obj*pref_vec[2]+cost.obj*pref_vec[3]
-    names(f.obj) <- VarName_vec
+    fObj_vec <- operationObj_vec*pref_vec[1]+liquidityObj_vec*pref_vec[2]+costObj_vec*pref_vec[3]
+    names(fObj_vec) <- VarName_vec
     
     # constraints
-    f.con.0 <- matrix(0,nrow=varNum,ncol=varNum3)
-    f.con.0[cbind(1:varNum,1:varNum)] <- 1
-    f.dir.0 <- rep('>=',varNum)
-    f.rhs.0 <- rep(0,varNum)
+    fCon0_mat <- matrix(0,nrow=varNum,ncol=varNum3)
+    fCon0_mat[cbind(1:varNum,1:varNum)] <- 1
+    fDir0_mat <- rep('>=',varNum)
+    fRhs0_mat <- rep(0,varNum)
     
-    f.con.1 <- matrix(0,nrow=varNum,ncol=varNum3)
-    f.con.1[cbind(1:varNum,1:varNum)] <- 1
-    f.dir.1 <- rep('<=',varNum)
-    f.rhs.1 <- c(eli_vec[idxEli_vec]*minUnitQuantity_vec[idxEli_vec],rep(1,varNum))
+    fCon1_mat <- matrix(0,nrow=varNum,ncol=varNum3)
+    fCon1_mat[cbind(1:varNum,1:varNum)] <- 1
+    fDir1_mat <- rep('<=',varNum)
+    fRhs1_mat <- c(eli_vec[idxEli_vec]*minUnitQuantity_vec[idxEli_vec],rep(1,varNum))
     
-    f.con.2 <- matrix(0,nrow=resourceNum,ncol=varNum)
+    fCon2_mat <- matrix(0,nrow=resourceNum,ncol=varNum)
     f.con.temp <- matrix(0,nrow=resourceNum,ncol=varNum3-varNum2)
     temp1 <- 1+(0:(callNum-1))*resourceNum
     idx.con.2 <- rep(temp1,resourceNum)+rep(c(0:(resourceNum-1)),rep(callNum,resourceNum))
     idx.con.2 <- match(idx.con.2,idxEli_vec)
-    f.con.2[na.omit(cbind(rep(c(1:resourceNum),rep(callNum,resourceNum)),idx.con.2))]<-1
-    f.con.2 <- cbind(f.con.2,f.con.2*0,f.con.temp)
-    f.dir.2 <- rep('<=',resourceNum)
-    f.rhs.2 <- minUnitQuantity_mat[1,]
+    fCon2_mat[na.omit(cbind(rep(c(1:resourceNum),rep(callNum,resourceNum)),idx.con.2))]<-1
+    fCon2_mat <- cbind(fCon2_mat,fCon2_mat*0,f.con.temp)
+    fDir2_mat <- rep('<=',resourceNum)
+    fRhs2_mat <- minUnitQuantity_mat[1,]
     
-    f.con.3 <- matrix(0,nrow=callNum,ncol=varNum)
+    fCon3_mat <- matrix(0,nrow=callNum,ncol=varNum)
     f.con.temp <- matrix(0,nrow=callNum,ncol=varNum3-varNum2)
     idx.con.3 <- 1:(resourceNum*callNum)
     idx.con.3 <- match(idx.con.3,idxEli_vec)
-    f.con.3[na.omit(cbind(rep(c(1:callNum),rep(resourceNum,callNum)),idx.con.3))] <- minUnitValue_vec[idxEli_vec]*(1-haircut_vec[idxEli_vec])
-    f.con.3 <- cbind(f.con.3,f.con.3*0,f.con.temp)
-    f.dir.3 <- rep('>=',callNum)
-    f.rhs.3 <- callAmount_mat[,1]
+    fCon3_mat[na.omit(cbind(rep(c(1:callNum),rep(resourceNum,callNum)),idx.con.3))] <- minUnitValue_vec[idxEli_vec]*(1-haircut_vec[idxEli_vec])
+    fCon3_mat <- cbind(fCon3_mat,fCon3_mat*0,f.con.temp)
+    fDir3_mat <- rep('>=',callNum)
+    fRhs3_mat <- callAmount_mat[,1]
     
-    f.con.4 <- matrix(0,nrow=varNum,ncol=varNum)
+    fCon4_mat <- matrix(0,nrow=varNum,ncol=varNum)
     f.con.temp <- matrix(0,nrow=varNum,ncol=varNum3-varNum2)
-    f.con.4[cbind(1:varNum,1:varNum)] <- 1
-    f.con.4 <- cbind(f.con.4,f.con.4*(-10000000000),f.con.temp)
-    f.dir.4 <- rep('<=',varNum)
-    f.rhs.4 <- rep(0,varNum)
+    fCon4_mat[cbind(1:varNum,1:varNum)] <- 1
+    fCon4_mat <- cbind(fCon4_mat,fCon4_mat*(-10000000000),f.con.temp)
+    fDir4_mat <- rep('<=',varNum)
+    fRhs4_mat <- rep(0,varNum)
     
-    f.con.5 <- matrix(0,nrow=varNum,ncol=varNum)
+    fCon5_mat <- matrix(0,nrow=varNum,ncol=varNum)
     f.con.temp <- matrix(0,nrow=varNum,ncol=varNum3-varNum2)
-    f.con.5[cbind(1:varNum,1:varNum)] <- 1
-    f.con.5 <- cbind(f.con.5,-f.con.5,f.con.temp)
-    f.dir.5 <- rep('>=',varNum)
-    f.rhs.5 <- rep(0,varNum)
+    fCon5_mat[cbind(1:varNum,1:varNum)] <- 1
+    fCon5_mat <- cbind(fCon5_mat,-fCon5_mat,f.con.temp)
+    fDir5_mat <- rep('>=',varNum)
+    fRhs5_mat <- rep(0,varNum)
     
     if(varNum3>varNum2){
-      f.con.6 <- matrix(0,nrow=varNum3-varNum2,ncol=varNum3)
-      f.con.6[cbind(1:(varNum3-varNum2),msVar_mat[,1])] <- 1
-      f.con.6[cbind(1:(varNum3-varNum2),msVar_mat[,2])] <- 1
-      f.con.6[cbind(1:(varNum3-varNum2),msVar_mat[,3])] <- -2
-      f.dir.6 <- rep(">=",varNum3-varNum2)
-      f.rhs.6 <- rep(0,varNum3-varNum2)
+      fCon6_mat <- matrix(0,nrow=varNum3-varNum2,ncol=varNum3)
+      fCon6_mat[cbind(1:(varNum3-varNum2),msVar_mat[,1])] <- 1
+      fCon6_mat[cbind(1:(varNum3-varNum2),msVar_mat[,2])] <- 1
+      fCon6_mat[cbind(1:(varNum3-varNum2),msVar_mat[,3])] <- -2
+      fDir6_mat <- rep(">=",varNum3-varNum2)
+      fRhs6_mat <- rep(0,varNum3-varNum2)
     }
     
     # minimum movement quantity of each asset
@@ -476,24 +476,24 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
     
     
     ### solver inputs #####
-    lp.obj <- f.obj
+    lpObj_vec <- fObj_vec
     if(varNum3>varNum2){
-      lp.con <- rbind(f.con.2,f.con.3,f.con.4,f.con.5,f.con.6)
-      lp.dir <- c(f.dir.2,f.dir.3,f.dir.4,f.dir.5,f.dir.6)
-      lp.rhs <- c(f.rhs.2,f.rhs.3,f.rhs.4,f.rhs.5,f.rhs.6)
+      lpCon_mat <- rbind(fCon2_mat,fCon3_mat,fCon4_mat,fCon5_mat,fCon6_mat)
+      lpDir_vec <- c(fDir2_mat,fDir3_mat,fDir4_mat,fDir5_mat,fDir6_mat)
+      lpRhs_vec <- c(fRhs2_mat,fRhs3_mat,fRhs4_mat,fRhs5_mat,fRhs6_mat)
     } else{
-      lp.con <- rbind(f.con.2,f.con.3,f.con.4,f.con.5)
-      lp.dir <- c(f.dir.2,f.dir.3,f.dir.4,f.dir.5)
-      lp.rhs <- c(f.rhs.2,f.rhs.3,f.rhs.4,f.rhs.5)      
+      lpCon_mat <- rbind(fCon2_mat,fCon3_mat,fCon4_mat,fCon5_mat)
+      lpDir_vec <- c(fDir2_mat,fDir3_mat,fDir4_mat,fDir5_mat)
+      lpRhs_vec <- c(fRhs2_mat,fRhs3_mat,fRhs4_mat,fRhs5_mat)      
     }
     
     
-    lp.kind <- rep('semi-continuous',varNum3)
-    lp.type <- rep('real',varNum3)
-    lp.type[which(minUnitValue_vec[idxEli_vec]>=100)] <- 'integer'
-    lp.bounds.lower <- c(minMoveQuantity,rep(1,varNum3-varNum))
-    lp.bounds.upper <- c(minUnitQuantity_vec[idxEli_vec],rep(1,varNum3-varNum))
-    lp.branch.mode <- c(rep('floor',varNum),rep('auto',varNum3-varNum))
+    lpKind_vec <- rep('semi-continuous',varNum3)
+    lpType_vec <- rep('real',varNum3)
+    lpType_vec[which(minUnitValue_vec[idxEli_vec]>=100)] <- 'integer'
+    lpLowerBound_vec <- c(minMoveQuantity,rep(1,varNum3-varNum))
+    lpUpperBound_vec <- c(minUnitQuantity_vec[idxEli_vec],rep(1,varNum3-varNum))
+    lpBranchMode_vec <- c(rep('floor',varNum),rep('auto',varNum3-varNum))
     
     lp.presolve <- ifelse(callNum<=5,'none','knapsack')
     lp.epsd <- 1e-11
@@ -501,7 +501,7 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
     ### end ###############
     
     ### call lpSolve solver####
-    solverOutput_list <- CallLpSolve(f.obj,lp.con,lp.dir,lp.rhs,lp.type,lp.kind,lp.bounds.lower,lp.bounds.upper,lp.branch.mode,presolve=lp.presolve,epsd=lp.epsd,timeout=lp.timeout)
+    solverOutput_list <- CallLpSolve(fObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,lpType_vec,lpKind_vec,lpLowerBound_vec,lpUpperBound_vec,lpBranchMode_vec,presolve=lp.presolve,epsd=lp.epsd,timeout=lp.timeout)
     ### end ##################
     
     #### solver outputs########
@@ -510,11 +510,11 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
     solverObjValue <- solverOutput_list$solverObjValue
     #### end ##################
     
-    #cost.obj.result <- sum(cost.obj*solverSolution_vec)
-    #liquidity.obj.result <- sum(liquidity.obj*solverSolution_vec)
-    #operation.obj.result <- sum(operation.obj*solverSolution_vec)
+    #costObj_vec.result <- sum(costObj_vec*solverSolution_vec)
+    #liquidityObj_vec.result <- sum(liquidityObj_vec*solverSolution_vec)
+    #operationObj_vec.result <- sum(operationObj_vec*solverSolution_vec)
     #total.move <- sum(solverSolution_vec[(varNum+1):varNum2])
-    #obj.result <- c(cost.obj.result,liquidity.obj.result,operation.obj.result)
+    #obj.result <- c(costObj_vec.result,liquidityObj_vec.result,operationObj_vec.result)
     
     # round up the decimal quantity to the nearest integer.
     # if it's larger than 0.5
