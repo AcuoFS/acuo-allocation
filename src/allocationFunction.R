@@ -112,30 +112,24 @@ AllocationInputData = function(callId_vec,resource_vec,callInfo_df,availAsset_df
   minUnitValue_mat <- base_mat
   
   # fill in matrixes with the data from availAsset_df
+ 
+  callAmount_mat[]<- matrix(rep(callInfo_df$callAmount,resourceNum),nrow=callNum,byrow=F)
   
-  ## new identifer ####
-  callAmount_mat[callId_vec,] <- matrix(rep(callInfo_df$callAmount,resourceNum),nrow=callNum,byrow=F)
-  
-  idxTempCallId_vec <- match(availAsset_df$callId,callId_vec)
+  #idxTempCallId_vec <- match(availAsset_df$callId,callId_vec)
   idxTempResource_vec <- match(availAsset_df$assetCustacId,resource_vec)
   
-  quantity_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- availAsset_df$quantity
-  eli_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- 1
-  haircut_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- availAsset_df$haircut+availAsset_df$FXHaircut
-  cost_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- availAsset_df$internalCost+availAsset_df$externalCost+availAsset_df$opptCost-(availAsset_df$interestRate+availAsset_df$yield)
+  quantity_mat[idxTempResource_vec]<- availAsset_df$quantity
+  eli_mat[idxTempResource_vec]<- 1
+  haircut_mat[idxTempResource_vec]<- availAsset_df$haircut+availAsset_df$FXHaircut
+  cost_mat[idxTempResource_vec]<- availAsset_df$internalCost+availAsset_df$externalCost+availAsset_df$opptCost-(availAsset_df$interestRate+availAsset_df$yield)
   
+  unitValue_mat[] <- matrix(rep(assetInfo_df$unitValue/assetInfo_df$FXRate,callNum),nrow=callNum,byrow=TRUE)
+  minUnit_mat[]<- matrix(rep(assetInfo_df$minUnit,callNum),nrow=callNum,byrow=TRUE)
+  minUnitValue_mat[] <- matrix(rep(assetInfo_df$minUnitValue/assetInfo_df$FXRate,callNum),nrow=callNum,byrow=TRUE)
   
-  eli_mat[cbind(availAsset_df$callId,availAsset_df$assetCustacId)]<-1
-  haircut_mat[cbind(availAsset_df$callId,availAsset_df$assetCustacId)]<- availAsset_df$haircut+availAsset_df$FXHaircut
-  cost_mat[cbind(availAsset_df$callId,availAsset_df$assetCustacId)]<- availAsset_df$internalCost+availAsset_df$externalCost+availAsset_df$opptCost-(availAsset_df$interestRate+availAsset_df$yield)
+  minUnitQuantity_mat[]<- floor(quantity_mat/minUnit_mat) # round down to the nearest integer
   
-  unitValue_mat[,] <- matrix(rep(assetInfo_df$unitValue/assetInfo_df$FXRate,callNum),nrow=callNum,byrow=TRUE)
-  minUnit_mat[,]<- matrix(rep(assetInfo_df$minUnit,callNum),nrow=callNum,byrow=TRUE)
-  minUnitValue_mat[,] <- matrix(rep(assetInfo_df$minUnitValue/assetInfo_df$FXRate,callNum),nrow=callNum,byrow=TRUE)
-  
-  minUnitQuantity_mat[,]<- floor(quantity_mat/minUnit_mat) # round down to the nearest integer
 
-  
   # convert the matrix format data to vector format
   eli_vec <- as.vector(t(eli_mat))
   haircut_vec <- as.vector(t(haircut_mat))
