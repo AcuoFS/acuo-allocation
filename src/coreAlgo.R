@@ -280,9 +280,7 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
     }
     output_list<- select_list
     
-  }
-  
-  else if(1){
+  } else if(1){
     lpsolveRun<-TRUE
     
     ##### In case of OW-292, consider all preference, with quantity limits ##########
@@ -354,8 +352,7 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
       msVar_mat <- matrix(as.numeric(msVar_mat),ncol=3)
     }
     
-    
-    ## add new auxiliary variables
+    ## add new auxiliary variables, two margin calls coming from one margin statement
     varNum3 <- varNum2+msVarNum
     msVarName_mat <- varSplitName_mat[msVar_mat[,1],]
     msVarName_mat[,2] <- msVarName_mat[,1]
@@ -364,12 +361,9 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
       temp=paste(x,collapse='_')
       return(temp)
     }
-    
     msVarName_vec <- apply(msVarName_mat[,1:3],1,PasteFun2)
     VarName_vec <- c(VarName_vec,msVarName_vec)
-    
     ### end ###############
-    
     
     ############# MODEL SETUP ###########################################
     # decision variables: x, qunatity used of each asset for each margin call
@@ -474,7 +468,6 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
       minMoveQuantity[idxTemp] <- ceiling(call.eli_vec[idxTemp]/minUnitValue.eli_vec[idxTemp])
     }
     
-    
     ### solver inputs #####
     lpObj_vec <- fObj_vec
     if(varNum3>varNum2){
@@ -486,7 +479,6 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
       lpDir_vec <- c(fDir2_mat,fDir3_mat,fDir4_mat,fDir5_mat)
       lpRhs_vec <- c(fRhs2_mat,fRhs3_mat,fRhs4_mat,fRhs5_mat)      
     }
-    
     
     lpKind_vec <- rep('semi-continuous',varNum3)
     lpType_vec <- rep('real',varNum3)
