@@ -19,12 +19,12 @@ prefForOperationOnly <- c(10,0,0)
 prefRandom1 <- c(6,3,9)
 prefRandom2 <- c(3,8,10)
 
-call.limit1 <- c(7,7,7)
-call.limit2 <- c(7,7,30)
+callLimit1 <- c(7,7,7)
+callLimit2 <- c(7,7,30)
 
-time.limit1 <- 1
-time.limit2 <- 3
-time.limit3 <- 10
+timeLimit1 <- 1
+timeLimit2 <- 3
+timeLimit3 <- 10
 
 # the real data from database
 tempGetInputROri <- function(clientId,callId_vec){
@@ -77,15 +77,15 @@ testCostOnlyAllocationAlgoInputROriExistentClientIdExistentCallIdsGroup2<-functi
   callId_vec <- existentCallIdsToClient1Group2
   clientId <- existentClientId1
   pref_vec <- prefForCostOnly
-  callLimit_vec <- call.limit1
-  timeLimit <- time.limit2
+  callLimit_vec <- callLimit1
+  timeLimit <- timeLimit2
   
   coreInput_list <- tempGetInputROri(clientId,callId_vec)
   callId_vec<-coreInput_list$callId_vec;resource_vec<-coreInput_list$resource_vec;callInfo_df<-coreInput_list$callInfo_df;
   availAsset_df<-coreInput_list$availAsset_df;  assetInfo_df<-coreInput_list$assetInfo_df
   
-  # test function: allocationAlgo(...)
-  algoOutput <-allocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,timeLimit,callLimit_vec)
+  # test function: AllocationAlgo(...)
+  algoOutput <-AllocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,timeLimit,callLimit_vec)
   result <- algoOutput$output
 
   checkEquals(result[[existentCallIdsToClient1Group2[1]]]$Asset,'GBP')
@@ -133,15 +133,15 @@ testPrefRandom1AllocationAlgoInputROriExistentClientIdExistentCallIdsGroup2<-fun
   callId_vec <- existentCallIdsToClient1Group2
   clientId <- existentClientId1
   pref_vec <- prefRandom1
-  callLimit_vec <- call.limit1
-  timeLimit <- time.limit2
+  callLimit_vec <- callLimit1
+  timeLimit <- timeLimit2
   
   coreInput_list <- tempGetInputROri(clientId,callId_vec)
   callId_vec <-coreInput_list$callId_vec; resource_vec<-coreInput_list$resource_vec; callInfo_df<-coreInput_list$callInfo_df;
   availAsset_df<-coreInput_list$availAsset_df;  assetInfo_df <-coreInput_list$assetInfo_df
  
-  # test function: allocationAlgo(callId,clientId,pref_vec)
-  algoOutput <-allocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,timeLimit,callLimit_vec)
+  # test function: AllocationAlgo(callId,clientId,pref_vec)
+  algoOutput <-AllocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,timeLimit,callLimit_vec)
   result <- algoOutput$output
   
   # test output:
@@ -194,15 +194,15 @@ testPrefRandom1AllocationAlgoInputROW374ExistentClientIdExistentCallIdsGroup3<-f
   callId_vec <- existentCallIdsToClient1Group3
   clientId <- existentClientId1
   pref_vec <- prefRandom1
-  callLimit_vec <- call.limit1
-  timeLimit <- time.limit2
+  callLimit_vec <- callLimit1
+  timeLimit <- timeLimit2
   
   coreInput_list <- tempGetInputROW374(clientId,callId_vec)
   callId_vec <-coreInput_list$callId_vec; resource_vec<-coreInput_list$resource_vec; callInfo_df<-coreInput_list$callInfo_df;
   availAsset_df<-coreInput_list$availAsset_df;  assetInfo_df <-coreInput_list$assetInfo_df
   
-  # test function: allocationAlgo(callId,clientId,pref_vec)
-  algoOutput <-allocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,timeLimit,callLimit_vec)
+  # test function: AllocationAlgo(callId,clientId,pref_vec)
+  algoOutput <-AllocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,timeLimit,callLimit_vec)
   result <- algoOutput$output
   
   # test output:

@@ -52,7 +52,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
     coreInput_list <- AllocationInputData(callId_vec.group,resourceGroup_vec,callIdGroup_vec,availAssetGroup_df,assetInfoGroup_df,pref_vec)
     
     # core Algo, assume all data comes in a list
-    resultGroup_list <- CoreAlgo(coreInput_list,availAsset_df,timeLimit,pref_vec)
+    resultGroup_list <- CoreAlgo(coreInput_list,availAssetGroup_df,timeLimit,pref_vec)
     outputGroup_list <- resultGroup_list$output
     status <- resultGroup_list$status
     lpsolveRun <- resultGroup_list$lpsolveRun
@@ -115,13 +115,15 @@ AllocationInputData = function(callId_vec,resource_vec,callInfo_df,availAsset_df
  
   callAmount_mat[]<- matrix(rep(callInfo_df$callAmount,resourceNum),nrow=callNum,byrow=F)
   
-  #idxTempCallId_vec <- match(availAsset_df$callId,callId_vec)
+  idxTempCallId_vec <- match(availAsset_df$callId,callId_vec)
+  
+  #resource_vec <- availAsset_df$assetCustacId
   idxTempResource_vec <- match(availAsset_df$assetCustacId,resource_vec)
   
-  quantity_mat[idxTempResource_vec]<- availAsset_df$quantity
-  eli_mat[idxTempResource_vec]<- 1
-  haircut_mat[idxTempResource_vec]<- availAsset_df$haircut+availAsset_df$FXHaircut
-  cost_mat[idxTempResource_vec]<- availAsset_df$internalCost+availAsset_df$externalCost+availAsset_df$opptCost-(availAsset_df$interestRate+availAsset_df$yield)
+  quantity_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- availAsset_df$quantity
+  eli_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- 1
+  haircut_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- availAsset_df$haircut+availAsset_df$FXHaircut
+  cost_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- availAsset_df$internalCost+availAsset_df$externalCost+availAsset_df$opptCost-(availAsset_df$interestRate+availAsset_df$yield)
   
   unitValue_mat[] <- matrix(rep(assetInfo_df$unitValue/assetInfo_df$FXRate,callNum),nrow=callNum,byrow=TRUE)
   minUnit_mat[]<- matrix(rep(assetInfo_df$minUnit,callNum),nrow=callNum,byrow=TRUE)
