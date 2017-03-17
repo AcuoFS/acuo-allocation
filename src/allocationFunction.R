@@ -68,11 +68,10 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
     }
   }
   return(list(output=output_list,checkCall_mat=checkCall_mat,status=status,lpsolveRun=lpsolveRun))
->>>>>>> develop
 }
 
 #### OTHER FUNCTIONS(CALLED IN THE MAIN FUNCTION)##########################
-AllocationInputData = function(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec){
+AllocationInputData <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec){
   
   ### new identifer ####
   assetId_vec <- as.character(data.frame(strsplit(resource_vec,'-'))[1,])
