@@ -61,14 +61,16 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
   return(list(resultStatus=resultStatus,solverSolution_vec=solverSolution_vec,solverObjValue=solverObjValue))
 }
 
-
 CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
   pref_vec<-pref_vec
   callId_vec<-coreInput_list$callId_vec
   resource_vec<-coreInput_list$resource_vec
   assetId_vec <- as.character(data.frame(strsplit(resource_vec,'-'))[1,])
-  callInfo_df=coreInput_list$callInfo_df
-  assetInfo_df=coreInput_list$assetInfo_df
+  
+  callInfo_df <- renjinFix(coreInput_list$callInfo_df, "callInfo.")
+  assetInfo_df <- renjinFix(coreInput_list$assetInfo_df, "assetInfo.")
+  availAsset_df <- renjinFix(availAsset_df,"availAsset.")
+  
   custodianAccount <- coreInput_list$custodianAccount  
   venue <- coreInput_list$venue
   
@@ -110,9 +112,6 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
   # 2  a3              asset3               numeric value          numeric value     CCY1    numeric value  numeric value     custac1
   # 3  a4              asset4               numeric value          numeric value     CCY3    numeric value  numeric value     custac3
   #------------------------------------------------------------------------------------------------------------------------------------------
-  
-  
-  ############# ALGORITHM ############################################
   
   ######### CHECK WHETHER ASSET POOL IS SUFFICIENT #############
   suffPerCall <- all(apply(eli_mat*(minUnitQuantity_mat*minUnitValue_mat*(1-haircut_mat)),1,sum) > callAmount_mat[,1])
@@ -271,9 +270,9 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
       availAsset_df$totalQuantity[which(availAsset_df$assetCustacId==idxSelectResource_vec)]<- tempQuantity_vec-selectAssetQuantity_vec
       #### END ##############################
       
-    
+      
       selectAsset_df <- data.frame(selectAssetId_vec,selectAssetName_vec,selectAssetNetAmount_vec,selectAssetNetAmountUSD_vec,selectAssetFX_vec,selectAssetHaircut_vec,selectAssetAmount_vec,selectAssetAmountUSD_vec,selectAssetCurrency_vec,
-                                    selectAssetQuantity_vec,selectAssetCustodianAccount_vec,selectAssetVenue_vec,selectMarginType_vec)
+                                   selectAssetQuantity_vec,selectAssetCustodianAccount_vec,selectAssetVenue_vec,selectMarginType_vec)
       colnames(selectAsset_df)<- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType')
       
       select_list[[callId_vec[i]]] <- selectAsset_df       
@@ -589,10 +588,10 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
             # if this asset is the only selection
             if(callNum==1){
               otherAmount <- sum(result_mat[,-i][which(result_mat[-i]>0)]*minUnitValue_mat[,-i][which(result_mat[-i]>0)]*
-                                    (1-haircut_mat[,-i][which(result_mat[-i]>0)]))
+                                   (1-haircut_mat[,-i][which(result_mat[-i]>0)]))
             } else{
               otherAmount <- sum(result_mat[,-i][j,which(result_mat[j,-i]>0)]*minUnitValue_mat[,-i][j,which(result_mat[j,-i]>0)]*
-                                    (1-haircut_mat[,-i][j,which(result_mat[j,-i]>0)]))
+                                   (1-haircut_mat[,-i][j,which(result_mat[j,-i]>0)]))
             }
             missingAmount <- callAmount_mat[j,1]-(otherAmount+newQuantity*minUnitValue_mat[j,i]*(1-haircut_mat[j,i]))
             # missingAmount<0, means even we substract the exceed quantity of the asset, 
@@ -727,7 +726,7 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
       # netAmount(in local currency) is surfacing in UI
       #######
       selectAsset_df <- data.frame(selectAssetId_vec,selectAssetName_vec,selectAssetNetAmount_vec,selectAssetNetAmountUSD_vec,selectAssetFX_vec,selectAssetHaircut_vec,selectAssetAmount_vec,selectAssetAmountUSD_vec,selectAssetCurrency_vec,
-                                    selectAssetQuantity_vec,selectAssetCustodianAccount_vec,selectAssetVenue_vec,selectMarginType_vec)
+                                   selectAssetQuantity_vec,selectAssetCustodianAccount_vec,selectAssetVenue_vec,selectMarginType_vec)
       colnames(selectAsset_df)<- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType')
       
       select_list[[callId_vec[i]]] <- selectAsset_df       
@@ -742,4 +741,10 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
   }
   checkCall_mat <- subtotalFulfilled_mat
   return(list(output=output_list,checkCall_mat=checkCall_mat,availAsset_df=availAsset_df,status=status,lpsolveRun=lpsolveRun))
+}
+
+renjinFix <- function(frame, name) {
+  d <- data.frame(frame);
+  colnames(d) <- gsub(name, "", colnames(d));
+  return(d);
 }
