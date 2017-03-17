@@ -65,7 +65,8 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
   pref_vec<-pref_vec
   callId_vec<-coreInput_list$callId_vec
   resource_vec<-coreInput_list$resource_vec
-  assetId_vec <- as.character(data.frame(strsplit(resource_vec,'-'))[1,])
+  #assetId_vec <- as.character(data.frame(strsplit(resource_vec,'-'))[1,])
+  assetId_vec <- matrix(unlist(strsplit(resource_vec,'-')),nrow=2)[1,]
   
   callInfo_df <- renjinFix(coreInput_list$callInfo_df, "callInfo.")
   assetInfo_df <- renjinFix(coreInput_list$assetInfo_df, "assetInfo.")
@@ -243,23 +244,27 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
   }
   
   #### In case of OW-291, optimal assets are sufficient
-  if(!is.element(0,ifSelectAssetSuff_vec)){ 
+  if(!is.element(0,ifSelectAssetSuff_vec)){
     status <- 'solved'
     lpsolveRun <- FALSE
     for(i in 1:callNum){
       idxSelectResource_vec <- which(resource_vec==optimalAsset_mat[i,2])
       selectAssetId_vec <- assetId_vec[idxSelectResource_vec]
+      idxSelectAsset_vec <- rep(0,length(idxSelectResource_vec))
+      for(m in 1:length(idxSelectResource_vec)){
+        idxSelectAsset_vec[m] <- which(assetInfo_df$id==selectAssetId_vec[m])
+      }
       selectAssetCustodianAccount_vec <- custodianAccount[idxSelectResource_vec]
       selectAssetVenue_vec <- venue[idxSelectResource_vec]
-      selectAssetName_vec <- assetInfo_df$name[idxSelectResource_vec]
+      selectAssetName_vec <- assetInfo_df$name[idxSelectAsset_vec]
       selectAssetNetAmountUSD_vec <- integer.callAmount_mat[i,1]
       selectAssetHaircut_vec <- haircut_mat[i,idxSelectResource_vec]
       selectAssetAmountUSD_vec <- selectAssetNetAmountUSD_vec/(1-haircut_mat[i,idxSelectResource_vec])
-      selectAssetCurrency_vec <- assetInfo_df$currency[idxSelectResource_vec]
+      selectAssetCurrency_vec <- assetInfo_df$currency[idxSelectAsset_vec]
       selectAssetMinUnitQuantity_vec <- selectAssetAmountUSD_vec/minUnitValue_mat[i,idxSelectResource_vec]
       selectAssetQuantity_vec <- selectAssetMinUnitQuantity_vec*minUnit_mat[i,idxSelectResource_vec]
       selectMarginType_vec <- rep(callInfo_df$marginType[i],length(idxSelectResource_vec))
-      selectAssetFX_vec <- assetInfo_df$FXRate[idxSelectResource_vec]
+      selectAssetFX_vec <- assetInfo_df$FXRate[idxSelectAsset_vec]
       selectAssetAmount_vec <- selectAssetAmountUSD_vec*selectAssetFX_vec
       selectAssetNetAmount_vec <- selectAssetNetAmountUSD_vec*selectAssetFX_vec
       
@@ -275,7 +280,7 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
                                    selectAssetQuantity_vec,selectAssetCustodianAccount_vec,selectAssetVenue_vec,selectMarginType_vec)
       colnames(selectAsset_df)<- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType')
       
-      select_list[[callId_vec[i]]] <- selectAsset_df       
+      select_list[[callId_vec[i]]] <- selectAsset_df
     }
     output_list<- select_list
     
@@ -297,7 +302,8 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
     
     fullNameAll_mat <- rbind(fullNameOri_mat,fullNameDummy_mat)
     
-    splitName_mat <- data.matrix(t(data.frame(strsplit(t(fullNameAll_mat),'_'))))
+    #splitName_mat <- data.matrix(t(data.frame(strsplit(t(fullNameAll_mat),'_'))))		305	    splitName_mat <- data.matrix(t(data.frame(strsplit(t(fullNameAll_mat),'_'))))
+    splitName_mat <- matrix(unlist(strsplit(t(fullNameAll_mat),'_')),ncol=3,byrow=TRUE)
     splitName_mat <- cbind(splitName_mat,1:(2*length(base_mat)))
     colnames(splitName_mat) <- c('msId','callId','assetCustId','index'); rownames(splitName_mat)<- 1:(2*length(base_mat))
     
@@ -692,16 +698,21 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
     }
     ############## END #######################################
     
-    
     for(i in 1:callNum){                          # store the result into select list
       idxSelectResource_vec <- which(result_mat[i,]!=0)
       selectResource_vec <- resource_vec[idxSelectResource_vec]
+      
       selectAssetId_vec <- assetId_vec[idxSelectResource_vec]
+      
+      idxSelectAsset_vec <- rep(0,length(idxSelectResource_vec))
+      for(m in 1:length(idxSelectResource_vec)){
+        idxSelectAsset_vec[m] <- which(assetInfo_df$id==selectAssetId_vec[m])
+      }
       selectAssetCustodianAccount_vec <- custodianAccount[idxSelectResource_vec]
       selectAssetVenue_vec <- venue[idxSelectResource_vec]
-      selectAssetName_vec <- assetInfo_df$name[idxSelectResource_vec]
+      selectAssetName_vec <- assetInfo_df$name[idxSelectAsset_vec]
       selectAssetHaircut_vec <- haircut_mat[i,idxSelectResource_vec]
-      selectAssetCurrency_vec <- assetInfo_df$currency[idxSelectResource_vec]
+      selectAssetCurrency_vec <- assetInfo_df$currency[idxSelectAsset_vec]
       selectAssetMinUnitQuantity_vec <- result_mat[i,idxSelectResource_vec]
       selectAssetQuantity_vec <- result_mat[i,idxSelectResource_vec]*minUnit_mat[i,idxSelectResource_vec]
       selectMarginType_vec <- rep(callInfo_df$marginType[i],length(idxSelectResource_vec))
@@ -718,8 +729,8 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
       
       selectAssetUnitValue_vec <- unitValue_mat[i,idxSelectResource_vec]
       selectAssetAmountUSD_vec <- selectAssetQuantity_vec*selectAssetUnitValue_vec
-      selectAssetNetAmountUSD_vec <- selectAssetAmountUSD_vec*(1-haircut_mat[i,idxSelectResource_vec])      
-      selectAssetFX_vec <- assetInfo_df$FXRate[idxSelectResource_vec]
+      selectAssetNetAmountUSD_vec <- selectAssetAmountUSD_vec*(1-haircut_mat[i,idxSelectResource_vec])
+      selectAssetFX_vec <- assetInfo_df$FXRate[idxSelectAsset_vec]
       selectAssetAmount_vec <- selectAssetAmountUSD_vec*selectAssetFX_vec
       selectAssetNetAmount_vec <- selectAssetNetAmountUSD_vec*selectAssetFX_vec
       #######
@@ -729,10 +740,9 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
                                    selectAssetQuantity_vec,selectAssetCustodianAccount_vec,selectAssetVenue_vec,selectMarginType_vec)
       colnames(selectAsset_df)<- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType')
       
-      select_list[[callId_vec[i]]] <- selectAsset_df       
+      select_list[[callId_vec[i]]] <- selectAsset_df
     }
     output_list <- select_list
-    
   }
   
   subtotalFulfilled_mat<- matrix(c(coreInput_list$callAmount_mat[,1],rep(0, callNum)),nrow=callNum,ncol=2,dimnames = list(callId_vec,c('callAmount','fulfilledAmount')))
