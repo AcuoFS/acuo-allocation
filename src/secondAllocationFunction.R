@@ -1,6 +1,6 @@
 
 ############ ALGORITHM ##########################################
-secondAllocationFunction<- 
+SecondAllocationFunction<- 
   function(callId_vec,callInfo_df,resource_vec,pref_vec,deselectAssetId,deselectCallId,currentSelection_list,availAsset_df,assetInfo_df){
     
   pref_vec <- pref_vec/sum(pref_vec)
