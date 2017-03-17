@@ -2,7 +2,7 @@ library("RNeo4j")
 source('src/functionsOfDBRequestByExecutingCypher.R')
 source('src/allocationFunction.R')
 source('src/coreAlgo.R')
-source('src/SecondAllocationFunction.R')
+source('src/secondAllocationFunction.R')
 
 # Secondary allocation algo
 # Triggered after the user deselects an asset from a call
