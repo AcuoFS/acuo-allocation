@@ -2,7 +2,7 @@ library('RUnit')
 
 test.suite = defineTestSuite("example",
                              dirs = file.path("test/testAllocationAlgo"),
-                             testFileRegexp = 'R')
+                             testFileRegexp = '.R')
 
 test.result <- runTestSuite(test.suite)
 
