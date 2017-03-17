@@ -417,35 +417,35 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
     fRhs1_mat <- c(eli_vec[idxEli_vec]*minUnitQuantity_vec[idxEli_vec],rep(1,varNum))
     
     fCon2_mat <- matrix(0,nrow=resourceNum,ncol=varNum)
-    f.con.temp <- matrix(0,nrow=resourceNum,ncol=varNum3-varNum2)
+    fConTemp_mat <- matrix(0,nrow=resourceNum,ncol=varNum3-varNum2)
     temp1 <- 1+(0:(callNum-1))*resourceNum
-    idx.con.2 <- rep(temp1,resourceNum)+rep(c(0:(resourceNum-1)),rep(callNum,resourceNum))
-    idx.con.2 <- match(idx.con.2,idxEli_vec)
-    fCon2_mat[na.omit(cbind(rep(c(1:resourceNum),rep(callNum,resourceNum)),idx.con.2))]<-1
-    fCon2_mat <- cbind(fCon2_mat,fCon2_mat*0,f.con.temp)
+    idxCon2_vec <- rep(temp1,resourceNum)+rep(c(0:(resourceNum-1)),rep(callNum,resourceNum))
+    idxCon2_vec <- match(idxCon2_vec,idxEli_vec)
+    fCon2_mat[na.omit(cbind(rep(c(1:resourceNum),rep(callNum,resourceNum)),idxCon2_vec))]<-1
+    fCon2_mat <- cbind(fCon2_mat,fCon2_mat*0,fConTemp_mat)
     fDir2_mat <- rep('<=',resourceNum)
     fRhs2_mat <- minUnitQuantity_mat[1,]
     
     fCon3_mat <- matrix(0,nrow=callNum,ncol=varNum)
-    f.con.temp <- matrix(0,nrow=callNum,ncol=varNum3-varNum2)
-    idx.con.3 <- 1:(resourceNum*callNum)
-    idx.con.3 <- match(idx.con.3,idxEli_vec)
-    fCon3_mat[na.omit(cbind(rep(c(1:callNum),rep(resourceNum,callNum)),idx.con.3))] <- minUnitValue_vec[idxEli_vec]*(1-haircut_vec[idxEli_vec])
-    fCon3_mat <- cbind(fCon3_mat,fCon3_mat*0,f.con.temp)
+    fConTemp_mat <- matrix(0,nrow=callNum,ncol=varNum3-varNum2)
+    idxCon3_vec <- 1:(resourceNum*callNum)
+    idxCon3_vec <- match(idxCon3_vec,idxEli_vec)
+    fCon3_mat[na.omit(cbind(rep(c(1:callNum),rep(resourceNum,callNum)),idxCon3_vec))] <- minUnitValue_vec[idxEli_vec]*(1-haircut_vec[idxEli_vec])
+    fCon3_mat <- cbind(fCon3_mat,fCon3_mat*0,fConTemp_mat)
     fDir3_mat <- rep('>=',callNum)
     fRhs3_mat <- callAmount_mat[,1]
     
     fCon4_mat <- matrix(0,nrow=varNum,ncol=varNum)
-    f.con.temp <- matrix(0,nrow=varNum,ncol=varNum3-varNum2)
+    fConTemp_mat <- matrix(0,nrow=varNum,ncol=varNum3-varNum2)
     fCon4_mat[cbind(1:varNum,1:varNum)] <- 1
-    fCon4_mat <- cbind(fCon4_mat,fCon4_mat*(-10000000000),f.con.temp)
+    fCon4_mat <- cbind(fCon4_mat,fCon4_mat*(-10000000000),fConTemp_mat)
     fDir4_mat <- rep('<=',varNum)
     fRhs4_mat <- rep(0,varNum)
     
     fCon5_mat <- matrix(0,nrow=varNum,ncol=varNum)
-    f.con.temp <- matrix(0,nrow=varNum,ncol=varNum3-varNum2)
+    fConTemp_mat <- matrix(0,nrow=varNum,ncol=varNum3-varNum2)
     fCon5_mat[cbind(1:varNum,1:varNum)] <- 1
-    fCon5_mat <- cbind(fCon5_mat,-fCon5_mat,f.con.temp)
+    fCon5_mat <- cbind(fCon5_mat,-fCon5_mat,fConTemp_mat)
     fDir5_mat <- rep('>=',varNum)
     fRhs5_mat <- rep(0,varNum)
     
@@ -486,13 +486,13 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
     lpUpperBound_vec <- c(minUnitQuantity_vec[idxEli_vec],rep(1,varNum3-varNum))
     lpBranchMode_vec <- c(rep('floor',varNum),rep('auto',varNum3-varNum))
     
-    lp.presolve <- ifelse(callNum<=5,'none','knapsack')
-    lp.epsd <- 1e-11
-    lp.timeout <- timeLimit
+    lpPresolve <- ifelse(callNum<=5,'none','knapsack')
+    lpEpsd <- 1e-11
+    lpTimeout <- timeLimit
     ### end ###############
     
     ### call lpSolve solver####
-    solverOutput_list <- CallLpSolve(fObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,lpType_vec,lpKind_vec,lpLowerBound_vec,lpUpperBound_vec,lpBranchMode_vec,presolve=lp.presolve,epsd=lp.epsd,timeout=lp.timeout)
+    solverOutput_list <- CallLpSolve(fObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,lpType_vec,lpKind_vec,lpLowerBound_vec,lpUpperBound_vec,lpBranchMode_vec,presolve=lpPresolve,epsd=lpEpsd,timeout=lpTimeout)
     ### end ##################
     
     #### solver outputs########
