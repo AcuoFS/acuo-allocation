@@ -1,5 +1,7 @@
-MATCH (cu:Custodian)-[:MANAGES]->(ca:CustodianAccount)-[h:HOLDS]-(a:Asset)-[is:IS_AVAILABLE_FOR]->(ag:Agreement)<-
-[:STEMS_FROM]-(mc:MarginCall)-[*1..2]->(ms:MarginStatement)-[:DIRECTED_TO]->(e:LegalEntity)<-[:MANAGES]-(c:Client)
+MATCH (cu:Custodian)-[:MANAGES]->(ca:CustodianAccount)-[h:HOLDS]->(a:Asset)-[is:IS_AVAILABLE_FOR]->(ag:Agreement)<-
+[:STEMS_FROM]-(ms:MarginStatement)-[:DIRECTED_TO]->(e:LegalEntity)<-[:MANAGES]-(c:Client)
+MATCH (mc:MarginCall)-[*1..2]->(ms:MarginStatement)
+
 WHERE mc.id IN {callId}
 AND c.id = {clientId}
 AND mc.marginType IN is.marginType
@@ -10,6 +12,7 @@ WITH *
 MATCH (e)-[:HAS]-(acc:TradingAccount)
 WHERE (acc)-[:ACCESSES]->(ca)
 
+// the following match takes long time, without it, the time is 0.13s, with it, time is 3s.
 WITH *
 MATCH (ccy1:Currency {id:a.currency})-[fx1:FX_RATE]->(usd:Currency {id:'USD'})
 WITH *

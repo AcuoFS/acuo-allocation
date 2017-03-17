@@ -7,7 +7,7 @@ MATCH (ccy:Currency {id:mc.currency})-[fx:FX_RATE]->(usd:Currency {id:'USD'})
 RETURN  mc.id AS id,
 		mc.marginType AS marginType,
 		ms.id AS marginStatement,
-		ABS(mc.excessAmount) AS callAmount,
-		ABS(mc.excessAmount/fx.fxRate) AS callAmountUSD,
+		ABS(mc.marginAmount) AS callAmount,
+		ABS(mc.marginAmount/fx.fxRate) AS callAmountUSD,
 		mc.currency AS currency,
 		mc.callDate AS callDate

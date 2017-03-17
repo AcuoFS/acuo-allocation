@@ -3,10 +3,10 @@
 # call ids
 # user id
 # uesr preference
-# callInfo <- callInfoByCallId(callIds)
-# availAssets <- availAssetByCallIdAndClientId(callIds,clientId)
-# assetIds
-# assetInfo <- assetInfoByAssetId(assetId)
+# callInfo_df <- callInfoByCallId(callId_vec)
+# availAsset_df <- availAssetByCallIdAndClientId(callId_vec,clientId)
+# assetId_vec
+# assetInfo_df <- assetInfoByAssetId(assetId)
 #######################################################################
 
 # Data below should come from the Java, 
@@ -19,6 +19,7 @@ source("src/allocationFunction.R")
 source("src/coreAlgo.R")
 
 # input #
+
 clientId = '999';
 callIds = c("mcp1","mcp5","mcp7")
 callIds = c("mcp45","mcp50","mcp43")
@@ -28,20 +29,33 @@ callIds = c("mcp32","mcp33","mcp37","mcp26","mcp38","mcp50");
 
 
 # get info #
-callInfo <- callInfoByCallId(callIds)
-availAssets <- availAssetByCallIdAndClientId(callIds,clientId) # available asset for the margin call
-availAssets <- availAssets[order(availAssets$callId),]
+callInfo_df <- callInfoByCallId(callId_vec)
+availAsset_df <- availAssetByCallIdAndClientId(callId_vec,clientId) # available asset for the margin call
+availAsset_df <- availAsset_df[order(availAsset_df$callId),]
 
-assetInfo <- assetInfoByAssetId(assetIds)
-assetInfo <- assetInfo[match(assetIds,assetInfo$id),]
+# change tempQuantity_vec for testing
+availAsset_df$quantity <- availAsset_df$quantity/5
+# add custodianAccount for testing
+availAsset_df <- rbind(availAsset_df,availAsset_df)
+availAsset_df$CustodianAccount[1:length(availAsset_df[,1])/2] <- 'custodianAccountTest'
+
+assetCustacId_vec <- paste(availAsset_df$assetId,availAsset_df$CustodianAccount,sep='-')
+availAsset_df$assetCustacId <- assetCustacId_vec
+resource_vec <- unique(assetCustacId_vec)
+
+assetId_vec <- as.character(data.frame(strsplit(resource_vec,'-'))[1,])
+assetInfo_df <- assetInfoByAssetId(assetId_vec)
+assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
 
 ## CALL THE ALLOCATION FUNCTION ###########
-call.limit <- c(7,7,10); time.limit=10
-start.time <- proc.time()[3]
-pref = c(5,8,3);
-result <- allocationAlgo(callIds,assetIds,clientId,callInfo,availAssets,assetInfo,pref,time.limit,call.limit)
-end.time <- proc.time()[3]
-run.time <- end.time-start.time
+callLimit_vec <- c(7,7,7); timeLimit=3
+#start.time <- proc.time()[3]
+pref_vec = c(5,8,3);
+result <- AllocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,timeLimit,callLimit_vec)
+output <- result$output
+#end.time <- proc.time()[3]
+#run.time <- end.time-start.time
+
 
 
 
