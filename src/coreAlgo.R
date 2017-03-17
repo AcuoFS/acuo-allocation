@@ -61,19 +61,16 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
   return(list(resultStatus=resultStatus,solverSolution_vec=solverSolution_vec,solverObjValue=solverObjValue))
 }
 
-renjinFix <- function(frame, name) {
-  d <- data.frame(frame);
-  colnames(d) <- gsub(name, "", colnames(d));
-  return(d);
-}
-
 CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
   pref_vec<-pref_vec
   callId_vec<-coreInput_list$callId_vec
   resource_vec<-coreInput_list$resource_vec
   assetId_vec <- as.character(data.frame(strsplit(resource_vec,'-'))[1,])
-  callInfo_df=coreInput_list$callInfo_df
-  assetInfo_df=coreInput_list$assetInfo_df
+
+  callInfo_df <- renjinFix(coreInput_list$callInfo_df, "callInfo.")
+  assetInfo_df <- renjinFix(coreInput_list$assetInfo_df, "assetInfo.")
+  availAsset_df <- renjinFix(availAsset_df,"availAsset.")
+  
   custodianAccount <- coreInput_list$custodianAccount  
   venue <- coreInput_list$venue
   
@@ -115,58 +112,7 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
   # 2  a3              asset3               numeric value          numeric value     CCY1    numeric value  numeric value     custac1
   # 3  a4              asset4               numeric value          numeric value     CCY3    numeric value  numeric value     custac3
   #------------------------------------------------------------------------------------------------------------------------------------------
->>>>>>> develop
-  
-  # make model
-  lps.model <- make.lp(0,var.num)  
-  
-  # set objective
-  set.objfn(lps.model,lp.obj)                    
-  
-<<<<<<< HEAD
-  # set constraints
-  for (i in 1:length(lp.con[,1])){              
-    add.constraint(lps.model,lp.con[i,],lp.dir[i],lp.rhs[i])
-  }
-  
-  if(!missing(lp.kind)){
-    # set semi-continuous variables
-    semi.idx <- which(lp.kind=='semi-continuous')
-    set.semicont(lps.model,semi.idx,TRUE)        
-  }
 
-  if(!missing(lp.type)){
-    # set integer variables
-    int.idx <- which(lp.type=='integer')
-    set.type(lps.model,int.idx,'integer')
-  }
-
-  if(!(missing(lp.bounds.lower)|| missing(lp.bounds.upper))){
-    # set variables bounds
-    set.bounds(lps.model,lower=lp.bounds.lower,upper=lp.bounds.upper)
-  }
-
-  if(!missing(lp.branch.mode)){
-    # set branch mode
-    for(k in 1:length(lp.branch.mode)){
-      set.branch.mode(lps.model,k,lp.branch.mode[k])
-    }  
-  }
-  
-  # set control options
-  lp.control(lps.model,...)
-  
-  # solve the problem
-  result.status <- solve(lps.model)  
-  
-  # get the variables(minUnitQuantity)
-  lpSolveAPI.solution <- get.variables(lps.model)
-  
-  # get the objective
-  result.objective <- get.objective(lps.model)
-  
-  return(list(result.status=result.status,lpSolveAPI.solution=lpSolveAPI.solution,result.objective=result.objective))
-=======
   ######### CHECK WHETHER ASSET POOL IS SUFFICIENT #############
   suffPerCall <- all(apply(eli_mat*(minUnitQuantity_mat*minUnitValue_mat*(1-haircut_mat)),1,sum) > callAmount_mat[,1])
   suffAllCall <- sum(minUnitQuantity_mat[1,]*minUnitValue_mat[1,]*(1-apply(haircut_mat,2,max)))>sum(callAmount_mat[,1])
@@ -795,5 +741,10 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
   }
   checkCall_mat <- subtotalFulfilled_mat
   return(list(output=output_list,checkCall_mat=checkCall_mat,availAsset_df=availAsset_df,status=status,lpsolveRun=lpsolveRun))
->>>>>>> develop
+}
+
+renjinFix <- function(frame, name) {
+  d <- data.frame(frame);
+  colnames(d) <- gsub(name, "", colnames(d));
+  return(d);
 }
