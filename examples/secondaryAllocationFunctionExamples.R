@@ -2,7 +2,7 @@ library("RNeo4j")
 source('src/functionsOfDBRequestByExecutingCypher.R')
 source('src/allocationFunction.R')
 source('src/coreAlgo.R')
-source('src/secondAllocationFunction.R')
+source('src/SecondAllocationFunction.R')
 
 # Secondary allocation algo
 # Triggered after the user deselects an asset from a call
@@ -51,4 +51,4 @@ assetInfo_df <- assetInfoByAssetId(assetId_vec)
 #msIds <- callInfo_df$marginStatement
 ############ END ###################################
 
-result1 <- secondAllocationFunction(callId_vec,callInfo_df,resource_vec,pref_vec,deselectAssetId,deselectCallId,currentSelection_list,availAsset_df,assetInfo_df)
+result1 <- SecondAllocationFunction(callId_vec,callInfo_df,resource_vec,pref_vec,deselectAssetId,deselectCallId,currentSelection_list,availAsset_df,assetInfo_df)
