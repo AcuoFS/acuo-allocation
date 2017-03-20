@@ -68,7 +68,6 @@ tempGetInputROW374 <- function(clientId,callId_vec){
   
   return(list(callId_vec=callId_vec,resource_vec=resource_vec,callInfo_df=callInfo_df,availAsset_df=availAsset_df,
               assetInfo_df=assetInfo_df))
->>>>>>> develop
 }
 
 ###### TEST FUNCTIONS ##############################################
