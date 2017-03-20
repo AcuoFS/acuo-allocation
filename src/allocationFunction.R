@@ -70,6 +70,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
   return(list(output=output_list,checkCall_mat=checkCall_mat,status=status,lpsolveRun=lpsolveRun))
 }
 
+
 #### OTHER FUNCTIONS(CALLED IN THE MAIN FUNCTION)##########################
 AllocationInputData <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec){
   
