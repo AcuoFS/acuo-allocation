@@ -23,7 +23,7 @@ callId_vec = c("mcp45","mcp50","mcp43")
 callId_vec = c("mcp1","mcp5","mcp7","mcp50")
 callId_vec = c("mcp1","mcp5","mcp7","mcp38","mcp20","mcp22","mcp15","mcp20","mcp22","mcp30","mcp50","mcp51")
 callId_vec = c("mcp32","mcp33","mcp37","mcp26","mcp39","mcp50");
-callId_vec = c("mcp10")
+callId_vec = c("mcp50")
 clientId = '999';
 
 # get info #
@@ -48,7 +48,7 @@ assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
 ## CALL THE ALLOCATION FUNCTION ###########
 callLimit_vec <- c(7,7,7); timeLimit=3
 #start.time <- proc.time()[3]
-pref_vec = c(5,8,3);
+pref_vec = c(10,10,0);
 result <- AllocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,timeLimit,callLimit_vec)
 output <- result$output
 #end.time <- proc.time()[3]
