@@ -496,9 +496,10 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
     lpEpsd <- 1e-11
     lpTimeout <- timeLimit
     ### end ###############
-    print('control option: '); 
-    print(list(lpKind_vec=lpKind_vec,lpType_vec=lpType_vec,lpLowerBound_vec=lpLowerBound_vec,lpUpperBound_vec=lpUpperBound_vec,
-               lpBranchMode_vec=lpBranchMode_vec,lpCon_mat=lpCon_mat,lpDir_vec=lpDir_vec,lpRhs_vec=lpRhs_vec))
+    #print('control option: '); 
+    #print(list(lpKind_vec=lpKind_vec,lpType_vec=lpType_vec,lpLowerBound_vec=lpLowerBound_vec,lpUpperBound_vec=lpUpperBound_vec,
+    #           lpBranchMode_vec=lpBranchMode_vec,lpCon_mat=lpCon_mat,lpDir_vec=lpDir_vec,lpRhs_vec=lpRhs_vec))
+    
     ### call lpSolve solver####
     solverOutput_list <- CallLpSolve(fObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,lpType_vec,lpKind_vec,lpLowerBound_vec,lpUpperBound_vec,lpBranchMode_vec,presolve=lpPresolve,epsd=lpEpsd,timeout=lpTimeout)
     ### end ##################
@@ -518,7 +519,7 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
     # round up the decimal quantity to the nearest integer.
     # if it's larger than 0.5
     result_mat <- matrix(0,nrow=callNum,ncol=resourceNum,dimnames=list(callId_vec,resource_vec))
-    resultDummy_mat <- result_mat
+    #resultDummy_mat <- result_mat
     result_mat <- t(result_mat); #resultDummy_mat <- result_mat
     result_mat[idxEli_vec]<-solverSolution_vec[1:varNum]
     #resultDummy_mat[idxEli_vec]<- solverSolution_vec[(varNum+1):varNum2]
