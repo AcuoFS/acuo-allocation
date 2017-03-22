@@ -18,7 +18,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
   ## method 3: By total call amount in margin statement, decreasing
   callInfo_df <- OrderCallId(callOrderMethod,callInfo_df)
   callId_vec <- callInfo_df$id
-  
+  msId_vec <- unique(callInfo_df$marginStatement)
   ######## END ###########################################################
   
   ######## SPLIT the call ids in to several groups #######################
@@ -37,13 +37,15 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
   
   # allocate one group a time
   # after each allocation, update the tempQuantity_vec of each asset
-  output_list <- list()
+  callOutput_list <- list()
+  msOutput_list <- list()
   checkCall_mat <- matrix(c(callInfo_df$callAmount,rep(0,callNum)),nrow=callNum, dimnames = list(callId_vec,c('callAmount','fulfilledAmount')))
   
   ############ ITERATE THE GROUP, RUN THE ALGO #########################
  
   for(i in 1:length(groupCallId_list)){
     callIdGroup_vec <- groupCallId_list[[i]]
+    msIdGroup_vec <- unique(callInfo_df$marginStatement[which(callInfo_df$id %in% callIdGroup_vec)])
     #cat(' group:',i,'\n','callId_vec:',callIdGroup_vec,'\n')
     callInfoGroup_df <- callInfo_df[match(callIdGroup_vec,callInfo_df$id),]
     availAssetGroup_df <- availAsset_df[which(availAsset_df$callId %in% callIdGroup_vec),]
@@ -58,7 +60,8 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
     
     # core Algo, assume all data comes in a list
     resultGroup_list <- CoreAlgo(coreInput_list,availAssetGroup_df,timeLimit,pref_vec)
-    outputGroup_list <- resultGroup_list$output
+    msOutputGroup_list <- resultGroup_list$msOutput_list
+    callOutputGroup_list <- resultGroup_list$callOutput_list
     status <- resultGroup_list$status
     lpsolveRun <- resultGroup_list$lpsolveRun
     checkCallGroup_mat <- resultGroup_list$checkCall_mat
@@ -66,11 +69,14 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
 
     for(k in 1:length(callIdGroup_vec)){
       callId <- callIdGroup_vec[k]
-      output_list[[callId]] <- outputGroup_list[[callId]]
+      j <- which(msIdGroup_vec==callInfo_df$marginStatement[which(callInfo_df$id==callId)])
+      msId <- msId_vec[j]
+      callOutput_list[[callId]] <- callOutputGroup_list[[callId]]
+      msOutput_list[[msId]] <- msOutputGroup_list[[msId]]
       checkCall_mat[which(rownames(checkCall_mat)==callId),2] <- checkCallGroup_mat[which(rownames(checkCallGroup_mat)==callId),2]
     }
   }
-  return(list(coreInput_list=coreInput_list,output=output_list,checkCall_mat=checkCall_mat,status=status,lpsolveRun=lpsolveRun))
+  return(list(msOutput=msOutput_list,callOutput=callOutput_list,checkCall_mat=checkCall_mat,status=status,lpsolveRun=lpsolveRun))
 }
 
 
