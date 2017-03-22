@@ -1,5 +1,6 @@
 source('src/allocationFunction.R')
 source('src/coreAlgo.R')
+source('src/callLpSolve.R')
 source('src/functionsOfDBRequestByExecutingCypher.R')
 
 #### CONSTANTS INPUT FOR TESTING, PLEASE DO NOT CHANGE ############

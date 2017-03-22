@@ -1,65 +1,3 @@
-CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
-                        lpType_vec=lpType_vec,lpKind_vec=lpKind_vec,lpLowerBound_vec=lpLowerBound_vec,lpUpperBound_vec=lpUpperBound_vec,lpBranchMode_vec=lpBranchMode_vec,
-                        ...){
-  library(lpSolveAPI)
-  # input variables
-  # must have: lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec
-  # optional: lpType_vec,lpKind_vec,lpLowerBound_vec,lpUpperBound_vec,lpBranchMode_vec
-  # optional: ...
-  # if optional, then the default parameters will apply
-  
-  # number of decision variables
-  varNum <- length(lpCon_mat[1,])
-  
-  # make model
-  lpModel <- make.lp(0,varNum)  
-  
-  # set objective
-  set.objfn(lpModel,lpObj_vec)                    
-  
-  # set constraints
-  for (i in 1:length(lpCon_mat[,1])){              
-    add.constraint(lpModel,lpCon_mat[i,],lpDir_vec[i],lpRhs_vec[i])
-  }
-  
-  if(!missing(lpKind_vec)){
-    # set semi-continuous variables
-    idxSemi_vec <- which(lpKind_vec=='semi-continuous')
-    set.semicont(lpModel,idxSemi_vec,TRUE)        
-  }
-  
-  if(!missing(lpType_vec)){
-    # set integer variables
-    idxInt_vec <- which(lpType_vec=='integer')
-    set.type(lpModel,idxInt_vec,'integer')
-  }
-  
-  if(!(missing(lpLowerBound_vec)|| missing(lpUpperBound_vec))){
-    # set variables bounds
-    set.bounds(lpModel,lower=lpLowerBound_vec,upper=lpUpperBound_vec)
-  }
-  
-  if(!missing(lpBranchMode_vec)){
-    # set branch mode
-    for(k in 1:length(lpBranchMode_vec)){
-      set.branch.mode(lpModel,k,lpBranchMode_vec[k])
-    }  
-  }
-  
-  # set control options
-  lp.control(lpModel,...)
-  
-  # solve the problem
-  resultStatus <- solve(lpModel)  
-  
-  # get the variables(minUnitQuantity)
-  solverSolution_vec <- get.variables(lpModel)
-  
-  # get the objective
-  solverObjValue <- get.objective(lpModel)
-  
-  return(list(resultStatus=resultStatus,solverSolution_vec=solverSolution_vec,solverObjValue=solverObjValue))
-}
 
 CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
   pref_vec<-pref_vec
@@ -144,7 +82,6 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
   assetLiquidity_vec <- apply((1-haircut_mat*eli_mat)^2,2,min) # define asset liquidity
   liquidity_mat <- matrix(rep(assetLiquidity_vec,callNum),nrow=callNum,byrow=TRUE,dimnames=list(callId_vec,resource_vec)) 
   liquidity_vec <- as.vector(t(liquidity_mat))
-  
   operation_mat <- matrix(rep(1,resourceNum*callNum),nrow=callNum,byrow=TRUE,dimnames=list(callId_vec,resource_vec)) 
   for(i in 1:callNum){
     idxCcy <- which(callCcy[i]==assetId_vec)    # return the index of mc[i] currency cash in the assetId_vec list
@@ -403,7 +340,6 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
     
     # objective function
     operationTemp_vec <- normOperation_vec[idxEli_vec]
-    #print(length(operationTemp_vec));print(varNum); print(msVar_mat)
     operationObj_vec <-  c(rep(0,varNum),operationTemp_vec*max(callAmount_mat)*10,-operationTemp_vec[msVar_mat[,1]-varNum]*max(callAmount_mat)*10)
     liquidityObj_vec <-  c(minUnitValue_vec[idxEli_vec]*normLiquidity_vec[idxEli_vec],rep(0,varNum3-varNum))
     costObj_vec <-  c(minUnitValue_vec[idxEli_vec]*normCost_vec[idxEli_vec],rep(0,varNum3-varNum))
@@ -496,12 +432,9 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
     lpEpsd <- 1e-11
     lpTimeout <- timeLimit
     ### end ###############
-    #print('control option: '); 
-    #print(list(lpKind_vec=lpKind_vec,lpType_vec=lpType_vec,lpLowerBound_vec=lpLowerBound_vec,lpUpperBound_vec=lpUpperBound_vec,
-    #           lpBranchMode_vec=lpBranchMode_vec,lpCon_mat=lpCon_mat,lpDir_vec=lpDir_vec,lpRhs_vec=lpRhs_vec))
-    
+
     ### call lpSolve solver####
-    solverOutput_list <- CallLpSolve(fObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,lpType_vec,lpKind_vec,lpLowerBound_vec,lpUpperBound_vec,lpBranchMode_vec,presolve=lpPresolve,epsd=lpEpsd,timeout=lpTimeout)
+    solverOutput_list <- CallLpSolve(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,lpType_vec,lpKind_vec,lpLowerBound_vec,lpUpperBound_vec,lpBranchMode_vec,presolve=lpPresolve,epsd=lpEpsd,timeout=lpTimeout)
     ### end ##################
     
     #### solver outputs########
@@ -519,10 +452,10 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
     # round up the decimal quantity to the nearest integer.
     # if it's larger than 0.5
     result_mat <- matrix(0,nrow=callNum,ncol=resourceNum,dimnames=list(callId_vec,resource_vec))
-    #resultDummy_mat <- result_mat
-    result_mat <- t(result_mat); #resultDummy_mat <- result_mat
+    resultDummy_mat <- result_mat
+    result_mat <- t(result_mat); resultDummy_mat <- result_mat
     result_mat[idxEli_vec]<-solverSolution_vec[1:varNum]
-    #resultDummy_mat[idxEli_vec]<- solverSolution_vec[(varNum+1):varNum2]
+    resultDummy_mat[idxEli_vec]<- solverSolution_vec[(varNum+1):varNum2]
     result_mat[which(result_mat>0.5)] <- ceiling(result_mat[which(result_mat>0.5)])
     result_mat <- t(result_mat)                   # convert solution into matrix format
     #print('result_mat: '); print(result_mat)

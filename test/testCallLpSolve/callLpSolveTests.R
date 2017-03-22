@@ -1,4 +1,4 @@
-source("src/coreAlgo.R")
+source("src/callLpSolve.R")
 
 ### UNIT TESTS ##############
 #

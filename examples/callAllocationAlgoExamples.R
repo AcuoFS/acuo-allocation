@@ -17,9 +17,10 @@
 source('src/functionsOfDBRequestByExecutingCypher.R')
 source("src/allocationFunction.R")
 source("src/coreAlgo.R")
+source("src/callLpSolve.R")
 
 # input #
-callId_vec = c("mcp45","mcp50","mcp43")
+callId_vec = c("mcp45","mcp50","mcp43","mcp38")
 callId_vec = c("mcp1","mcp5","mcp7","mcp50")
 callId_vec = c("mcp1","mcp5","mcp7","mcp38","mcp20","mcp22","mcp15","mcp20","mcp22","mcp30","mcp50","mcp51")
 callId_vec = c("mcp32","mcp33","mcp37","mcp26","mcp39","mcp50");
@@ -27,7 +28,7 @@ callId_vec = c("mcp50")
 clientId = '999';
 
 # get info #
-callInfo_df <- callInfoByCallId(callId_vec)
+callInfo_df <- callInfoByCallId(callId_vec); callInfo_df<- callInfo_df[match(callId_vec,callInfo_df$id),]
 availAsset_df <- availAssetByCallIdAndClientId(callId_vec,clientId) # available asset for the margin call
 availAsset_df <- availAsset_df[order(availAsset_df$callId),]
 
@@ -45,18 +46,16 @@ assetId_vec <- as.character(data.frame(strsplit(resource_vec,'-'))[1,])
 assetInfo_df <- assetInfoByAssetId(assetId_vec)
 assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
 
+availAsset_df$FXRate <- 1
+assetInfo_df$FXRate <- 1
+
 ## CALL THE ALLOCATION FUNCTION ###########
-callLimit_vec <- c(7,7,7); timeLimit=3
+inputLimit_vec <- c(7,7,7,5); timeLimit=10; callOrderMethod=3
 #start.time <- proc.time()[3]
 pref_vec = c(10,10,0);
-result <- AllocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,timeLimit,callLimit_vec)
+result <- AllocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,timeLimit,inputLimit_vec,callOrderMethod)
 output <- result$output
 #end.time <- proc.time()[3]
 #run.time <- end.time-start.time
-
-
-
-
-
 
 
