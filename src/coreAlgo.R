@@ -434,7 +434,9 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
     ### end ###############
 
     ### call lpSolve solver####
-    solverOutput_list <- CallLpSolve(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,lpType_vec,lpKind_vec,lpLowerBound_vec,lpUpperBound_vec,lpBranchMode_vec,presolve=lpPresolve,epsd=lpEpsd,timeout=lpTimeout)
+    solverOutput_list <- CallLpSolve(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
+                                     lpType_vec=lpType_vec,lpKind_vec=lpKind_vec,lpLowerBound_vec=lpLowerBound_vec,lpUpperBound_vec=lpUpperBound_vec,lpBranchMode_vec=lpBranchMode_vec,
+                                     presolve=lpPresolve,epsd=lpEpsd,timeout=lpTimeout)
     ### end ##################
     
     #### solver outputs########
