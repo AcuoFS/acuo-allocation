@@ -32,11 +32,13 @@ callInfo_df <- callInfoByCallId(callId_vec); callInfo_df<- callInfo_df[match(cal
 availAsset_df <- availAssetByCallIdAndClientId(callId_vec,clientId) # available asset for the margin call
 availAsset_df <- availAsset_df[order(availAsset_df$callId),]
 
+########## added lines for testing purposes ##############
 # change tempQuantity_vec for testing
 availAsset_df$quantity <- availAsset_df$quantity/5
 # add custodianAccount for testing
 availAsset_df <- rbind(availAsset_df,availAsset_df)
 availAsset_df$CustodianAccount[1:length(availAsset_df[,1])/2] <- 'custodianAccountTest'
+########## end ###########################################
 
 assetCustacId_vec <- paste(availAsset_df$assetId,availAsset_df$CustodianAccount,sep='-')
 availAsset_df$assetCustacId <- assetCustacId_vec
@@ -54,7 +56,8 @@ inputLimit_vec <- c(7,7,7,5); timeLimit=10; callOrderMethod=3
 #start.time <- proc.time()[3]
 pref_vec = c(10,10,0);
 result <- AllocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,timeLimit,inputLimit_vec,callOrderMethod)
-output <- result$output
+msOutput <- result$msOutput
+callOutput <- result$callOutput
 #end.time <- proc.time()[3]
 #run.time <- end.time-start.time
 
