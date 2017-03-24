@@ -1,6 +1,6 @@
 
 #### ALLOCATION MAIN FUNCTION ############
-AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,timeLimit,inputLimit_vec,callOrderMethod){
+AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,timeLimit,inputLimit_vec,callOrderMethod){
   ########### CONSTANTS ################################
   if(missing(callOrderMethod)){
     callOrderMethod <-2
@@ -59,7 +59,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
     coreInput_list <- AllocationInputData(callIdGroup_vec,resourceGroup_vec,callInfoGroup_df,availAssetGroup_df,assetInfoGroup_df,pref_vec)
     
     # core Algo, assume all data comes in a list
-    resultGroup_list <- CoreAlgo(coreInput_list,availAssetGroup_df,timeLimit,pref_vec)
+    resultGroup_list <- CoreAlgo(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,operLimit)
     msOutputGroup_list <- resultGroup_list$msOutput_list
     callOutputGroup_list <- resultGroup_list$callOutput_list
     status <- resultGroup_list$status
