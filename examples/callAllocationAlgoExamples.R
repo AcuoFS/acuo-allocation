@@ -20,11 +20,11 @@ source("src/coreAlgo.R")
 source("src/callLpSolve.R")
 
 # input #
-callId_vec = c("mcp45","mcp50","mcp43","mcp38")
+callId_vec = c("mcp50")
 callId_vec = c("mcp1","mcp5","mcp7","mcp50")
 callId_vec = c("mcp1","mcp5","mcp7","mcp38","mcp20","mcp22","mcp15","mcp20","mcp22","mcp30","mcp50","mcp51")
 callId_vec = c("mcp32","mcp33","mcp37","mcp26","mcp39","mcp50");
-callId_vec = c("mcp50")
+callId_vec = c("mcp45","mcp50","mcp43","mcp38")
 clientId = '999';
 
 # get info #
@@ -54,8 +54,8 @@ assetInfo_df$FXRate <- 1
 ## CALL THE ALLOCATION FUNCTION ###########
 inputLimit_vec <- c(7,7,7,5); timeLimit=10; callOrderMethod=3
 #start.time <- proc.time()[3]
-pref_vec = c(10,10,0);
-result <- AllocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,timeLimit,inputLimit_vec,callOrderMethod)
+pref_vec = c(10,10,0);operLimit<- 10
+result <- AllocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,timeLimit,inputLimit_vec,callOrderMethod)
 msOutput <- result$msOutput
 callOutput <- result$callOutput
 #end.time <- proc.time()[3]
