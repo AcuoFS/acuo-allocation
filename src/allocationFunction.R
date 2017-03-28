@@ -57,13 +57,14 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
     
     # input data to the core Algo
     coreInput_list <- AllocationInputData(callIdGroup_vec,resourceGroup_vec,callInfoGroup_df,availAssetGroup_df,assetInfoGroup_df,pref_vec)
-    
+    #coreInput_list<-AllocationInputData(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec)
     # core Algo, assume all data comes in a list
     resultGroup_list <- CoreAlgo(coreInput_list,availAssetGroup_df,timeLimit,pref_vec)
     msOutputGroup_list <- resultGroup_list$msOutput_list
     callOutputGroup_list <- resultGroup_list$callOutput_list
     status <- resultGroup_list$status
     lpsolveRun <- resultGroup_list$lpsolveRun
+    solverObjValue <- resultGroup_list$solverObjValue
     checkCallGroup_mat <- resultGroup_list$checkCall_mat
     availAsset_df <- resultGroup_list$availAsset_df
 
@@ -76,7 +77,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
       checkCall_mat[which(rownames(checkCall_mat)==callId),2] <- checkCallGroup_mat[which(rownames(checkCallGroup_mat)==callId),2]
     }
   }
-  return(list(msOutput=msOutput_list,callOutput=callOutput_list,checkCall_mat=checkCall_mat,status=status,lpsolveRun=lpsolveRun))
+  return(list(msOutput=msOutput_list,callOutput=callOutput_list,checkCall_mat=checkCall_mat,status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue))
 }
 
 

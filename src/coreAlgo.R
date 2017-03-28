@@ -448,12 +448,16 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
     lpPresolve <- ifelse(callNum<=5,'none','knapsack')
     lpEpsd <- 1e-11
     lpTimeout <- timeLimit
+    lpVerbose <- 'normal'
+    # bbRule <-  c("pseudononint", "restart","autoorder","stronginit", "dynamic","rcostfixing")
+    bbRule <- c("pseudononint", "greedy", "dynamic","rcostfixing") # default
+    
     ### end ###############
 
     ### call lpSolve solver####
     solverOutput_list <- CallLpSolve(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
                                      lpType_vec=lpType_vec,lpKind_vec=lpKind_vec,lpLowerBound_vec=lpLowerBound_vec,lpUpperBound_vec=lpUpperBound_vec,lpBranchMode_vec=lpBranchMode_vec,
-                                     presolve=lpPresolve,epsd=lpEpsd,timeout=lpTimeout)
+                                     presolve=lpPresolve,epsd=lpEpsd,timeout=lpTimeout,verbose=lpVerbose,bb.rule=bbRule)
     ### end ##################
     
     #### solver outputs########
@@ -471,12 +475,11 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
     # round up the decimal quantity to the nearest integer.
     # if it's larger than 0.5
     result_mat <- matrix(0,nrow=callNum,ncol=resourceNum,dimnames=list(callId_vec,resource_vec))
-    resultDummy_mat <- result_mat
-    result_mat <- t(result_mat); resultDummy_mat <- result_mat
+    result_mat <- t(result_mat);     resultDummy_mat <- result_mat
     result_mat[idxEli_vec]<-solverSolution_vec[1:varNum]
     resultDummy_mat[idxEli_vec]<- solverSolution_vec[(varNum+1):varNum2]
     result_mat[which(result_mat>0.5)] <- ceiling(result_mat[which(result_mat>0.5)])
-    result_mat <- t(result_mat)                   # convert solution into matrix format
+    result_mat <- t(result_mat);  resultDummy_mat<- t(resultDummy_mat)      # convert solution into matrix format
     #print('result_mat: '); print(result_mat)
     #print('resultDummy_mat: '); print(resultDummy_mat)
     
@@ -720,7 +723,7 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
     subtotalFulfilled_mat[i,2] <- sum(callSelect_list[[callId_vec[i]]]$`NetAmount(USD)`)
   }
   checkCall_mat <- subtotalFulfilled_mat
-  return(list(msOutput_list=msOutput_list,callOutput_list=callOutput_list,checkCall_mat=checkCall_mat,availAsset_df=availAsset_df,status=status,lpsolveRun=lpsolveRun))
+  return(list(msOutput_list=msOutput_list,callOutput_list=callOutput_list,checkCall_mat=checkCall_mat,availAsset_df=availAsset_df,status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue))
 }
 
 renjinFix <- function(frame, name) {

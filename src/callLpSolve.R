@@ -9,10 +9,11 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
   # if optional, then the default parameters will apply
   
   # number of decision variables
-  varNum <- length(lpCon_mat[1,])
+  varnum <- length(lpCon_mat[1,])
   
   # make model
-  lpModel <- make.lp(0,varNum)  
+  lpModel <- make.lp(0,varnum)  
+  name.lp(lpModel, 'Optimal Allocation')
   
   # set objective
   set.objfn(lpModel,lpObj_vec)                    
@@ -51,6 +52,7 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
   
   # solve the problem
   resultStatus <- solve(lpModel)  
+  
   
   # get the variables(minUnitQuantity)
   solverSolution_vec <- get.variables(lpModel)
