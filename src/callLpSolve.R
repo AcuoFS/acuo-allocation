@@ -47,23 +47,21 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
     }  
   }
   
-  guess.basis(lpModel,)
-  
   # set control options
   lp.control(lpModel,...)
-  lp.control(lpModel,epsd=lpEpsd,timeout=lpTimeout+10,presolve=lpPresolve,verbose=verbose)
+  #lp.control(lpModel,epsd=lpEpsd,timeout=lpTimeout+10,presolve=lpPresolve,verbose=verbose)
   # solve the problem
   resultStatus <- solve(lpModel)  
-  get.constraints(lpModel) <= get.rhs(lpModel,1:227)
-  tempRhs_vec <- get.constr.value(lpModel,'rhs',1:227)
+  #get.constraints(lpModel) <= get.rhs(lpModel,1:227)
+  #tempRhs_vec <- get.constr.value(lpModel,'rhs',1:227)
   
   
-  get.constr.type(lpModel,1:227)
-  get.basis(lpModel,T)
-  get.column(lpModel,2) # row number starts from 0, with random value
-  get.mat(lpModel,35,97)
+  #get.constr.type(lpModel,1:227)
+  #get.basis(lpModel,T)
+  #get.column(lpModel,2) # row number starts from 0, with random value
+  #get.mat(lpModel,35,97)
   
-  get.solutioncount(lpModel)
+  #get.solutioncount(lpModel)
   # get the variables(minUnitQuantity)
   solverSolution_vec <- get.variables(lpModel)
   

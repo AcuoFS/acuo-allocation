@@ -64,8 +64,12 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
     callOutputGroup_list <- resultGroup_list$callOutput_list
     status <- resultGroup_list$status
     lpsolveRun <- resultGroup_list$lpsolveRun
+    solverObjValue <- resultGroup_list$solverObjValue
     checkCallGroup_mat <- resultGroup_list$checkCall_mat
-    availAsset_df <- resultGroup_list$availAsset_df
+    
+    availAssetGroup_df <- resultGroup_list$availAsset_df
+    
+    availAsset_df[which(availAsset_df$callId %in% callIdGroup_vec),] <- availAssetGroup_df
     
     for(k in 1:length(callIdGroup_vec)){
       callId <- callIdGroup_vec[k]
@@ -76,7 +80,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
       checkCall_mat[which(rownames(checkCall_mat)==callId),2] <- checkCallGroup_mat[which(rownames(checkCallGroup_mat)==callId),2]
     }
   }
-  return(list(msOutput=msOutput_list,callOutput=callOutput_list,checkCall_mat=checkCall_mat,status=status,lpsolveRun=lpsolveRun))
+  return(list(msOutput=msOutput_list,callOutput=callOutput_list,checkCall_mat=checkCall_mat,status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue))
 }
 
 
@@ -144,6 +148,7 @@ AllocationInputData <- function(callId_vec,resource_vec,callInfo_df,availAsset_d
   unitValue_vec <- as.vector(t(unitValue_mat))
   minUnit_vec <- as.vector(t(minUnit_mat))
   minUnitValue_vec <- as.vector(t(minUnitValue_mat))
+  callAmount_vec <- as.vector(t(callAmount_mat))
   
   output_list <- list(resource_vec=resource_vec,callId_vec=callId_vec,assetInfo_df=assetInfo_df,callInfo_df=callInfo_df,pref_vec=pref_vec,
                       custodianAccount=custodianAccount,venue=venue,
@@ -156,7 +161,7 @@ AllocationInputData <- function(callId_vec,resource_vec,callInfo_df,availAsset_d
                       unitValue_mat=unitValue_mat,unitValue_vec=unitValue_vec,
                       minUnit_mat=minUnit_mat, minUnit_vec=minUnit_vec,
                       minUnitValue_mat=minUnitValue_mat,minUnitValue_vec= minUnitValue_vec,
-                      callAmount_mat = callAmount_mat
+                      callAmount_mat = callAmount_mat,callAmount_vec=callAmount_vec
   )
   return (output_list)
 }
