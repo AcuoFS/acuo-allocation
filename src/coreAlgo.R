@@ -26,11 +26,9 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit){
   minUnit_mat <- coreInput_list$minUnit_mat; minUnit_vec <- coreInput_list$minUnit_vec;
   minUnitValue_mat <- coreInput_list$minUnitValue_mat; minUnitValue_vec <- coreInput_list$minUnitValue_vec;
   
-  #amount.mat <- unitValue_mat*quantity_mat; amount.vec <- unitValue_vec*quantity_vec     # amount of asset
-  
   callAmount_mat <- coreInput_list$callAmount_mat; callAmount_vec <- coreInput_list$callAmount_mat      # margin call amount mat
   
-  costBasis_mat <- coreInput_list$cost_mat; cost_vec <- coreInput_list$cost_vec        # cost mat & vec
+  costBasis_mat <- coreInput_list$cost_mat; costBasis_vec <- coreInput_list$cost_vec        # cost mat & vec
   #cost_mat <- coreInput_list$cost_mat; cost_vec <- coreInput_list$cost_vec        # cost mat & vec
   
   ############### CONSTANTS DEFINED INSIDE THE ALGO ###################
@@ -79,9 +77,9 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit){
   #callAmount_vec <- callAmount_vec*(1+excellCallPercent*pref_vec[1])
   
   # calculate the cost if only the integral units of asset can be allocated
-  integer.callAmount_mat <- ceiling(callAmount_mat/(1-haircut_mat)/minUnitValue_mat)*minUnitValue_mat*(1-haircut_mat)
+  integerCallAmount_mat <- ceiling(callAmount_mat/(1-haircut_mat)/minUnitValue_mat)*minUnitValue_mat
   
-  cost_mat<-integer.callAmount_mat/(1-haircut_mat)*costBasis_mat  # cost amount
+  cost_mat<-integerCallAmount_mat/(1-haircut_mat)*costBasis_mat  # cost amount
   
   #costBasis_mat <- costBasis_mat/(1-haircut_mat)
   #costBasis_vec <- as.vector(t(costBasis_mat))
@@ -181,7 +179,7 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit){
     }
   }
   
-  optimalAssetSuffQty_vec <- callAmount_mat/(1-haircut_mat)/minUnitValue_mat # quantity needed for a single asset to fulfill each call
+  optimalAssetSuffQty_vec <- ceiling(callAmount_mat/(1-haircut_mat)/minUnitValue_mat) # quantity needed for a single asset to fulfill each call
   selectUniqueAsset_vec <- unique(optimalAsset_mat[,2]) 
   ifSelectAssetSuff_vec <- rep(0,length(selectUniqueAsset_vec))
   
@@ -208,7 +206,10 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit){
       selectAssetCustodianAccount_vec <- custodianAccount[idxSelectResource_vec]
       selectAssetVenue_vec <- venue[idxSelectResource_vec]
       selectAssetName_vec <- assetInfo_df$name[idxSelectAsset_vec]
-      selectAssetNetAmountUSD_vec <- integer.callAmount_mat[i,1]
+      
+      
+      
+      selectAssetNetAmountUSD_vec <- integerCallAmount_mat[i,1]
       selectAssetHaircut_vec <- haircut_mat[i,idxSelectResource_vec]
       selectAssetAmountUSD_vec <- selectAssetNetAmountUSD_vec/(1-haircut_mat[i,idxSelectResource_vec])
       selectAssetCurrency_vec <- assetInfo_df$currency[idxSelectAsset_vec]
