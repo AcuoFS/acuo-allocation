@@ -78,9 +78,9 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
   callAmount_vec <- callAmount_vec*(1+excellCallPercent*pref_vec[1])
   
   # calculate the cost if only the integral units of asset can be allocated
-  integer.callAmount_mat <- ceiling(callAmount_mat/(1-haircut_mat)/minUnitValue_mat)*minUnitValue_mat*(1-haircut_mat)
+  integerCallAmount_mat <- ceiling(callAmount_mat/(1-haircut_mat)/minUnitValue_mat)*minUnitValue_mat
   
-  cost_mat<-integer.callAmount_mat/(1-haircut_mat)*costBasis_mat  # cost amount
+  cost_mat<-integerCallAmount_mat/(1-haircut_mat)*costBasis_mat  # cost amount
   
   assetLiquidity_vec <- apply((1-haircut_mat*eli_mat)^2,2,min) # define asset liquidity
   liquidity_mat <- matrix(rep(assetLiquidity_vec,callNum),nrow=callNum,byrow=TRUE,dimnames=list(callId_vec,resource_vec)) 
@@ -201,7 +201,7 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec){
       selectAssetCustodianAccount_vec <- custodianAccount[idxSelectResource_vec]
       selectAssetVenue_vec <- venue[idxSelectResource_vec]
       selectAssetName_vec <- assetInfo_df$name[idxSelectAsset_vec]
-      selectAssetNetAmountUSD_vec <- integer.callAmount_mat[i,1]
+      selectAssetNetAmountUSD_vec <- integerCallAmount_mat[i,1]
       selectAssetHaircut_vec <- haircut_mat[i,idxSelectResource_vec]
       selectAssetAmountUSD_vec <- selectAssetNetAmountUSD_vec/(1-haircut_mat[i,idxSelectResource_vec])
       selectAssetCurrency_vec <- assetInfo_df$currency[idxSelectAsset_vec]
