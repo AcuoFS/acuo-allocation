@@ -31,6 +31,7 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit){
   callAmount_mat <- coreInput_list$callAmount_mat; callAmount_vec <- coreInput_list$callAmount_mat      # margin call amount mat
   
   costBasis_mat <- coreInput_list$cost_mat; cost_vec <- coreInput_list$cost_vec        # cost mat & vec
+  #cost_mat <- coreInput_list$cost_mat; cost_vec <- coreInput_list$cost_vec        # cost mat & vec
   
   ############### CONSTANTS DEFINED INSIDE THE ALGO ###################
   minMoveValue <- 1000
@@ -73,14 +74,17 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit){
   optimalAsset_mat <- matrix(c(callId_vec,rep('', callNum)),nrow=callNum,ncol=2,dimnames = list(callId_vec,c('callId','assetCustacId')))
   
   callCcy <- callInfo_df$currency
-  excellCallPercent <- 0.2
-  callAmount_mat <- callAmount_mat*(1+excellCallPercent*pref_vec[1])
-  callAmount_vec <- callAmount_vec*(1+excellCallPercent*pref_vec[1])
+  #excellCallPercent <- 0.2
+  #callAmount_mat <- callAmount_mat*(1+excellCallPercent*pref_vec[1])
+  #callAmount_vec <- callAmount_vec*(1+excellCallPercent*pref_vec[1])
   
   # calculate the cost if only the integral units of asset can be allocated
   integer.callAmount_mat <- ceiling(callAmount_mat/(1-haircut_mat)/minUnitValue_mat)*minUnitValue_mat*(1-haircut_mat)
   
   cost_mat<-integer.callAmount_mat/(1-haircut_mat)*costBasis_mat  # cost amount
+  
+  #costBasis_mat <- costBasis_mat/(1-haircut_mat)
+  #costBasis_vec <- as.vector(t(costBasis_mat))
   
   assetLiquidity_vec <- apply((1-haircut_mat*eli_mat)^2,2,min) # define asset liquidity
   liquidity_mat <- matrix(rep(assetLiquidity_vec,callNum),nrow=callNum,byrow=TRUE,dimnames=list(callId_vec,resource_vec)) 
@@ -184,7 +188,7 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit){
   for(i in 1:length(selectUniqueAsset_vec)){
     id <- selectUniqueAsset_vec[i]
     idx.temp <- optimalAsset_mat[which(optimalAsset_mat[,2]==id),1] # calls have the least cost assetId_vec=id
-    ifSelectAssetSuff_vec[i] <- 1*(sum(optimalAssetSuffQty_vec[idx.temp,id]) < minUnitQuantity_mat[1,id])
+    ifSelectAssetSuff_vec[i] <- 1*(sum(optimalAssetSuffQty_vec[idx.temp,id]) < max(minUnitQuantity_mat[,id]))
   }
   
   #### In case of OW-291, optimal assets are sufficient
@@ -363,7 +367,7 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit){
     #operationTemp_vec <- normOperation_vec[idxEli_vec]
     #operationObj_vec <-  c(rep(0,varNum),operationTemp_vec*max(callAmount_mat)*10,-operationTemp_vec[msVar_mat[,1]-varNum]*max(callAmount_mat)*10)
     liquidityObj_vec <-  c(minUnitValue_vec[idxEli_vec]*normLiquidity_vec[idxEli_vec],rep(0,varNum3-varNum))
-    costObj_vec <-  c(minUnitValue_vec[idxEli_vec]*normCost_vec[idxEli_vec],rep(0,varNum3-varNum))
+    costObj_vec <-  c(minUnitValue_vec[idxEli_vec]*costBasis_vec[idxEli_vec],rep(0,varNum3-varNum))
     
     #fObj_vec <- operationObj_vec*pref_vec[1]+liquidityObj_vec*pref_vec[2]+costObj_vec*pref_vec[3]
     fObj_vec <- liquidityObj_vec*pref_vec[2]+costObj_vec*pref_vec[3]

@@ -74,12 +74,13 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
     for(k in 1:length(callIdGroup_vec)){
       callId <- callIdGroup_vec[k]
       j <- which(msIdGroup_vec==callInfo_df$marginStatement[which(callInfo_df$id==callId)])
-      msId <- msId_vec[j]
+      msId <- msIdGroup_vec[j]
       callOutput_list[[callId]] <- callOutputGroup_list[[callId]]
       msOutput_list[[msId]] <- msOutputGroup_list[[msId]]
       checkCall_mat[which(rownames(checkCall_mat)==callId),2] <- checkCallGroup_mat[which(rownames(checkCallGroup_mat)==callId),2]
     }
   }
+  
   return(list(msOutput=msOutput_list,callOutput=callOutput_list,checkCall_mat=checkCall_mat,status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue))
 }
 
