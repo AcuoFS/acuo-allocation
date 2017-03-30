@@ -1,9 +1,8 @@
 
-CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit){
+CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit,minMoveValue){
   pref_vec<-pref_vec
   callId_vec<-coreInput_list$callId_vec
   resource_vec<-coreInput_list$resource_vec
-  #assetId_vec <- as.character(data.frame(strsplit(resource_vec,'-'))[1,])
   assetId_vec <- matrix(unlist(strsplit(resource_vec,'-')),nrow=2)[1,]
   
   callInfo_df <- renjinFix(coreInput_list$callInfo_df, "callInfo.")
@@ -29,10 +28,11 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit){
   callAmount_mat <- coreInput_list$callAmount_mat; callAmount_vec <- coreInput_list$callAmount_mat      # margin call amount mat
   
   costBasis_mat <- coreInput_list$cost_mat; costBasis_vec <- coreInput_list$cost_vec        # cost mat & vec
-  #cost_mat <- coreInput_list$cost_mat; cost_vec <- coreInput_list$cost_vec        # cost mat & vec
   
   ############### CONSTANTS DEFINED INSIDE THE ALGO ###################
-  minMoveValue <- 1000
+  if(missing(minMoveValue)){
+    minMoveValue <- 1000
+  }
   
   ############### Output Format #######################################
   callOutput_list <- list()
@@ -370,6 +370,10 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit){
     liquidityObj_vec <-  c(minUnitValue_vec[idxEli_vec]*normLiquidity_vec[idxEli_vec],rep(0,varNum3-varNum))
     costObj_vec <-  c(minUnitValue_vec[idxEli_vec]*costBasis_vec[idxEli_vec],rep(0,varNum3-varNum))
     
+    #costObj_vec[19:36] <- 40
+    #costObj_vec[18+c(1:3,7:9,13:15)]<- 10
+    
+    
     #fObj_vec <- operationObj_vec*pref_vec[1]+liquidityObj_vec*pref_vec[2]+costObj_vec*pref_vec[3]
     fObj_vec <- liquidityObj_vec*pref_vec[2]+costObj_vec*pref_vec[3]
     names(fObj_vec) <- varName_vec
@@ -475,16 +479,17 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit){
     
     lpPresolve <- ifelse(callNum<=5,'none','knapsack')
     lpEpsd <- 1e-11
+    epsint <- 1e-9
     lpTimeout <- timeLimit
     verbose <- 'normal'
-    # bbRule <-  c("pseudononint", "restart","autoorder","stronginit", "dynamic","rcostfixing")
-     bbRule <- c("pseudononint", "greedy", "dynamic","rcostfixing") # default
+  bbRule <-  c("pseudononint", "restart","autoorder","stronginit", "dynamic","rcostfixing")
+   #   bbRule <- c("pseudononint", "greedy", "dynamic","rcostfixing") # default
     ### end ###############
     
     ### call lpSolve solver####
     solverOutput_list <- CallLpSolve(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
                                      lpType_vec=lpType_vec,lpKind_vec=lpKind_vec,lpLowerBound_vec=lpLowerBound_vec,lpUpperBound_vec=lpUpperBound_vec,lpBranchMode_vec=lpBranchMode_vec,
-                                     presolve=lpPresolve,epsd=lpEpsd,timeout=lpTimeout,verbose=verbose,bb.rule=bbRule)
+                                     presolve=lpPresolve,epsd=lpEpsd,timeout=lpTimeout,verbose=verbose,bb.rule=bbRule,epsint=epsint)
     ### end ##################
     
     #### solver outputs########
