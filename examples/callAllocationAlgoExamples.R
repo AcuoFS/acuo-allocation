@@ -22,8 +22,8 @@ source("src/callLpSolve.R")
 # input #
 callId_vec = c("mcp50")
 callId_vec = c("mcp1","mcp5","mcp7","mcp50")
-callId_vec = c("mcp1","mcp5","mcp7","mcp38","mcp20","mcp22","mcp15","mcp20","mcp22","mcp30","mcp50","mcp51")
-callId_vec = c("mcp32","mcp33","mcp37","mcp26","mcp39","mcp50");
+callId_vec = c("mcp1","mcp5","mcp7","mcp38","mcp20","mcp22","mcp15","mcp30","mcp50","mcp51")
+callId_vec = c("mcp32","mcp33","mcp37","mcp26","mcp39");
 callId_vec = c("mcp45","mcp50","mcp43","mcp38")
 clientId = '999';
 
@@ -48,16 +48,35 @@ assetId_vec <- as.character(data.frame(strsplit(resource_vec,'-'))[1,])
 assetInfo_df <- assetInfoByAssetId(assetId_vec)
 assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
 
-availAsset_df$FXRate <- 1
-assetInfo_df$FXRate <- 1
+#availAsset_df$FXRate <- 1
+#assetInfo_df$FXRate <- 1
+
 
 ## CALL THE ALLOCATION FUNCTION ###########
 inputLimit_vec <- c(7,7,7,5); timeLimit=10; callOrderMethod=3
-#start.time <- proc.time()[3]
-pref_vec = c(10,10,0);operLimit<- 10
-result <- AllocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,timeLimit,inputLimit_vec,callOrderMethod)
+
+pref_vec = c(10,0,10);operLimit<- 10
+result <- AllocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,1000,timeLimit,inputLimit_vec,callOrderMethod)
 msOutput <- result$msOutput
 callOutput <- result$callOutput
-#end.time <- proc.time()[3]
-#run.time <- end.time-start.time
+
+
+
+# abandon 
+if(0){
+  inputLimit_vec <- c(1,1,1,1); timeLimit=10; callOrderMethod=3
+  pref_vec = c(0,0,10);operLimit<- 10; minMoveValue<- 1000
+  result <- AllocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod)
+  msOutput <- result$msOutput
+  callOutput <- result$callOutput
+  callnum <- length(callOutput)
+  
+  for(i in 1:callnum){
+    temp_df <- callOutput[[i]]
+    resource <- paste(temp_df$Asset,temp_df$CustodianAccount,sep='-')
+    fullName <- paste(temp_df$marginStatement,temp_df$marginCall ,resource,sep='_')
+    
+  }
+}
+
 

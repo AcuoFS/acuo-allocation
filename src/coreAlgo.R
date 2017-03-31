@@ -1,5 +1,5 @@
 
-CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit,minMoveValue){
+CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit,minMoveValue,initAllocation_list){
   
   ### Prepare Parameters ##################################
   pref_vec <- pref_vec/sum(pref_vec) # Recalculate the parameters weight setting
@@ -168,6 +168,9 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit,m
     ifSelectAssetSuff_vec[i] <- 1*(sum(assetSuffQty_mat[idx.temp,id]) < max(minUnitQuantity_mat[,id]))
   }
   
+  
+  
+  #### ALLOCATION ########################################
   #### In case of OW-291, optimal assets are sufficient
   if(!is.element(0,ifSelectAssetSuff_vec)){
     
@@ -184,7 +187,7 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit,m
   } else if(1){
     lpsolveRun<-TRUE
     ##### In case of OW-292, consider all preference, with quantity limits ##########
-        
+    
     # construct the variable names
     varInfo_list <- VarInfo(eli_vec,callInfo_df,resource_vec,callId_vec)
     
@@ -332,7 +335,40 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit,m
     
     #### INITIAL GUESS BASIS ####
     
+    lpGuessBasis_vec <- rep(0,varNum3)
+    
+    if(!missing(initAllocation_list)){
+      
     # the initial guess must be a feasible point
+
+    for(m in 1:callNum){
+      callId <- callId_vec[m]
+      callAlloc_df <- initAllocation_list[[callId]]
+      
+      # the 'Quantity'= decision variable * minUnit
+      # find the corresponding decision variable index from the varName
+      resourceTemp_vec <- PasteResource(callAlloc_df$Asset,callAlloc_df$CustodianAccount)
+      varNameTemp_vec <- PasteFullName(callAlloc_df$marginStatement,callAlloc_df$marginCall,resourceTemp_vec)
+      
+      minUnitEli_vec <- minUnit_vec[idxEli_vec]
+        
+      for(k in 1:length(resourceTemp_vec)){
+        idxVarTemp <- which(varName_vec==varNameTemp_vec[k])
+        quantityTemp <- callAlloc_df$Quantity
+        
+        lpGuessBasis_vec[idxVarTemp] <- quantityTemp/minUnitEli_vec[idxVarTemp]
+        lpGuessBasis_vec[idxVarTemp+varNum] <- 1
+        
+      }
+      
+      # if inside one margin statement, two margin calls are using the same asset, 
+      # then assign 1 to (varNum3-varNum2)
+    }
+    
+    print(lpGuessBasis_vec)
+    #stop('sss')
+    }
+    
     
     ######## END ################
     
@@ -348,6 +384,7 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit,m
     ### call lpSolve solver####
     solverOutput_list <- CallLpSolve(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
                                      lpType_vec=lpType_vec,lpKind_vec=lpKind_vec,lpLowerBound_vec=lpLowerBound_vec,lpUpperBound_vec=lpUpperBound_vec,lpBranchMode_vec=lpBranchMode_vec,
+                                     lpGuessBasis_vec=lpGuessBasis_vec,
                                      presolve=lpPresolve,epsd=lpEpsd,timeout=lpTimeout,verbose=verbose,bb.rule=bbRule,epsint=epsint)
     ### end ##################
     
@@ -546,6 +583,7 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit,m
     ############## END #######################################
     
   }
+  #### END ###############################################
   
   ### convert the result_mat to list
   result_list <- Result2callList(result_mat,assetId_vec,availAsset_df,coreInput_list,callSelect_list,msSelect_list)
@@ -665,7 +703,7 @@ VarInfo <- function(eli_vec,callInfo_df,resource_vec,callId_vec){
   varNum <- length(idxEli_vec)    # variable numbers
   varNum2 <- varNum*2
   
-  varName_vec <- c(t(fullNameOri_mat)[idxEli_vec],t(fullNameDummy_mat[idxEli_vec]))
+  varName_vec <- c(fullNameOri_mat[idxEli_vec],fullNameDummy_mat[idxEli_vec])
   varSplitName_mat <- rbind(splitName_mat[idxEli_vec,],splitName_mat[length(idx_mat)+idxEli_vec,])
   
   # update the variable index
@@ -726,6 +764,16 @@ PasteFun1 <- function(x1='',x2=''){
 
 PasteFun2 <- function(x){
   temp=paste(x,collapse='_')
+  return(temp)
+}
+
+PasteResource <- function(assets,custodianAccounts){
+  temp <- paste(assets,custodianAccounts,sep='-')
+  return(temp)
+}
+
+PasteFullName <- function(statements,calls,resources){
+  temp <- paste(statements,calls,resources,sep='_')
   return(temp)
 }
 
