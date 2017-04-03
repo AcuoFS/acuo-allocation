@@ -196,6 +196,7 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit,m
     varNum <- varInfo_list$varNum
     varNum2 <- varInfo_list$varNum2
     varNum3 <- varInfo_list$varNum3
+    msVar_mat <- varInfo_list$msVar_mat
     idxEli_vec <- which(eli_vec==1)  
     ### end ###############
     
@@ -756,7 +757,7 @@ VarInfo <- function(eli_vec,callInfo_df,resource_vec,callId_vec){
   msVarName_vec <- apply(msVarName_mat[,1:3],1,PasteFun2)
   varName_vec <- c(varName_vec,msVarName_vec)
   
-  var_list <- list(varName_vec=varName_vec,varNum=varNum,varNum2=varNum2,varNum3=varNum3)
+  var_list <- list(varName_vec=varName_vec,varNum=varNum,varNum2=varNum2,varNum3=varNum3,msVar_mat=msVar_mat)
   return(var_list)
 }
 
