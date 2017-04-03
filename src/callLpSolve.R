@@ -1,5 +1,6 @@
 CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
                         lpType_vec,lpKind_vec,lpLowerBound_vec,lpUpperBound_vec,lpBranchMode_vec,
+                        lpGuessBasis_vec,
                         ...){
   library(lpSolveAPI)
   # input variables
@@ -47,11 +48,24 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
     }  
   }
   
+  # guess basis
+  if(!missing(lpGuessBasis_vec)){
+    if(!all(lpGuessBasis_vec==0)){
+      guess.basis(lpModel,lpGuessBasis_vec)
+    }
+  }
+  
   # set control options
   lp.control(lpModel,...)
   
   # solve the problem
   resultStatus <- solve(lpModel)  
+  
+  # write the model to output file
+  date <- format(Sys.time(), "%d%b%Y")
+  dir <- 'Result/'
+  filename <- paste(dir,'lpModel',date,'.lp',sep='')
+  write.lp(lpModel,filename,'lp')
   
   
   # get the variables(minUnitQuantity)
