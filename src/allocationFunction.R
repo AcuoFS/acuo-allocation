@@ -1,6 +1,6 @@
 
 #### ALLOCATION MAIN FUNCTION ############
-AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod){
+AllocationAlgoV2 <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod){
   ########### CONSTANTS ################################
 
   ########### END ######################################

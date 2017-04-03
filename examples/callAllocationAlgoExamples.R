@@ -40,6 +40,7 @@ availAsset_df <- rbind(availAsset_df,availAsset_df)
 availAsset_df$CustodianAccount[1:length(availAsset_df[,1])/2] <- 'custodianAccountTest'
 ########## end ###########################################
 
+
 assetCustacId_vec <- paste(availAsset_df$assetId,availAsset_df$CustodianAccount,sep='-')
 availAsset_df$assetCustacId <- assetCustacId_vec
 resource_vec <- unique(assetCustacId_vec)
@@ -52,31 +53,32 @@ assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
 #assetInfo_df$FXRate <- 1
 
 
-## CALL THE ALLOCATION FUNCTION ###########
-inputLimit_vec <- c(7,7,7,5); timeLimit=10; callOrderMethod=3
 
-pref_vec = c(10,0,10);operLimit<- 10; minMoveValue<- 1000
-result <- AllocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,1000,timeLimit,inputLimit_vec,callOrderMethod)
+## main function, interface of java #######
+# 1 operation as objective, 2 opration as constraint
+
+algoVersion <- 2
+
+CallAllocation <- function(ALGO_VERSION,callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit){
+  inputLimit_vec <- c(7,7,7,5); 
+  timeLimit=10; 
+  callOrderMethod=3
+  pref_vec = c(10,0,10);
+  operLimit<- 20; 
+  minMoveValue<- 1000;
+  
+  if(algoVersion==1){
+    result <- AllocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod)
+  } else if(algoVersion==2){
+    result <- AllocationAlgoV2(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod)
+  }
+}
+
+## CALL THE ALLOCATION FUNCTION ###########
+result <- CallAllocation(ALGO_VERSION,callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
+
 msOutput <- result$msOutput
 callOutput <- result$callOutput
 
-
-
-# abandon 
-if(0){
-  inputLimit_vec <- c(1,1,1,1); timeLimit=10; callOrderMethod=3
-  pref_vec = c(0,0,10);operLimit<- 5; minMoveValue<- 1000
-  result <- AllocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod)
-  msOutput <- result$msOutput
-  callOutput <- result$callOutput
-  callnum <- length(callOutput)
-  
-  for(i in 1:callnum){
-    temp_df <- callOutput[[i]]
-    resource <- paste(temp_df$Asset,temp_df$CustodianAccount,sep='-')
-    fullName <- paste(temp_df$marginStatement,temp_df$marginCall ,resource,sep='_')
-    
-  }
-}
 
 
