@@ -66,7 +66,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
     callOutputPre_list <- callOutput_list
     for(p in 1:length(callIdGroup_vec)){
         callId <- callIdGroup_vec[p]
-        res <- PreAllocation(callId,callInfoPre_df,availAssetPre_df,assetInfoPre_df,callOutput_list,checkCall_mat)
+        res <- PreAllocation(callId,callInfoPre_df,availAssetPre_df,assetInfoPre_df,minMoveValue,callOutput_list,checkCall_mat)
         availAssetPreGroup_df <- res$availAsset_df
         availAssetPre_df[which(availAssetPre_df$callId %in% callId),] <- availAssetPreGroup_df
         callOutputPreGroup_list <- res$callOutput_list
@@ -74,7 +74,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
         checkCallPre_mat <- res$checkCall_mat
         callOutputPre_list[[callId]] <- callOutputPreGroup_list[[callId]]
     }
-  
+print(callOutputPre_list)
     # parameteres need to pass to the CoreAlgo
     # callOutputPre_list
     # availAssetPre_df # don't need, solver will auto deduct the quantity while solving
@@ -87,7 +87,10 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
     # core Algo, assume all data comes in a list
     resultGroup_list <- CoreAlgo(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,operLimit,minMoveValue,initAllocation_list)
     
- 
+    msOutputGroup_list <- resultGroup_list$msOutput_list
+    callOutputGroup_list <- resultGroup_list$callOutput_list
+    checkCall_mat <- resultGroup_list$checkCall_mat
+
     status <- resultGroup_list$status
     lpsolveRun <- resultGroup_list$lpsolveRun
     solverObjValue <- resultGroup_list$solverObjValue
@@ -112,7 +115,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
 }
 
 
-PreAllocation <- function(callIdGroup_vec,callInfo_df,availAsset_df,assetInfo_df,callOutput_list,checkCall_mat){
+PreAllocation <- function(callIdGroup_vec,callInfo_df,availAsset_df,assetInfo_df,minMoveValue,callOutput_list,checkCall_mat){
 
     msIdGroup_vec <- unique(callInfo_df$marginStatement[which(callInfo_df$id %in% callIdGroup_vec)])
     #cat(' group:',i,'\n','callId_vec:',callIdGroup_vec,'\n')

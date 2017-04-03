@@ -183,6 +183,7 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit,m
     }
     status <- 'solved'
     lpsolveRun <- FALSE
+    solverObjValue <- 'NA'
     
   } else if(1){
     lpsolveRun<-TRUE
@@ -329,6 +330,8 @@ CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit,m
     lpType_vec[which(minUnitValue_vec[idxEli_vec]>=1)] <- 'integer'
     lpType_vec[(varNum+1):varNum3] <- 'integer'
     lpLowerBound_vec <- c(minMoveQuantity,rep(0,varNum3-varNum))
+    #using 0 or 1 is still under the consideration
+    #lpLowerBound_vec <- c(minMoveQuantity,rep(1,varNum3-varNum))
     lpUpperBound_vec <- c(minUnitQuantity_vec[idxEli_vec],rep(1,varNum3-varNum))
     lpBranchMode_vec <- c(rep('floor',varNum),rep('auto',varNum3-varNum))
     

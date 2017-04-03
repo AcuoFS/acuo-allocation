@@ -55,7 +55,7 @@ assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
 ## CALL THE ALLOCATION FUNCTION ###########
 inputLimit_vec <- c(7,7,7,5); timeLimit=10; callOrderMethod=3
 
-pref_vec = c(10,0,10);operLimit<- 10
+pref_vec = c(10,0,10);operLimit<- 10; minMoveValue<- 1000
 result <- AllocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,1000,timeLimit,inputLimit_vec,callOrderMethod)
 msOutput <- result$msOutput
 callOutput <- result$callOutput
@@ -65,7 +65,7 @@ callOutput <- result$callOutput
 # abandon 
 if(0){
   inputLimit_vec <- c(1,1,1,1); timeLimit=10; callOrderMethod=3
-  pref_vec = c(0,0,10);operLimit<- 10; minMoveValue<- 1000
+  pref_vec = c(0,0,10);operLimit<- 5; minMoveValue<- 1000
   result <- AllocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod)
   msOutput <- result$msOutput
   callOutput <- result$callOutput
