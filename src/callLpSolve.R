@@ -1,6 +1,6 @@
 CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
                         lpType_vec,lpKind_vec,lpLowerBound_vec,lpUpperBound_vec,lpBranchMode_vec,
-                            lpGuessBasis_vec,
+                        lpGuessBasis_vec,
                         ...){
   library(lpSolveAPI)
   # input variables
@@ -57,21 +57,17 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
   
   # set control options
   lp.control(lpModel,...)
-  #lp.control(lpModel,epsd=lpEpsd,timeout=lpTimeout+10,presolve=lpPresolve,verbose=verbose)
+  
   # solve the problem
   resultStatus <- solve(lpModel)  
-  #get.constraints(lpModel) <= get.rhs(lpModel,1:227)
-  #tempRhs_vec <- get.constr.value(lpModel,'rhs',1:227)
   
+  # write the model to output file
   date <- format(Sys.time(), "%d%b%Y")
-  filename <- paste('lpModel',date,'.lp',sep='')
+  dir <- 'Result/'
+  filename <- paste(dir,'lpModel',date,'.lp',sep='')
   write.lp(lpModel,filename,'lp')
-  #get.constr.type(lpModel,1:227)
-  #get.basis(lpModel,T)
-  #get.column(lpModel,2) # row number starts from 0, with random value
-  #get.mat(lpModel,35,97)
   
-  #get.solutioncount(lpModel)
+  
   # get the variables(minUnitQuantity)
   solverSolution_vec <- get.variables(lpModel)
   

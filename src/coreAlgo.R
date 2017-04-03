@@ -1,5 +1,5 @@
 
-CoreAlgo <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit,minMoveValue,initAllocation_list){
+CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit,minMoveValue,initAllocation_list){
   
   ### Prepare Parameters ##################################
   pref_vec <- pref_vec/sum(pref_vec) # Recalculate the parameters weight setting

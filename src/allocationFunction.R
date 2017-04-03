@@ -75,7 +75,7 @@ AllocationAlgoV2 <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,a
         callOutputPre_list[[callId]] <- callOutputPreGroup_list[[callId]]
     }
 print(callOutputPre_list)
-    # parameteres need to pass to the CoreAlgo
+    # parameteres need to pass to the CoreAlgoV2
     # callOutputPre_list
     # availAssetPre_df # don't need, solver will auto deduct the quantity while solving
     # combine into a single list: preAllocation_list
@@ -85,7 +85,7 @@ print(callOutputPre_list)
 
 
     # core Algo, assume all data comes in a list
-    resultGroup_list <- CoreAlgo(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,operLimit,minMoveValue,initAllocation_list)
+    resultGroup_list <- CoreAlgoV2(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,operLimit,minMoveValue,initAllocation_list)
     
     msOutputGroup_list <- resultGroup_list$msOutput_list
     callOutputGroup_list <- resultGroup_list$callOutput_list
@@ -131,7 +131,7 @@ PreAllocation <- function(callIdGroup_vec,callInfo_df,availAsset_df,assetInfo_df
     
 
     # core Algo, assume all data comes in a list
-    resultGroup_list <- CoreAlgo(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,operLimit,minMoveValue)
+    resultGroup_list <- CoreAlgoV2(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,operLimit,minMoveValue)
     msOutputGroup_list <- resultGroup_list$msOutput_list
     callOutputGroup_list <- resultGroup_list$callOutput_list
     status <- resultGroup_list$status

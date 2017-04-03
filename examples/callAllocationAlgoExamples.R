@@ -59,7 +59,7 @@ assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
 
 algoVersion <- 2
 
-CallAllocation <- function(ALGO_VERSION,callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit){
+CallAllocation <- function(algoVersion,callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit){
   inputLimit_vec <- c(7,7,7,5); 
   timeLimit=10; 
   callOrderMethod=3
@@ -68,7 +68,7 @@ CallAllocation <- function(ALGO_VERSION,callId_vec,resource_vec,callInfo_df,avai
   minMoveValue<- 1000;
   
   if(algoVersion==1){
-    result <- AllocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod)
+    result <- AllocationAlgoV1(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod)
   } else if(algoVersion==2){
     result <- AllocationAlgoV2(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod)
   }
