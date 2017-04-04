@@ -2,7 +2,7 @@
 AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,
                            algoVersion,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod){
 
-  #### ORDER THE CALL ID ################################################
+  #### Order callId_vec Start ######################################
   ## method 0: Keep original
   ## method 1: By margin call amount, decreasing
   ## method 2: By margin type, VM then IM; sub order by call amount
@@ -15,9 +15,9 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
   callInfo_df <- OrderCallId(callOrderMethod,callInfo_df)
   callId_vec <- callInfo_df$id
   msId_vec <- unique(callInfo_df$marginStatement)
-  ######## END ###########################################################
+  #### Order callId_vec END ######################################
   
-  ######## SPLIT the call ids in to several groups #######################
+  #### Group the callId_vec Start ################################
   # method 1: group by marginType
   # maximum limitVm VM or limitIm IM a time
   # group by margin statements
@@ -27,7 +27,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
   msLimit <- inputLimit_vec[4]
   
   groupCallId_list <- GroupCallIdByMs(callLimit,msLimit,callInfo_df,callId_vec)
-  ############# END ###################################################
+  #### Group the callId_vec Start #################################
   
   
   callNum <- length(callId_vec)
@@ -38,7 +38,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
   #msOutput_list <- list()
   checkCall_mat <- matrix(c(callInfo_df$callAmount,rep(0,callNum)),nrow=callNum, dimnames = list(callId_vec,c('callAmount','fulfilledAmount')))
   
-  ############ ITERATE THE GROUP, RUN THE ALGO #########################
+  ############ ITERATE THE GROUP, RUN THE ALGO Start #########################
   
   for(i in 1:length(groupCallId_list)){
 
@@ -65,8 +65,8 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
     for(p in 1:length(callIdGroup_vec)){
       callId <- callIdGroup_vec[p]
       res <- PreAllocation(algoVersion,callId,callInfoPre_df,availAssetPre_df,assetInfoPre_df,pref_vec,minMoveValue,timeLimit,callOutput_list,checkCall_mat)
-      availAssetPreGroup_df <- res$availAsset_df
-      availAssetPre_df[which(availAssetPre_df$callId %in% callId),] <- availAssetPreGroup_df
+      availAssetPre_df <- res$availAsset_df
+      #availAssetPre_df[which(availAssetPre_df$callId %in% callId),] <- availAssetPreGroup_df
       callOutputPreGroup_list <- res$callOutput_list
       resultPre_list <- res$resultGroup_list
       checkCallPre_mat <- res$checkCall_mat
@@ -109,6 +109,8 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
       checkCall_mat[which(rownames(checkCall_mat)==callId),2] <- checkCallGroup_mat[which(rownames(checkCallGroup_mat)==callId),2]
     }
   }
+  
+  ############ ITERATE THE GROUP, RUN THE ALGO END #########################
   
   return(list(#msOutput=msOutput_list,
               callOutput=callOutput_list,checkCall_mat=checkCall_mat,status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue))
