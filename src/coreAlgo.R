@@ -350,31 +350,9 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
     
     #### INITIAL GUESS BASIS
     lpGuessBasis_vec <- rep(0,varNum3)
-    
     if(!missing(initAllocation_list)){
       # the initial guess must be a feasible point
-      for(m in 1:callNum){
-        callId <- callId_vec[m]
-        callAlloc_df <- initAllocation_list[[callId]]
-        
-        # the 'Quantity'= decision variable * minUnit
-        # find the corresponding decision variable index from the varName
-        resourceTemp_vec <- PasteResource(callAlloc_df$Asset,callAlloc_df$CustodianAccount)
-        varNameTemp_vec <- PasteFullName(callAlloc_df$marginStatement,callAlloc_df$marginCall,resourceTemp_vec)
-        
-        minUnitEli_vec <- minUnit_vec[idxEli_vec]
-        
-        for(k in 1:length(resourceTemp_vec)){
-          idxVarTemp <- which(varName_vec==varNameTemp_vec[k])
-          quantityTemp <- callAlloc_df$Quantity
-          
-          lpGuessBasis_vec[idxVarTemp] <- quantityTemp/minUnitEli_vec[idxVarTemp]
-          lpGuessBasis_vec[idxVarTemp+varNum] <- 1
-        }
-        # if inside one margin statement, two margin calls are using the same asset, 
-        # then assign 1 to (varNum3-varNum2)
-      }
-      print(lpGuessBasis_vec)
+      lpGuessBasis_vec<-callList2Var(initAllocation_list,callId_vec,minUnit_vec,varName_vec,varNum3,varNum,idxEli_vec)
     }
     
     #### Solver Inputs END ###################
@@ -954,36 +932,14 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
 
     #### INITIAL GUESS BASIS 
     lpGuessBasis_vec <- rep(0,varNum3)
-    
     if(!missing(initAllocation_list)){
       # the initial guess must be a feasible point
-      for(m in 1:callNum){
-        callId <- callId_vec[m]
-        callAlloc_df <- initAllocation_list[[callId]]
-        
-        # the 'Quantity'= decision variable * minUnit
-        # find the corresponding decision variable index from the varName
-        resourceTemp_vec <- PasteResource(callAlloc_df$Asset,callAlloc_df$CustodianAccount)
-        varNameTemp_vec <- PasteFullName(callAlloc_df$marginStatement,callAlloc_df$marginCall,resourceTemp_vec)
-        
-        minUnitEli_vec <- minUnit_vec[idxEli_vec]
-        
-        for(k in 1:length(resourceTemp_vec)){
-          idxVarTemp <- which(varName_vec==varNameTemp_vec[k])
-          quantityTemp <- callAlloc_df$Quantity
-          
-          lpGuessBasis_vec[idxVarTemp] <- quantityTemp/minUnitEli_vec[idxVarTemp]
-          lpGuessBasis_vec[idxVarTemp+varNum] <- 1
-        }
-        # if inside one margin statement, two margin calls are using the same asset, 
-        # then assign 1 to (varNum3-varNum2)
-      }
-      print(lpGuessBasis_vec)
+      lpGuessBasis_vec<-callList2Var(initAllocation_list,callId_vec,minUnit_vec,varName_vec,varNum3,varNum,idxEli_vec)
     }
     #### Solver Inputs END ###################
     
     #### Solve the Model Start ###############
-    #### call lpSolve solver####
+    #### call lpSolve solver
     solverOutput_list <- CallLpSolve(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
                                      lpType_vec=lpType_vec,lpKind_vec=lpKind_vec,lpLowerBound_vec=lpLowerBound_vec,lpUpperBound_vec=lpUpperBound_vec,lpBranchMode_vec=lpBranchMode_vec,
                                      lpGuessBasis_vec=lpGuessBasis_vec,
@@ -996,6 +952,10 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
 
     # round up the decimal quantity to the nearest integer.
     # if it's larger than 0.5
+    # if close to 0, then set both real and dummies to 0, and if this action causes the 
+    # the insufficiency of the total amount, make it up at the checking module
+    # not only update result_mat but also the original solverSolution_vec
+    
     result_mat <- matrix(0,nrow=callNum,ncol=resourceNum,dimnames=list(callId_vec,resource_vec))
     result_mat <- t(result_mat); resultDummy_mat <- result_mat
     result_mat[idxEli_vec]<-solverSolution_vec[1:varNum]
@@ -1186,7 +1146,13 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
   } # else if end
   
   #### Prepare Outputs Start #######################
-  ### convert the result_mat to list
+  
+  #### calculate the daily cost & month cost
+  result_mat * costBasis_mat * minUnit_mat
+  
+  
+  
+  #### convert the result_mat to list
   result_list <- Result2callList(result_mat,assetId_vec,availAsset_df,coreInput_list,callSelect_list,msSelect_list)
   
   callSelect_list <- result_list$callSelect_list
@@ -1198,6 +1164,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
   }
   checkCall_mat <- subtotalFulfilled_mat
   #### Prepare Outputs END ########################
+  
   return(list(msOutput_list=msSelect_list,callOutput_list=callSelect_list,checkCall_mat=checkCall_mat,availAsset_df=availAsset_df,status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue))
 
 }
@@ -1282,6 +1249,34 @@ Result2callList <- function(result_mat,assetId_vec,availAsset_df,coreInput_list,
   return(result_list)
 }
     
+callList2Var <- function(callOutput_list,callId_vec,minUnit_vec,varName_vec,varNum3,varNum,idxEli_vec){
+  #varnum <- length(varName_vec)
+  var_vec <- rep(0,varNum3)
+  
+  for(m in 1:callNum){
+    callId <- callId_vec[m]
+    callAlloc_df <- callOutput_list[[callId]]
+    
+    # the 'Quantity'= decision variable * minUnit
+    # find the corresponding decision variable index from the varName
+    resourceTemp_vec <- PasteResource(callAlloc_df$Asset,callAlloc_df$CustodianAccount)
+    varNameTemp_vec <- PasteFullName(callAlloc_df$marginStatement,callAlloc_df$marginCall,resourceTemp_vec)
+    
+    minUnitEli_vec <- minUnit_vec[idxEli_vec]
+    
+    for(k in 1:length(resourceTemp_vec)){
+      idxVarTemp <- which(varName_vec==varNameTemp_vec[k])
+      quantityTemp <- callAlloc_df$Quantity
+      
+      var_vec[idxVarTemp] <- quantityTemp/minUnitEli_vec[idxVarTemp]
+      var_vec[idxVarTemp+varNum] <- 1
+    }
+    # if inside one margin statement, two margin calls are using the same asset, 
+    # then assign 1 to (varNum3-varNum2)
+  }
+  return(var_vec)
+}
+
 VarInfo <- function(eli_vec,callInfo_df,resource_vec,callId_vec){
   callNum <- length(callId_vec)
   resourceNum <- length(resource_vec)
