@@ -8,6 +8,7 @@ source('src/secondAllocationFunction.R')
 # Triggered after the user deselects an asset from a call
 
 ########## DATA BELOW SHOULD COME FROM THE JAVA LAYER ###########
+
 callId_vec <- c('mcp47','mcp46','mcp42','mcp35','mcp34')
 clientId <- '999'
 pref_vec<-c(2,3,5)
@@ -51,4 +52,6 @@ assetInfo_df <- assetInfoByAssetId(assetId_vec)
 #msIds <- callInfo_df$marginStatement
 ############ END ###################################
 
-result1 <- SecondAllocationFunction(callId_vec,callInfo_df,resource_vec,pref_vec,deselectAssetId,deselectCallId,currentSelection_list,availAsset_df,assetInfo_df)
+result1 <- SecondAllocationAlgoV1(callId_vec,callInfo_df,resource_vec,pref_vec,deselectAssetId,deselectCallId,currentSelection_list,availAsset_df,assetInfo_df)
+
+result2 <- SecondAllocationAlgoV2(callId_vec,callInfo_df,resource_vec,pref_vec,deselectAssetId,deselectCallId,currentSelection_list,availAsset_df,assetInfo_df)

@@ -25,6 +25,7 @@ callId_vec = c("mcp1","mcp5","mcp7","mcp50")
 callId_vec = c("mcp1","mcp5","mcp7","mcp38","mcp20","mcp22","mcp15","mcp30","mcp50","mcp51")
 callId_vec = c("mcp32","mcp33","mcp37","mcp26","mcp39");
 callId_vec = c("mcp45","mcp50","mcp43","mcp38")
+
 clientId = '999';
 
 # get info #
@@ -33,11 +34,9 @@ availAsset_df <- availAssetByCallIdAndClientId(callId_vec,clientId) # available 
 availAsset_df <- availAsset_df[order(availAsset_df$callId),]
 
 ########## added lines for testing purposes ##############
-# change tempQuantity_vec for testing
-availAsset_df$quantity <- availAsset_df$quantity/5
-# add custodianAccount for testing
-availAsset_df <- rbind(availAsset_df,availAsset_df)
-availAsset_df$CustodianAccount[1:length(availAsset_df[,1])/2] <- 'custodianAccountTest'
+# availAsset_df$quantity <- availAsset_df$quantity/5 # change tempQuantity_vec for testing
+# availAsset_df <- rbind(availAsset_df,availAsset_df) # add custodianAccount for testing
+# availAsset_df$CustodianAccount[1:length(availAsset_df[,1])/2] <- 'custodianAccountTest'
 ########## end ###########################################
 
 
@@ -49,35 +48,31 @@ assetId_vec <- as.character(data.frame(strsplit(resource_vec,'-'))[1,])
 assetInfo_df <- assetInfoByAssetId(assetId_vec)
 assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
 
-#availAsset_df$FXRate <- 1
-#assetInfo_df$FXRate <- 1
-
-
 
 ## main function, interface of java #######
-# 1 operation as objective, 2 opration as constraint
-
-algoVersion <- 1
-
-CallAllocation <- function(ALGO_VERSION,callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit){
+CallAllocation <- function(algoVersion,callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit){
   inputLimit_vec <- c(7,7,7,5); 
   timeLimit=10; 
   callOrderMethod=3
   pref_vec = c(10,0,10);
-  operLimit<- 20; 
+  operLimit<- 10; 
   minMoveValue<- 1000;
   
-  if(algoVersion==1){
+  if(algoVersion==1){ 
+    # 1: operations as an objective
     result <- AllocationAlgoV1(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod)
   } else if(algoVersion==2){
+    # 2: operations as a constraint
     result <- AllocationAlgoV2(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod)
   }
 }
 
 ## CALL THE ALLOCATION FUNCTION ###########
-result <- CallAllocation(ALGO_VERSION,callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
+algoVersion <- 2
 
-msOutput <- result$msOutput
+result <- CallAllocation(algoVersion,callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
 callOutput <- result$callOutput
+callOutput
+
 
 

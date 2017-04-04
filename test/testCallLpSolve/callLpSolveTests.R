@@ -1,9 +1,8 @@
 source("src/callLpSolve.R")
 
 ### UNIT TESTS ##############
-#
+
 # function: CallLpSolve()
-# 
 
 # @ TEST 1, solved
 # only required inputs

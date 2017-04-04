@@ -131,6 +131,7 @@ testCostOnlyAllocationAlgoInputROriExistentClientIdExistentCallIdsGroup2<-functi
 
 testPrefRandom1AllocationAlgoInputROriExistentClientIdExistentCallIdsGroup2<-function(){
   # test input: a existent client id; a list of existent margin call ids, which direct to the client
+
   callId_vec <- existentCallIdsToClient1Group2
   clientId <- existentClientId1
   pref_vec <- prefRandom1
@@ -143,6 +144,7 @@ testPrefRandom1AllocationAlgoInputROriExistentClientIdExistentCallIdsGroup2<-fun
  
   # test function: AllocationAlgo(callId,clientId,pref_vec)
   algoOutput <-AllocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,timeLimit,callLimit_vec)
+
   result <- algoOutput$output
   
   # test output:
@@ -192,6 +194,7 @@ testPrefRandom1AllocationAlgoInputROriExistentClientIdExistentCallIdsGroup2<-fun
 
 testPrefRandom1AllocationAlgoInputROW374ExistentClientIdExistentCallIdsGroup3<-function(){
   # test input: a existent client id; a list of existent margin call ids, which direct to the client
+
   callId_vec <- existentCallIdsToClient1Group3
   clientId <- existentClientId1
   pref_vec <- prefRandom1
@@ -204,6 +207,7 @@ testPrefRandom1AllocationAlgoInputROW374ExistentClientIdExistentCallIdsGroup3<-f
   
   # test function: AllocationAlgo(callId,clientId,pref_vec)
   algoOutput <-AllocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,timeLimit,callLimit_vec)
+
   result <- algoOutput$output
   
   # test output:

@@ -1,6 +1,5 @@
 library('RNeo4j')
 
-#neo4jUrl <- 'http://neo4j.acuo.com:7474/db/data/'
 neo4jUrl <-"http://neo4j:7474/db/data"
 neo4jLocalUrl = "http://localhost:7474/db/data/"
 

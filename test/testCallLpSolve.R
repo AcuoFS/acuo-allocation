@@ -1,5 +1,4 @@
 library('RUnit')
-
 test.suite = defineTestSuite("example",
                              dirs = file.path("test/testCallLpSolve"),
                              testFileRegexp = '.R')
