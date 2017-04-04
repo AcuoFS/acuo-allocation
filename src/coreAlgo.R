@@ -1,7 +1,7 @@
 
 CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveValue,initAllocation_list){
   ### Prepare Parameters ##################################
-  pref_vec <- pref_vec/sum(pref_vec) # Recalculate the parameters weight setting
+  pref_vec <- pref_vec/sum(pref_vec[2:3]) # Recalculate the parameters weight setting
   callId_vec<-coreInput_list$callId_vec
   resource_vec<-coreInput_list$resource_vec
   

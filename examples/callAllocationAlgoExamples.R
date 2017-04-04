@@ -57,22 +57,13 @@ CallAllocation <- function(algoVersion,callId_vec,resource_vec,callInfo_df,avail
   pref_vec = c(10,0,10);
   operLimit<- 10; 
   minMoveValue<- 1000;
-  
-  if(algoVersion==1){ 
-    # 1: operations as an objective
-    result <- AllocationAlgoV1(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod)
-  } else if(algoVersion==2){
-    # 2: operations as a constraint
-    result <- AllocationAlgoV2(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod)
-  }
+  result <- AllocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,
+                           algoVersion,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod)
+  return(result)
 }
 
 ## CALL THE ALLOCATION FUNCTION ###########
 algoVersion <- 2
-
-result <- CallAllocation(algoVersion,callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
-callOutput <- result$callOutput
-callOutput
-
+CallAllocation(algoVersion,callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
 
 
