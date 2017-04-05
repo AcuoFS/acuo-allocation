@@ -171,7 +171,7 @@ resultAnalysis <- list(costDaily=costDaily,costMonthly=costMonthly)
 
 result <- list(#msOutput=msOutput_list,
   callOutput=callOutput_list,checkCall_mat=checkCall_mat,
-  status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue,resultAnalysis=resultAnalysis)
+  status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue)
 
 print(result)
 
