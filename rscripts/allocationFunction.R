@@ -65,7 +65,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
     callOutputPre_list <- callOutput_list
     for(p in 1:length(callIdGroup_vec)){
       callId <- callIdGroup_vec[p]
-      res <- PreAllocation(algoVersion,callId,callInfoPre_df,availAssetPre_df,assetInfoPre_df,pref_vec,minMoveValue,timeLimit,callOutput_list,checkCall_mat)
+      res <- PreAllocation(algoVersion,callId,callInfoPre_df,availAssetPre_df,assetInfoPre_df,pref_vec,minMoveValue,verbose,timeLimit,callOutput_list,checkCall_mat)
       availAssetPre_df <- res$availAsset_df
       #availAssetPre_df[which(availAssetPre_df$callId %in% callId),] <- availAssetPreGroup_df
       callOutputPreGroup_list <- res$callOutput_list
@@ -130,7 +130,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
 
 #### OTHER FUNCTIONS(CALLED IN THE MAIN FUNCTION)##########################
 
-PreAllocation <- function(algoVersion,callIdGroup_vec,callInfo_df,availAsset_df,assetInfo_df,timeLimit,pref_vec,minMoveValue,callOutput_list,checkCall_mat){
+PreAllocation <- function(algoVersion,callIdGroup_vec,callInfo_df,availAsset_df,assetInfo_df,timeLimit,pref_vec,minMoveValue,verbose,callOutput_list,checkCall_mat){
   
   msIdGroup_vec <- unique(callInfo_df$marginStatement[which(callInfo_df$id %in% callIdGroup_vec)])
   #cat(' group:',i,'\n','callId_vec:',callIdGroup_vec,'\n')
