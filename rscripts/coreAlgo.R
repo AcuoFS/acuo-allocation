@@ -43,7 +43,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
   #### Output Format Start ######################
   # A list, each element is the allocation result(dataframe) for one margin call
   callSelect_list  <- list()    # store selected assets for each call, list by callId_vec
-  #msSelect_list <- list()   # store selected assets for each margin statement, list by msId
+  msSelect_list <- list()   # store selected assets for each margin statement, list by msId
   #----------------------------------------------------------------------------------------------------------------
   # $callOutput$mcp38
   #  Asset         Name        NetAmount     NetAmount(USD)   FXRate  Haircut Amount   Amount(USD) Currency Quantity
@@ -600,7 +600,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
   result_list <- Result2callList(result_mat,assetId_vec,availAsset_df,coreInput_list,callSelect_list,msSelect_list)
   
   callSelect_list <- result_list$callSelect_list
-  #msSelect_list <- result_list$msSelect_list
+  msSelect_list <- result_list$msSelect_list
   
   subtotalFulfilled_mat<- matrix(c(coreInput_list$callAmount_mat[,1],rep(0, callNum)),nrow=callNum,ncol=2,dimnames = list(callId_vec,c('callAmount','fulfilledAmount')))
   for(i in 1:callNum){
@@ -1214,7 +1214,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
   result_list <- Result2callList(result_mat,assetId_vec,availAsset_df,coreInput_list,callSelect_list,msSelect_list)
   
   callSelect_list <- result_list$callSelect_list
-  #msSelect_list <- result_list$msSelect_list
+  msSelect_list <- result_list$msSelect_list
   
   subtotalFulfilled_mat<- matrix(c(coreInput_list$callAmount_mat[,1],rep(0, callNum)),nrow=callNum,ncol=2,dimnames = list(callId_vec,c('callAmount','fulfilledAmount')))
   for(i in 1:callNum){
@@ -1301,9 +1301,7 @@ Result2callList <- function(result_mat,assetId_vec,availAsset_df,coreInput_list,
       msSelect_list[[msId_vec[j]]] <- selectAsset_df
     }
   }
-  #callOutput_list <- callSelect_list
-  #msOutput_list <- msSelect_list
-  
+
   result_list <- list(callSelect_list=callSelect_list,  msSelect_list=msSelect_list)
   
   return(result_list)
