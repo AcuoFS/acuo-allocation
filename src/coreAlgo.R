@@ -43,7 +43,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
   #### Output Format Start ######################
   # A list, each element is the allocation result(dataframe) for one margin call
   callSelect_list  <- list()    # store selected assets for each call, list by callId_vec
-  msSelect_list <- list()   # store selected assets for each margin statement, list by msId
+  #msSelect_list <- list()   # store selected assets for each margin statement, list by msId
   #----------------------------------------------------------------------------------------------------------------
   # $callOutput$mcp38
   #  Asset         Name        NetAmount     NetAmount(USD)   FXRate  Haircut Amount   Amount(USD) Currency Quantity
@@ -372,6 +372,30 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
     
     # round up the decimal quantity to the nearest integer.
     # if it's larger than 0.5
+    # if close to 0, then set both real and dummies to 0, and if this action causes the 
+    # the insufficiency of the total amount, make it up at the checking module
+    # not only update result_mat but also the original solverSolution_vec
+    
+    solNum1_vec <- solverSolution_vec[1:varNum]
+    solNum2_vec <- solverSolution_vec[(varNum+1):varNum2]
+    
+    # Rounding
+    solNum1_vec[which(solNum1_vec >= 0.5)] <- ceiling(solNum1_vec[which(solNum1_vec >= 0.5)])
+    solNum1_vec[which(solNum1_vec < 0.5)] <- 0
+    
+    solNum2_vec <- 1*(solNum1_vec & 1) # recalculate the dummy value
+    
+    # substitute
+    solverSolution_vec[1:varNum] <- solNum1_vec 
+    solverSolution_vec[(varNum+1):varNum2] <- solNum2_vec
+    
+    if(varNum3>varNum2){
+      idxTemp1_vec <- msVar_mat[,1]
+      idxTemp2_vec <- msVar_mat[,2]
+      solNum3_vec <- 1*(solverSolution_vec[idxTemp1_vec] & solverSolution_vec[idxTemp2_vec])
+      solverSolution_vec[(varNum2+1):varNum3] <- solNum3_vec
+    }
+    
     result_mat <- matrix(0,nrow=callNum,ncol=resourceNum,dimnames=list(callId_vec,resource_vec))
     result_mat <- t(result_mat); resultDummy_mat <- result_mat
     result_mat[idxEli_vec]<-solverSolution_vec[1:varNum]
@@ -562,7 +586,16 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
     #### CHECK ALLOCATION RESULT END ################
   } # else if END
   
+  #### Result Analysis Start ########################
+  #### calculate the daily cost & month cost
+  costDaily <- sum(result_mat * costBasis_mat * minUnit_mat)
+  costMonthly <- costDaily*30
+  #### calculate the operational movements 
+  
+  #### Result Analysis END ##########################
+  
   #### Prepare Outputs Start #######################
+  resultAnalysis_list <- list(costDaily=costDaily,costMonthly=costMonthly)
   #### Convert the result_mat to List
   result_list <- Result2callList(result_mat,assetId_vec,availAsset_df,coreInput_list,callSelect_list,msSelect_list)
   
@@ -577,7 +610,8 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
   #### Prepare Outputs END ########################
   
   return(list(#msOutput_list=msSelect_list,
-              callOutput_list=callSelect_list,checkCall_mat=checkCall_mat,availAsset_df=availAsset_df,status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue))
+              callOutput_list=callSelect_list,checkCall_mat=checkCall_mat,availAsset_df=availAsset_df,
+              status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue,resultAnalysis_list=resultAnalysis_list))
 }
     
     
@@ -824,7 +858,6 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     #costObj_vec[18+c(1:3,7:9,13:15)]<- 10
    
     fObj_vec <- liquidityObj_vec*pref_vec[2]+costObj_vec*pref_vec[3]
-
     names(fObj_vec) <- varName_vec
     
     # constraints
@@ -884,6 +917,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     
     fCon7_mat <- matrix(0,nrow=1,ncol=varNum3)
     fCon7_mat[1,(varNum+1):varNum2] <- 1
+    # wrong
     if(varNum3>varNum2){
       #fCon7_mat[(varNum2+1):varNum3] <- -1
     }
@@ -955,6 +989,26 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     # if close to 0, then set both real and dummies to 0, and if this action causes the 
     # the insufficiency of the total amount, make it up at the checking module
     # not only update result_mat but also the original solverSolution_vec
+    
+    solNum1_vec <- solverSolution_vec[1:varNum]
+    solNum2_vec <- solverSolution_vec[(varNum+1):varNum2]
+
+    # Rounding
+    solNum1_vec[which(solNum1_vec >= 0.5)] <- ceiling(solNum1_vec[which(solNum1_vec >= 0.5)])
+    solNum1_vec[which(solNum1_vec < 0.5)] <- 0
+    
+    solNum2_vec <- 1*(solNum1_vec & 1) # recalculate the dummy value
+    
+    # substitute
+    solverSolution_vec[1:varNum] <- solNum1_vec 
+    solverSolution_vec[(varNum+1):varNum2] <- solNum2_vec
+    
+    if(varNum3>varNum2){
+      idxTemp1_vec <- msVar_mat[,1]
+      idxTemp2_vec <- msVar_mat[,2]
+      solNum3_vec <- 1*(solverSolution_vec[idxTemp1_vec] & solverSolution_vec[idxTemp2_vec])
+      solverSolution_vec[(varNum2+1):varNum3] <- solNum3_vec
+    }
     
     result_mat <- matrix(0,nrow=callNum,ncol=resourceNum,dimnames=list(callId_vec,resource_vec))
     result_mat <- t(result_mat); resultDummy_mat <- result_mat
@@ -1145,18 +1199,22 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     #### CHECK ALLOCATION RESULT END ################
   } # else if end
   
-  #### Prepare Outputs Start #######################
-  
+
+  #### Result Analysis Start ########################
   #### calculate the daily cost & month cost
-  result_mat * costBasis_mat * minUnit_mat
+  costDaily <- sum(result_mat * costBasis_mat * minUnit_mat)
+  costMonthly <- costDaily*30
+  #### calculate the operational movements 
   
+  #### Result Analysis END ##########################
   
-  
+  #### Prepare Outputs Start #######################
+  resultAnalysis_list <- list(costDaily=costDaily,costMonthly=costMonthly)
   #### convert the result_mat to list
   result_list <- Result2callList(result_mat,assetId_vec,availAsset_df,coreInput_list,callSelect_list,msSelect_list)
   
   callSelect_list <- result_list$callSelect_list
-  msSelect_list <- result_list$msSelect_list
+  #msSelect_list <- result_list$msSelect_list
   
   subtotalFulfilled_mat<- matrix(c(coreInput_list$callAmount_mat[,1],rep(0, callNum)),nrow=callNum,ncol=2,dimnames = list(callId_vec,c('callAmount','fulfilledAmount')))
   for(i in 1:callNum){
@@ -1165,7 +1223,9 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
   checkCall_mat <- subtotalFulfilled_mat
   #### Prepare Outputs END ########################
   
-  return(list(msOutput_list=msSelect_list,callOutput_list=callSelect_list,checkCall_mat=checkCall_mat,availAsset_df=availAsset_df,status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue))
+  return(list(#msOutput_list=msSelect_list,
+    callOutput_list=callSelect_list,checkCall_mat=checkCall_mat,availAsset_df=availAsset_df,
+    status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue,resultAnalysis_list=resultAnalysis_list))
 
 }
 
@@ -1304,7 +1364,7 @@ VarInfo <- function(eli_vec,callInfo_df,resource_vec,callId_vec){
   varNum <- length(idxEli_vec)    # variable numbers
   varNum2 <- varNum*2
   
-  varName_vec <- c(fullNameOri_mat[idxEli_vec],fullNameDummy_mat[idxEli_vec])
+  varName_vec <- c(t(fullNameOri_mat)[idxEli_vec],t(fullNameDummy_mat)[idxEli_vec])
   varSplitName_mat <- rbind(splitName_mat[idxEli_vec,],splitName_mat[length(idx_mat)+idxEli_vec,])
   
   # update the variable index

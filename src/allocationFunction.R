@@ -37,7 +37,9 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
   callOutput_list <- list()
   #msOutput_list <- list()
   checkCall_mat <- matrix(c(callInfo_df$callAmount,rep(0,callNum)),nrow=callNum, dimnames = list(callId_vec,c('callAmount','fulfilledAmount')))
-  
+  costDaily <- 0
+  costMonthly <- 0
+  movements <- 0
   ############ ITERATE THE GROUP, RUN THE ALGO Start #########################
   
   for(i in 1:length(groupCallId_list)){
@@ -56,8 +58,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
     # input data to the core Algo
     coreInput_list <- AllocationInputData(callIdGroup_vec,resourceGroup_vec,callInfoGroup_df,availAssetGroup_df,assetInfoGroup_df)
     
-    ### Pre-allocate ###############
-
+    #### Pre-allocate Start ######################
     availAssetPre_df <- availAssetGroup_df
     callInfoPre_df <- callInfoGroup_df
     assetInfoPre_df <- assetInfoGroup_df
@@ -79,7 +80,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
     # combine into a single list: preAllocation_list
     
     initAllocation_list <- callOutputPre_list
-    ### End ########################
+    #### Pre-allocate End ########################
 
     # core Algo, assume all data comes in a list
     if(algoVersion==1){
@@ -94,6 +95,9 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
     lpsolveRun <- resultGroup_list$lpsolveRun
     solverObjValue <- resultGroup_list$solverObjValue
     checkCallGroup_mat <- resultGroup_list$checkCall_mat
+    resultAnalysis_list <- resultGroup_list$resultAnalysis_list
+    costDaily <- resultAnalysis_list$costDaily + costDaily
+    costMonthly <- resultAnalysis_list$costMonthly + costMonthly
     
     # update the availAsset 
     availAssetGroup_df <- resultGroup_list$availAsset_df
@@ -109,11 +113,12 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
       checkCall_mat[which(rownames(checkCall_mat)==callId),2] <- checkCallGroup_mat[which(rownames(checkCallGroup_mat)==callId),2]
     }
   }
-  
+  resultAnalysis <- list(costDaily=costDaily,costMonthly=costMonthly)
   ############ ITERATE THE GROUP, RUN THE ALGO END #########################
   
   return(list(#msOutput=msOutput_list,
-              callOutput=callOutput_list,checkCall_mat=checkCall_mat,status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue))
+              callOutput=callOutput_list,checkCall_mat=checkCall_mat,
+              status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue,resultAnalysis=resultAnalysis))
 }
 
 
@@ -218,6 +223,7 @@ AllocationInputData <- function(callId_vec,resource_vec,callInfo_df,availAsset_d
   minUnitQuantity_mat[]<- floor(quantity_mat/minUnit_mat) # round down to the nearest integer
   
   # convert the matrix format data to vector format
+  # thinking of keeping only eligible parts
   eli_vec <- as.vector(t(eli_mat))
   haircut_vec <- as.vector(t(haircut_mat))
   cost_vec <- as.vector(t(cost_mat))
