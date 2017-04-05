@@ -59,6 +59,8 @@ callId_vec <- callInfo_df$id
 msId_vec <- unique(callInfo_df$marginStatement)
 #### Order callId_vec END ######################################
 
+cat('msId_vec',msId_vec)
+
 #### Group the callId_vec Start ################################
 # method 1: group by marginType
 # maximum limitVm VM or limitIm IM a time
