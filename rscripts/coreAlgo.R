@@ -1310,6 +1310,7 @@ Result2callList <- function(result_mat,assetId_vec,availAsset_df,coreInput_list,
 callList2Var <- function(callOutput_list,callId_vec,minUnit_vec,varName_vec,varNum3,varNum,idxEli_vec){
   #varnum <- length(varName_vec)
   var_vec <- rep(0,varNum3)
+  callNum <- length(callId_vec)
   
   for(m in 1:callNum){
     callId <- callId_vec[m]
