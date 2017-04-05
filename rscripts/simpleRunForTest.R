@@ -53,8 +53,6 @@ timeLimit <- 10;
 callOrderMethod <- 3
 minMoveValue <- 1000;
 verbose <- 3
-result <- AllocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,
-                         algoVersion,minMoveValue,timeLimit,verbose,inputLimit_vec,callOrderMethod)
 
 callInfo_df <- OrderCallId(callOrderMethod,callInfo_df)
 callId_vec <- callInfo_df$id
