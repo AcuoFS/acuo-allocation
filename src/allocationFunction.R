@@ -93,7 +93,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
 
     status <- resultGroup_list$status
     lpsolveRun <- resultGroup_list$lpsolveRun
-    solverObjValue <- resultGroup_list$solverObjValue
+    solverObjValue <- round(resultGroup_list$solverObjValue,2)
     checkCallGroup_mat <- resultGroup_list$checkCall_mat
     resultAnalysis_list <- resultGroup_list$resultAnalysis_list
     costDaily <- resultAnalysis_list$costDaily + costDaily
@@ -113,6 +113,8 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
       checkCall_mat[which(rownames(checkCall_mat)==callId),2] <- checkCallGroup_mat[which(rownames(checkCallGroup_mat)==callId),2]
     }
   }
+  costDaily <- round(costDaily,2)
+  costMonthly <- round(costMonthly,2)
   resultAnalysis <- list(costDaily=costDaily,costMonthly=costMonthly)
   ############ ITERATE THE GROUP, RUN THE ALGO END #########################
   

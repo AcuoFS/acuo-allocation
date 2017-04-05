@@ -1280,7 +1280,7 @@ Result2callList <- function(result_mat,assetId_vec,availAsset_df,coreInput_list,
     #### END ##############################
     
     selectAssetUnitValue_vec <- unitValue_mat[i,idxSelectResource_vec]
-    selectAssetAmountUSD_vec <- selectAssetQuantity_vec*selectAssetUnitValue_vec
+    selectAssetAmountUSD_vec <- round(selectAssetQuantity_vec*selectAssetUnitValue_vec,2)
     selectAssetNetAmountUSD_vec <- selectAssetAmountUSD_vec*(1-haircut_mat[i,idxSelectResource_vec])
     selectAssetFX_vec <- assetInfo_df$FXRate[idxSelectAsset_vec]
     selectAssetAmount_vec <- selectAssetAmountUSD_vec*selectAssetFX_vec

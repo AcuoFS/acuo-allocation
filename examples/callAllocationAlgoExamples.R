@@ -25,6 +25,7 @@ callId_vec = c("mcp1","mcp5","mcp7","mcp50")
 callId_vec = c("mcp1","mcp5","mcp7","mcp38","mcp20","mcp22","mcp15","mcp30","mcp50","mcp51")
 callId_vec = c("mcp32","mcp33","mcp37","mcp26","mcp39");
 callId_vec = c("mcp45","mcp50","mcp43","mcp38")
+callId_vec = c("mcp1","mcp31","mcp43","mcp10")
 
 clientId = '999';
 
@@ -54,8 +55,6 @@ CallAllocation <- function(algoVersion,callId_vec,resource_vec,callInfo_df,avail
   inputLimit_vec <- c(7,7,7,5); 
   timeLimit=10; 
   callOrderMethod=3
-  pref_vec = c(10,0,10);
-  operLimit<- 10; 
   minMoveValue<- 1000;
   result <- AllocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,
                            algoVersion,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod)
@@ -63,7 +62,9 @@ CallAllocation <- function(algoVersion,callId_vec,resource_vec,callInfo_df,avail
 }
 
 ## CALL THE ALLOCATION FUNCTION ###########
-algoVersion <- 2
-CallAllocation(algoVersion,callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
-
+algoVersion <- 1
+pref_vec = c(0,10,5);
+operLimit<- 10; 
+result <- CallAllocation(algoVersion,callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
+result
 
