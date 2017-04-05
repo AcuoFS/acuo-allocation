@@ -47,17 +47,17 @@ pref_vec <- pref
 ## main function, interface of java #######
 CallAllocation <- function(algoVersion,callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit){
   inputLimit_vec <- c(7,7,7,5); 
-  timeLimit=10; 
-  callOrderMethod=3
-  minMoveValue<- 1000;
+  timeLimit <- 10; 
+  callOrderMethod <- 3
+  minMoveValue <- 1000;
+  verbose <- 3
   result <- AllocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,
-                           algoVersion,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod)
+                           algoVersion,minMoveValue,timeLimit,verbose,inputLimit_vec,callOrderMethod)
   return(result)
 }
 
 ## CALL THE ALLOCATION FUNCTION ###########
 algoVersion <- 1
-pref_vec = c(10,10,5);
 operLimit<- 10; 
 result <- CallAllocation(algoVersion,callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
 print(result)

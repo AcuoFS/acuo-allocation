@@ -1,5 +1,5 @@
 
-CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveValue,initAllocation_list){
+CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveValue,verbose,initAllocation_list){
   #### Prepare Parameters Start #############################
   pref_vec <- pref_vec/sum(pref_vec[2:3]) # Recalculate the parameters weight setting
   callId_vec<-coreInput_list$callId_vec
@@ -344,7 +344,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
     lpPresolve <- ifelse(callNum<=5,'none','knapsack')
     lpEpsd <- 1e-11
     lpTimeout <- timeLimit
-    lpVerbose <- 'normal'
+    #lpVerbose <- 'normal'
     # bbRule <-  c("pseudononint", "restart","autoorder","stronginit", "dynamic","rcostfixing")
     bbRule <- c("pseudononint", "greedy", "dynamic","rcostfixing") # default
     
@@ -362,7 +362,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
     solverOutput_list <- CallLpSolve(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
                                      lpType_vec=lpType_vec,lpKind_vec=lpKind_vec,lpLowerBound_vec=lpLowerBound_vec,lpUpperBound_vec=lpUpperBound_vec,lpBranchMode_vec=lpBranchMode_vec,
                                      lpGuessBasis_vec=lpGuessBasis_vec,
-                                     presolve=lpPresolve,epsd=lpEpsd,timeout=lpTimeout,verbose=lpVerbose,bb.rule=bbRule)
+                                     presolve=lpPresolve,epsd=lpEpsd,timeout=lpTimeout,verbose=verbose,bb.rule=bbRule)
     
     #### Solver Outputs
     status<- solverOutput_list$resultStatus
@@ -960,7 +960,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     lpPresolve <- ifelse(callNum<=5,'none','knapsack')
     lpEpsd <- 1e-11
     lpTimeout <- timeLimit
-    lpVerbose <- 'normal'
+    #lpVerbose <- 'normal'
     # bbRule <-  c("pseudononint", "restart","autoorder","stronginit", "dynamic","rcostfixing")
     bbRule <- c("pseudononint", "greedy", "dynamic","rcostfixing") # default
 
@@ -977,7 +977,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     solverOutput_list <- CallLpSolve(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
                                      lpType_vec=lpType_vec,lpKind_vec=lpKind_vec,lpLowerBound_vec=lpLowerBound_vec,lpUpperBound_vec=lpUpperBound_vec,lpBranchMode_vec=lpBranchMode_vec,
                                      lpGuessBasis_vec=lpGuessBasis_vec,
-                                     presolve=lpPresolve,epsd=lpEpsd,timeout=lpTimeout,verbose=lpVerbose,bb.rule=bbRule)
+                                     presolve=lpPresolve,epsd=lpEpsd,timeout=lpTimeout,verbose=verbose,bb.rule=bbRule)
 
     #### solver outputs
     status<- solverOutput_list$resultStatus

@@ -1,6 +1,6 @@
 
 AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,
-                           algoVersion,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod){
+                           algoVersion,minMoveValue,timeLimit,verbose,inputLimit_vec,callOrderMethod){
 
   #### Order callId_vec Start ######################################
   ## method 0: Keep original
@@ -118,7 +118,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
   
   costDaily <- round(costDaily,2)
   costMonthly <- round(costMonthly,2)
-  cat('costDaily ',costDaily); cat('costMonthly',costMonthly)
+  #cat('costDaily ',costDaily); cat('costMonthly',costMonthly)
   resultAnalysis <- list(costDaily=costDaily,costMonthly=costMonthly)
   ############ ITERATE THE GROUP, RUN THE ALGO END #########################
   
@@ -146,9 +146,9 @@ PreAllocation <- function(algoVersion,callIdGroup_vec,callInfo_df,availAsset_df,
   
   # core Algo, assume all data comes in a list
   if(algoVersion==1){
-    resultGroup_list <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue)
+    resultGroup_list <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue,verbose)
   } else if(algoVersion==2){
-    resultGroup_list <- CoreAlgoV2(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,operLimit,minMoveValue)
+    resultGroup_list <- CoreAlgoV2(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,operLimit,minMoveValue,verbose)
   }
   #msOutputGroup_list <- resultGroup_list$msOutput_list
   callOutputGroup_list <- resultGroup_list$callOutput_list
