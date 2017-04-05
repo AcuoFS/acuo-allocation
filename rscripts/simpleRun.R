@@ -1,9 +1,5 @@
 options(stringsAsFactors = FALSE)
 
-timeLimit <- 10
-verbose <- 3
-inputLimit_vec <- c(7,7,7,4)
-callOrderMethod <- 3
 
 callInfo_df <- callInfoByCallId
 callInfo_df$callAmount <- abs(as.numeric(callInfo_df$callAmount)) # make sure the callAmount is non-negative
@@ -48,11 +44,23 @@ print(availAsset_df)
 callId_vec <- callIds
 pref_vec <- pref
 
-result<-AllocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,timeLimit,verbose,inputLimit_vec,callOrderMethod)
+## main function, interface of java #######
+CallAllocation <- function(algoVersion,callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit){
+  inputLimit_vec <- c(7,7,7,5); 
+  timeLimit=10; 
+  callOrderMethod=3
+  minMoveValue<- 1000;
+  result <- AllocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,
+                           algoVersion,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod)
+  return(result)
+}
 
+## CALL THE ALLOCATION FUNCTION ###########
+algoVersion <- 1
+pref_vec = c(10,10,5);
+operLimit<- 10; 
+result <- CallAllocation(algoVersion,callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
 print(result)
-
-
 
 
 
