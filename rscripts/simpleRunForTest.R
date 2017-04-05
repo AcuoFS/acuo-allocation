@@ -127,7 +127,7 @@ for(i in 1:length(groupCallId_list)){
   initAllocation_list <- callOutputPre_list
   #### Pre-allocate End ########################
   
-  cat('initAllocation_list',initAllocation_list)
+  print('initAllocation_list');print(initAllocation_list)
   
   #### Run CoreAlgo Start ######################
   if(algoVersion==1){
