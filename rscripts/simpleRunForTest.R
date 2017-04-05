@@ -73,7 +73,7 @@ msLimit <- inputLimit_vec[4]
 groupCallId_list <- GroupCallIdByMs(callLimit,msLimit,callInfo_df,callId_vec)
 #### Group the callId_vec Start #################################
 
-cat('groupCallId_list',groupCallId_list)
+print('groupCallId_list');print(groupCallId_list)
 
 callNum <- length(callId_vec)
 
