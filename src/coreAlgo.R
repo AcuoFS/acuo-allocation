@@ -195,7 +195,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
     }
     status <- 'solved'
     lpsolveRun <- FALSE
-    solverObjValue <- 'NA'
+    solverObjValue <- -1
     #### Optimal Assets are Sufficient END #############
   } else if(1){
     
@@ -800,7 +800,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     }
     status <- 'solved'
     lpsolveRun <- FALSE
-    solverObjValue <- 'NA'
+    solverObjValue <- -1
     #### Optimal Assets are Sufficient END #############
   } else if(1){
     #### Optimal Assets are not Sufficient Start #########
