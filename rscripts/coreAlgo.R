@@ -115,7 +115,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
   #### Calculate the Objectives Parameters END ##############
   
   #### Calculate the Optimal Asset Sufficiency Start #######
-  optimal_mat <- normOperation_mat*pref_vec[1]+normLiquidity_mat*pref_vec[2]+normCost_mat*pref_vec[3]
+  optimal_mat <- normOperation_mat*pref_vec[3]+normLiquidity_mat*pref_vec[2]+normCost_mat*pref_vec[1]
   colnames(optimal_mat) <- resource_vec; rownames(optimal_mat)<-callId_vec
   
   optimalAsset_mat <- matrix(c(callId_vec,rep('', callNum)),nrow=callNum,ncol=2,dimnames = list(callId_vec,c('callId','assetCustacId')))
@@ -251,7 +251,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
     operationObj_vec <-  c(rep(0,varNum),operationTemp_vec*max(callAmount_mat)*10,-operationTemp_vec[msVar_mat[,1]-varNum]*max(callAmount_mat)*10)
     liquidityObj_vec <-  c(minUnitValue_vec[idxEli_vec]*normLiquidity_vec[idxEli_vec],rep(0,varNum3-varNum))
     costObj_vec <-  c(minUnitValue_vec[idxEli_vec]*costBasis_vec[idxEli_vec],rep(0,varNum3-varNum))
-    fObj_vec <- operationObj_vec*pref_vec[1]+liquidityObj_vec*pref_vec[2]+costObj_vec*pref_vec[3]
+    fObj_vec <- operationObj_vec*pref_vec[3]+liquidityObj_vec*pref_vec[2]+costObj_vec*pref_vec[1]
     
     names(fObj_vec) <- varName_vec
     
@@ -619,7 +619,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
 CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit,minMoveValue,initAllocation_list){
 
   #### Prepare Parameters Start #############################
-  pref_vec <- pref_vec/sum(pref_vec[2:3]) # Recalculate the parameters weight setting
+  pref_vec <- pref_vec/sum(pref_vec[1:2]) # Recalculate the parameters weight setting
   callId_vec<-coreInput_list$callId_vec
   resource_vec<-coreInput_list$resource_vec
   
@@ -721,7 +721,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
   #### Calculate the Objectives Parameters END ##############
   
   #### Calculate the Optimal Asset Sufficiency Start #######
-  optimal_mat <- normLiquidity_mat*pref_vec[2]+normCost_mat*pref_vec[3]
+  optimal_mat <- normLiquidity_mat*pref_vec[2]+normCost_mat*pref_vec[1]
   colnames(optimal_mat) <- resource_vec; rownames(optimal_mat)<-callId_vec
   
   optimalAsset_mat <- matrix(c(callId_vec,rep('', callNum)),nrow=callNum,ncol=2,dimnames = list(callId_vec,c('callId','assetCustacId')))
@@ -858,7 +858,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     #costObj_vec[19:36] <- 40
     #costObj_vec[18+c(1:3,7:9,13:15)]<- 10
    
-    fObj_vec <- liquidityObj_vec*pref_vec[2]+costObj_vec*pref_vec[3]
+    fObj_vec <- liquidityObj_vec*pref_vec[2]+costObj_vec*pref_vec[1]
     names(fObj_vec) <- varName_vec
     
     # constraints
