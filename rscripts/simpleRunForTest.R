@@ -350,8 +350,8 @@ for(i in 1:length(groupCallId_list)){
       msVar_mat <- varInfo_list$msVar_mat
       idxEli_vec <- which(eli_vec==1)  
       #### Construct Variable Names END ########
-      
-      print('varName_vec');print(varName_vec)
+      cat('varNum3 ',varNum3)
+      cat('varName_vec ',varName_vec)
       
       #### MODEL SETUP Start ##################################################
       # decision variables: x, qunatity used of each asset for each margin call
@@ -392,6 +392,8 @@ for(i in 1:length(groupCallId_list)){
       liquidityObj_vec <-  c(minUnitValue_vec[idxEli_vec]*normLiquidity_vec[idxEli_vec],rep(0,varNum3-varNum))
       costObj_vec <-  c(minUnitValue_vec[idxEli_vec]*costBasis_vec[idxEli_vec],rep(0,varNum3-varNum))
       fObj_vec <- operationObj_vec*pref_vec[1]+liquidityObj_vec*pref_vec[2]+costObj_vec*pref_vec[3]
+      
+      cat('fObj_vec length: ',length(fObj_vec))
       
       names(fObj_vec) <- varName_vec
       
@@ -499,6 +501,8 @@ for(i in 1:length(groupCallId_list)){
       
       #### Solve the Model Start ###############
       #### Call lpSolve Solver
+      cat('lpGuessBasis_vec', lpGuessBasis_vec)
+      
       solverOutput_list <- CallLpSolve(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
                                        lpType_vec=lpType_vec,lpKind_vec=lpKind_vec,lpLowerBound_vec=lpLowerBound_vec,lpUpperBound_vec=lpUpperBound_vec,lpBranchMode_vec=lpBranchMode_vec,
                                        lpGuessBasis_vec=lpGuessBasis_vec,
@@ -509,7 +513,7 @@ for(i in 1:length(groupCallId_list)){
       solverSolution_vec <- solverOutput_list$solverSolution_vec
       solverObjValue <- solverOutput_list$solverObjValue
       
-      
+      cat('solverObjValue: ',solverObjValue)
       # round up the decimal quantity to the nearest integer.
       # if it's larger than 0.5
       # if close to 0, then set both real and dummies to 0, and if this action causes the 
