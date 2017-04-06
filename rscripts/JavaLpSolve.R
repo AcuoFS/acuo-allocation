@@ -3,7 +3,7 @@ import(lpsolve.LpSolve)
 CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
                         lpType_vec,lpKind_vec,lpLowerBound_vec,lpUpperBound_vec,lpBranchMode_vec,
                         lpGuessBasis_vec,
-                        presolve,epsd,timeout,verbose,bbRule){
+                        presolve,epsd,timeout,verbose,bb.rule){
   # input variables
   # must have: lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec
   # optional: lpType_vec,lpKind_vec,lpLowerBound_vec,lpUpperBound_vec,lpBranchMode_vec

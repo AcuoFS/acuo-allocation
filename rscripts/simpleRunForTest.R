@@ -501,7 +501,7 @@ for(i in 1:length(groupCallId_list)){
       
       #### Solve the Model Start ###############
       #### Call lpSolve Solver
-      cat('lpGuessBasis_vec', lpGuessBasis_vec)
+      cat('\n','lpGuessBasis_vec', lpGuessBasis_vec)
       
       solverOutput_list <- CallLpSolve(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
                                        lpType_vec=lpType_vec,lpKind_vec=lpKind_vec,lpLowerBound_vec=lpLowerBound_vec,lpUpperBound_vec=lpUpperBound_vec,lpBranchMode_vec=lpBranchMode_vec,
