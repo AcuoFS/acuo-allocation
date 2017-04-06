@@ -601,6 +601,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
   
   callSelect_list <- result_list$callSelect_list
   msSelect_list <- result_list$msSelect_list
+  availAsset_df <- result_list$availAsset_df
   
   subtotalFulfilled_mat<- matrix(c(coreInput_list$callAmount_mat[,1],rep(0, callNum)),nrow=callNum,ncol=2,dimnames = list(callId_vec,c('callAmount','fulfilledAmount')))
   for(i in 1:callNum){
@@ -1215,6 +1216,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
   
   callSelect_list <- result_list$callSelect_list
   msSelect_list <- result_list$msSelect_list
+  availAsset_df <- result_list$availAsset_df
   
   subtotalFulfilled_mat<- matrix(c(coreInput_list$callAmount_mat[,1],rep(0, callNum)),nrow=callNum,ncol=2,dimnames = list(callId_vec,c('callAmount','fulfilledAmount')))
   for(i in 1:callNum){
@@ -1302,7 +1304,8 @@ Result2callList <- function(result_mat,assetId_vec,availAsset_df,coreInput_list,
     }
   }
 
-  result_list <- list(callSelect_list=callSelect_list,  msSelect_list=msSelect_list)
+  result_list <- list(callSelect_list=callSelect_list,  msSelect_list=msSelect_list,
+                      availAsset_df=availAsset_df)
   
   return(result_list)
 }
