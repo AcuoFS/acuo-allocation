@@ -1,7 +1,7 @@
 
 CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveValue,verbose,initAllocation_list){
   #### Prepare Parameters Start #############################
-  pref_vec <- pref_vec/sum(pref_vec[2:3]) # Recalculate the parameters weight setting
+  pref_vec <- pref_vec/sum(pref_vec) # Recalculate the parameters weight setting
   callId_vec<-coreInput_list$callId_vec
   resource_vec<-coreInput_list$resource_vec
   
@@ -115,7 +115,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
   #### Calculate the Objectives Parameters END ##############
   
   #### Calculate the Optimal Asset Sufficiency Start #######
-  optimal_mat <- normLiquidity_mat*pref_vec[1]+normLiquidity_mat*pref_vec[2]+normCost_mat*pref_vec[3]
+  optimal_mat <- normOperation_mat*pref_vec[1]+normLiquidity_mat*pref_vec[2]+normCost_mat*pref_vec[3]
   colnames(optimal_mat) <- resource_vec; rownames(optimal_mat)<-callId_vec
   
   optimalAsset_mat <- matrix(c(callId_vec,rep('', callNum)),nrow=callNum,ncol=2,dimnames = list(callId_vec,c('callId','assetCustacId')))

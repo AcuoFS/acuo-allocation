@@ -62,7 +62,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
     availAssetPre_df <- availAssetGroup_df
     callInfoPre_df <- callInfoGroup_df
     assetInfoPre_df <- assetInfoGroup_df
-    callOutputPre_list <- callOutput_list
+    callOutputPre_list <- callOutput_list # currently, store all the cumulated margin calls
     for(p in 1:length(callIdGroup_vec)){
       callId <- callIdGroup_vec[p]
       res <- PreAllocation(algoVersion,callId,callInfoPre_df,availAssetPre_df,assetInfoPre_df,pref_vec,minMoveValue,timeLimit,callOutput_list,checkCall_mat)
@@ -79,15 +79,17 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
     # availAssetPre_df # don't need, solver will auto deduct the quantity while solving
     # combine into a single list: preAllocation_list
     
-    initAllocation_list <- callOutputPre_list
+    initAllocation_list <- callOutputPre_list # currently, store all the cumulated margin calls
     #### Pre-allocate End ########################
 
-    # core Algo, assume all data comes in a list
+    #### Run CoreAlgo Start ######################
     if(algoVersion==1){
       resultGroup_list <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue,initAllocation_list)
     } else if(algoVersion==2){
       resultGroup_list <- CoreAlgoV2(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,operLimit,minMoveValue,initAllocation_list)
     }
+    #### Run CoreAlgo END ########################
+    
     #msOutputGroup_list <- resultGroup_list$msOutput_list
     callOutputGroup_list <- resultGroup_list$callOutput_list
 
@@ -113,8 +115,10 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
       checkCall_mat[which(rownames(checkCall_mat)==callId),2] <- checkCallGroup_mat[which(rownames(checkCallGroup_mat)==callId),2]
     }
   }
+  
   costDaily <- round(costDaily,2)
   costMonthly <- round(costMonthly,2)
+  
   resultAnalysis <- list(costDaily=costDaily,costMonthly=costMonthly)
   ############ ITERATE THE GROUP, RUN THE ALGO END #########################
   
