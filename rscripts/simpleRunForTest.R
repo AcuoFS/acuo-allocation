@@ -128,10 +128,12 @@ for(i in 1:length(groupCallId_list)){
   #### Pre-allocate End ########################
   
   print('initAllocation_list');print(initAllocation_list)
-  
+  print('availAssetGroup_df:'); print(availAssetGroup_df)
   #### Run CoreAlgo Start ######################
   if(algoVersion==1){
+    print('algoVersion=1')
     resultGroup_list <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue,verbose,initAllocation_list)
+    print('resultGroup_list:');print(resultGroup_list)
   } else if(algoVersion==2){
     resultGroup_list <- CoreAlgoV2(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,operLimit,minMoveValue,verbose,initAllocation_list)
   }
