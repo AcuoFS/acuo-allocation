@@ -132,10 +132,10 @@ for(i in 1:length(groupCallId_list)){
   #### Run CoreAlgo Start ######################
   if(algoVersion==1){
     print('algoVersion=1')
-    resultGroup_list <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue,verbose,initAllocation_list)
+    resultGroup_list <- CoreAlgoV1(coreInput_list,availAsset_df=availAssetGroup_df,timeLimit,pref_vec,minMoveValue,verbose,initAllocation_list)
     print('resultGroup_list:');print(resultGroup_list)
   } else if(algoVersion==2){
-    resultGroup_list <- CoreAlgoV2(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,operLimit,minMoveValue,verbose,initAllocation_list)
+    resultGroup_list <- CoreAlgoV2(coreInput_list,availAsset_df=availAssetGroup_df,timeLimit,pref_vec,operLimit,minMoveValue,verbose,initAllocation_list)
   }
   #### Run CoreAlgo END ########################
   
