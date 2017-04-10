@@ -177,12 +177,12 @@ PreAllocation <- function(algoVersion,callIdGroup_vec,callInfo_df,availAsset_df,
 AllocationInputData <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df){
   
   ### new identifer ####
-  assetId_vec <- as.character(data.frame(strsplit(resource_vec,'-'))[1,])
+  assetId_vec <- matrix(unlist(strsplit(resource_vec,'-')),nrow=2)[1,]
   resourceNum <- length(resource_vec)
   callNum <- length(callId_vec)
   callInfo_df$currency[which(is.na(callInfo_df$currency))] <- 'ZZZ' 
   availAsset_df <- availAsset_df[order(availAsset_df$callId),] # order the availAsset_df by callId_vec
-  custodianAccount <- as.character(data.frame(strsplit(resource_vec,'-'))[2,])
+  custodianAccount <- matrix(unlist(strsplit(resource_vec,'-')),nrow=2)[2,]
   venue <- availAsset_df$venue[match(resource_vec,availAsset_df$assetCustacId)]
   
   ###############################################

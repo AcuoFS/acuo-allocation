@@ -69,7 +69,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
   integerCallAmount_mat <- ceiling(callAmount_mat/(1-haircut_mat)/minUnitValue_mat)*minUnitValue_mat
   
   cost_mat<-integerCallAmount_mat*costBasis_mat  # cost amount
-  costBasis_mat <- costBasis_mat/(1-haircut_mat)
+  
   costBasis_vec <- as.vector(t(costBasis_mat))
   
   assetLiquidity_vec <- apply((1-haircut_mat*eli_mat)^2,2,min) # define asset liquidity
@@ -588,7 +588,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
   
   #### Result Analysis Start ########################
   #### calculate the daily cost & month cost
-  costDaily <- sum(result_mat * costBasis_mat * minUnit_mat)
+  costDaily <- sum(result_mat * costBasis_mat * minUnitValue_mat)
   costMonthly <- costDaily*30
   #### calculate the operational movements 
   
@@ -687,8 +687,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
   integerCallAmount_mat <- ceiling(callAmount_mat/(1-haircut_mat)/minUnitValue_mat)*minUnitValue_mat
   
   cost_mat<-integerCallAmount_mat*costBasis_mat  # cost amount
-  
-  costBasis_mat <- costBasis_mat/(1-haircut_mat)
+
   costBasis_vec <- as.vector(t(costBasis_mat))
 
   
@@ -1203,7 +1202,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
 
   #### Result Analysis Start ########################
   #### calculate the daily cost & month cost
-  costDaily <- sum(result_mat * costBasis_mat * minUnit_mat)
+  costDaily <- sum(result_mat * costBasis_mat * minUnitValue_mat)
   costMonthly <- costDaily*30
   #### calculate the operational movements 
   
