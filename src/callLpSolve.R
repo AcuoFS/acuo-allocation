@@ -20,7 +20,16 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
   set.objfn(lpModel,lpObj_vec)                    
   
   # set constraints
-  for (i in 1:length(lpCon_mat[,1])){              
+  for (i in 1:length(lpCon_mat[,1])){    
+    t1 = sum(is.na(lpCon_mat[i,]))
+    t2 = sum(is.na(lpDir_vec[i]))
+    t3 = sum(is.na(lpRhs_vec[i]))
+    if((t1+t2+t3>=1)){
+      print(lpCon_mat[i,])
+      print(lpDir_vec[i])
+      print(lpRhs_vec[i])
+    }
+
     add.constraint(lpModel,lpCon_mat[i,],lpDir_vec[i],lpRhs_vec[i])
   }
   
@@ -60,6 +69,10 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
   
   # solve the problem
   resultStatus <- solve(lpModel)  
+  
+  #print('constraint: ')
+  #print(get.constraints(lpModel))
+  
   
   # write the model to output file
   date <- format(Sys.time(), "%d%b%Y")

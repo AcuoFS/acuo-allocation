@@ -52,7 +52,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
     availAssetGroup_df <- availAsset_df[which(availAsset_df$callId %in% callIdGroup_vec),]
     
     resourceGroup_vec <- unique(availAssetGroup_df$assetCustacId)
-    assetIdGroup_vec <- as.character(data.frame(strsplit(resourceGroup_vec,'-'))[1,])
+    assetIdGroup_vec <- matrix(unlist(strsplit(resourceGroup_vec,'-')),nrow=2)[1,]
     assetInfoGroup_df <- assetInfo_df[match(assetIdGroup_vec,assetInfo_df$id),]
     
     # input data to the core Algo
@@ -64,8 +64,10 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
     assetInfoPre_df <- assetInfoGroup_df
     callOutputPre_list <- callOutput_list # currently, store all the cumulated margin calls
     for(p in 1:length(callIdGroup_vec)){
-      callId <- callIdGroup_vec[p]
-      res <- PreAllocation(algoVersion,callId,callInfoPre_df,availAssetPre_df,assetInfoPre_df,pref_vec,minMoveValue,timeLimit,callOutput_list,checkCall_mat)
+      # consider to change to margin statement 
+      callId <- callIdGroup_vec[p] 
+      operLimitMs <- operLimit/length(msIdGroup_vec) + 1 # this limit is supposed to set on ms not mc 
+      res <- PreAllocation(algoVersion,callId,callInfoPre_df,availAssetPre_df,assetInfoPre_df,pref_vec,operLimitMs,minMoveValue,timeLimit,callOutput_list,checkCall_mat)
       availAssetPre_df <- res$availAsset_df
       #availAssetPre_df[which(availAssetPre_df$callId %in% callId),] <- availAssetPreGroup_df
       callOutputPreGroup_list <- res$callOutput_list
@@ -130,7 +132,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
 
 #### OTHER FUNCTIONS(CALLED IN THE MAIN FUNCTION)##########################
 
-PreAllocation <- function(algoVersion,callIdGroup_vec,callInfo_df,availAsset_df,assetInfo_df,timeLimit,pref_vec,minMoveValue,callOutput_list,checkCall_mat){
+PreAllocation <- function(algoVersion,callIdGroup_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit, minMoveValue,timeLimit,callOutput_list,checkCall_mat){
   
   msIdGroup_vec <- unique(callInfo_df$marginStatement[which(callInfo_df$id %in% callIdGroup_vec)])
   #cat(' group:',i,'\n','callId_vec:',callIdGroup_vec,'\n')
@@ -138,7 +140,7 @@ PreAllocation <- function(algoVersion,callIdGroup_vec,callInfo_df,availAsset_df,
   availAssetGroup_df <- availAsset_df[which(availAsset_df$callId %in% callIdGroup_vec),]
   
   resourceGroup_vec <- unique(availAssetGroup_df$assetCustacId)
-  assetIdGroup_vec <- as.character(data.frame(strsplit(resourceGroup_vec,'-'))[1,])
+  assetIdGroup_vec <- matrix(unlist(strsplit(resourceGroup_vec,'-')),nrow=2)[1,]
   assetInfoGroup_df <- assetInfo_df[match(assetIdGroup_vec,assetInfo_df$id),]
   
   # input data to the core Algo
@@ -177,12 +179,12 @@ PreAllocation <- function(algoVersion,callIdGroup_vec,callInfo_df,availAsset_df,
 AllocationInputData <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df){
   
   ### new identifer ####
-  assetId_vec <- as.character(data.frame(strsplit(resource_vec,'-'))[1,])
+  assetId_vec <- matrix(unlist(strsplit(resource_vec,'-')),nrow=2)[1,]
   resourceNum <- length(resource_vec)
   callNum <- length(callId_vec)
   callInfo_df$currency[which(is.na(callInfo_df$currency))] <- 'ZZZ' 
   availAsset_df <- availAsset_df[order(availAsset_df$callId),] # order the availAsset_df by callId_vec
-  custodianAccount <- as.character(data.frame(strsplit(resource_vec,'-'))[2,])
+  custodianAccount <- matrix(unlist(strsplit(resource_vec,'-')),nrow=2)[2,]
   venue <- availAsset_df$venue[match(resource_vec,availAsset_df$assetCustacId)]
   
   ###############################################

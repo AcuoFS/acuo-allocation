@@ -1,11 +1,13 @@
 
-############ ALGORITHM ##########################################
-SecondAllocationAlgoV1<- function(callId_vec,callInfo_df,resource_vec,pref_vec,deselectAssetId,deselectCallId,currentSelection_list,availAsset_df,assetInfo_df){
-  
+SecondAllocationAlgoV1<- function(callId_vec, resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,
+                                  deselectAssetId,deselectCallId, # changing to margin statement id
+                                  currentSelection_list){
+  #### Prepare Parameters Start #############################
   pref_vec <- pref_vec/sum(pref_vec)
+  
   # update the asset tempQuantity_vec which can be used to allocate to the call
   callNum <- length(callId_vec)
-  assetId_vec <- as.character(data.frame(strsplit(resource_vec,'-'))[1,])
+  assetId_vec <- matrix(unlist(strsplit(resource_vec,'-')),nrow=2)[1,]
   resourceNum <- length(resource_vec)
   
   msIds <- callInfo_df$marginStatement
@@ -37,8 +39,9 @@ SecondAllocationAlgoV1<- function(callId_vec,callInfo_df,resource_vec,pref_vec,d
   }
   quantityLeft_vec <- quantity_vec-quantityUsed_vec
   
-  excellCallPercent <- 0.2
-  callAmount <- callInfo_df$callAmount[which(callInfo_df$id==deselectCallId)]*(1+excellCallPercent*pref_vec[1])
+  
+  #### calculate the sufficient amount & quantity of assets to ful fill the margin call
+  callAmount <- callInfo_df$callAmount[which(callInfo_df$id==deselectCallId)]
   
   allocationDeselectCall_df <- currentSelection_list[[deselectCallId]]
   lackAmount <- callAmount- sum(allocationDeselectCall_df$`NetAmount(USD)`)  # the amount left needs to be fulfilled after deseleting one asset
@@ -99,7 +102,7 @@ SecondAllocationAlgoV1<- function(callId_vec,callInfo_df,resource_vec,pref_vec,d
   normOperation_vec <- operation_vec
   
   # calculate the overall(three objs) scores of the assets
-  optimal_vec <- normOperation_vec*pref_vec[1]+normLiquidity_vec*pref_vec[2]+normCost_vec*pref_vec[3]
+  optimal_vec <- normOperation_vec*pref_vec[3]+normLiquidity_vec*pref_vec[2]+normCost_vec*pref_vec[1]
   names(optimal_vec) <- resource_vec
   optimal_vec <-sort(optimal_vec)  # sort the 'cost' of the assets, from the most to the least optimal
   # idxOptimal_vec: the index of the optimal assets in the resource_vec
@@ -108,12 +111,13 @@ SecondAllocationAlgoV1<- function(callId_vec,callInfo_df,resource_vec,pref_vec,d
   # check whether the first optimal asset is already allocated to that margin statement
   # check whether the first optimal asset is enough to fulfill the margin call
   scenario <- 0
-  for(i in idxOptimal_vec){
+  for(j in idxOptimal_vec){
     # incorrect answer: 03/03/2017
     # reason: the order in optimal_vec and assetCustadIds are not unified
+    i <- idxOptimal_vec[j]
     tempResource <- resource_vec[i]
     
-    tempAssetId <- as.character(data.frame(strsplit(tempResource,'-'))[1,])
+    tempAssetId <- matrix(unlist(strsplit(tempResource,'-')),nrow=2)[1,]
     # create the new line
     lineAssetInfo_df <- assetInfo_df[which(assetInfo_df$id==tempAssetId),]
     lineAvailAsset_df <- availAsset_df[which(availAsset_df$callId==deselectCallId),]
@@ -200,8 +204,11 @@ SecondAllocationAlgoV1<- function(callId_vec,callInfo_df,resource_vec,pref_vec,d
         newNetAmountUSD <- newAmountUSD*(1-haircut_vec[i])
         newNetAmount <- newNetAmountUSD*FXRate_vec[i]
         
+        newVenue <- lineAvailAsset_df$venue[which(lineAvailAsset_df$assetCustacId==tempResource)]
+        newCustodianAccount <- lineAvailAsset_df$CustodianAccount[which(lineAvailAsset_df$assetCustacId==tempResource)]
+        
         new.asset <- c(tempAssetId,lineAssetInfo_df$name,newNetAmount,newNetAmountUSD,lineAssetInfo_df$FXRate,haircut_vec[i],newAmount,newAmountUSD,
-                       lineAssetInfo_df$currency,newQuantity,lineAvailAsset_df$CustodianAccount,lineAvailAsset_df$venue,lineCallInfo_df$marginType)
+                       lineAssetInfo_df$currency,newQuantity,newCustodianAccount,newVenue,lineCallInfo_df$marginType,deselectMs,deselectCallId)
         newAllocationDeselectCall_df[length(allocationDeselectCall_df[,1])+1,]<- new.asset
         
         # update the lackAmount and lackQuantity_vec
@@ -221,8 +228,11 @@ SecondAllocationAlgoV1<- function(callId_vec,callInfo_df,resource_vec,pref_vec,d
         newNetAmountUSD <- newAmountUSD*(1-haircut_vec[i])
         newNetAmount <- newNetAmountUSD*FXRate_vec[i]
         
+        newVenue <- lineAvailAsset_df$venue[which(lineAvailAsset_df$assetCustacId==tempResource)]
+        newCustodianAccount <- lineAvailAsset_df$CustodianAccount[which(lineAvailAsset_df$assetCustacId==tempResource)]
+        
         new.asset <- c(tempAssetId,lineAssetInfo_df$name,newNetAmount,newNetAmountUSD,lineAssetInfo_df$FXRate,haircut_vec[i],newAmount,newAmountUSD,
-                       lineAssetInfo_df$currency,newQuantity,lineAvailAsset_df$CustodianAccount,lineAvailAsset_df$venue,lineCallInfo_df$marginType)
+                       lineAssetInfo_df$currency,newQuantity,newCustodianAccount,newVenue,lineCallInfo_df$marginType,deselectMs,deselectCallId)
         newAllocationDeselectCall_df[length(allocationDeselectCall_df[,1])+1,]<- new.asset
         
         # update the lackAmount and lackQuantity_vec
@@ -235,7 +245,7 @@ SecondAllocationAlgoV1<- function(callId_vec,callInfo_df,resource_vec,pref_vec,d
   #cat('asset: ',i,'  ',tempResource,'\n')
   
   currentSelection_list[[deselectCallId]]<- newAllocationDeselectCall_df
-  output_list <- list(new.selection=currentSelection_list)
+  output_list <- list(newSelection=currentSelection_list)
   return(output_list)
 }
 
