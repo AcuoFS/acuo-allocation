@@ -351,7 +351,6 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
     lpEpsd <- 1e-9
     lpEpsind <- 1e-9
     lpTimeout <- timeLimit
-    lpVerbose <- 'normal'
     # bbRule <-  c("pseudononint", "restart","autoorder","stronginit", "dynamic","rcostfixing")
     bbRule <- c("pseudononint", "greedy", "dynamic","rcostfixing") # default
     lpScale <- c("geometric","quadratic","equilibrate", "integers")
@@ -371,7 +370,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
     solverOutput_list <- CallLpSolve(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
                                      lpType_vec=lpType_vec,lpKind_vec=lpKind_vec,lpLowerBound_vec=lpLowerBound_vec,lpUpperBound_vec=lpUpperBound_vec,lpBranchMode_vec=lpBranchMode_vec,
                                      lpGuessBasis_vec=lpGuessBasis_vec,
-                                     presolve=lpPresolve,epsd=lpEpsd,timeout=lpTimeout,verbose=lpVerbose,bb.rule=bbRule,
+                                     presolve=lpPresolve,epsd=lpEpsd,timeout=lpTimeout,bb.rule=bbRule,
                                      epsind=lpEpsind, scaling=lpScale,improve=lpImprove)
     
     #### Solver Outputs
@@ -981,7 +980,6 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     lpEpsd <- 1e-9
     lpEpsind <- 1e-9
     lpTimeout <- timeLimit
-    lpVerbose <- 'normal'
     # bbRule <-  c("pseudononint", "restart","autoorder","stronginit", "dynamic","rcostfixing")
     bbRule <- c("pseudononint", "greedy", "dynamic","rcostfixing") # default
     lpScale <- c("geometric","quadratic","equilibrate", "integers")
@@ -1001,7 +999,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     solverOutput_list <- CallLpSolve(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
                                      lpType_vec=lpType_vec,lpKind_vec=lpKind_vec,lpLowerBound_vec=lpLowerBound_vec,lpUpperBound_vec=lpUpperBound_vec,lpBranchMode_vec=lpBranchMode_vec,
                                      lpGuessBasis_vec=lpGuessBasis_vec, 
-                                     presolve=lpPresolve,epsd=lpEpsd,timeout=lpTimeout,verbose=lpVerbose,bb.rule=bbRule,
+                                     presolve=lpPresolve,epsd=lpEpsd,timeout=lpTimeout,bb.rule=bbRule,
                                      scaling=lpScale,improve=lpImprove)
 
     #### solver outputs

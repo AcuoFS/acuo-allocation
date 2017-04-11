@@ -1,6 +1,6 @@
 
 AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,
-                           algoVersion,minMoveValue,timeLimit,verbose,inputLimit_vec,callOrderMethod){
+                           algoVersion,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod){
 
   #### Order callId_vec Start ######################################
   ## method 0: Keep original

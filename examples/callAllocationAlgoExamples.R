@@ -35,17 +35,21 @@ availAsset_df <- availAssetByCallIdAndClientId(callId_vec,clientId) # available 
 availAsset_df <- availAsset_df[order(availAsset_df$callId),]
 
 ########## added lines for testing purposes ##############
-# availAsset_df$quantity <- availAsset_df$quantity/5 # change tempQuantity_vec for testing
+# availAsset_df$quantity <- availAsset_df$quantity/10 # change tempQuantity_vec for testing
 # availAsset_df <- rbind(availAsset_df,availAsset_df) # add custodianAccount for testing
 # availAsset_df$CustodianAccount[1:length(availAsset_df[,1])/2] <- 'custodianAccountTest'
 ########## end ###########################################
 
 
+# temp changes start
+# availAsset_df$quantity[which(availAsset_df$assetId=='GBP')] = 1000000-0.01
+# temp changes end
+ 
 assetCustacId_vec <- paste(availAsset_df$assetId,availAsset_df$CustodianAccount,sep='-')
 availAsset_df$assetCustacId <- assetCustacId_vec
 resource_vec <- unique(assetCustacId_vec)
 
-assetId_vec <- as.character(data.frame(strsplit(resource_vec,'-'))[1,])
+assetId_vec <- matrix(unlist(strsplit(resource_vec,'-')),nrow=2)[1,]
 assetInfo_df <- assetInfoByAssetId(assetId_vec)
 assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
 
@@ -62,9 +66,9 @@ CallAllocation <- function(algoVersion,callId_vec,resource_vec,callInfo_df,avail
 }
 
 ## CALL THE ALLOCATION FUNCTION ###########
-algoVersion <- 1
-pref_vec = c(0,10,5);
-operLimit<- 10; 
+algoVersion <- 2
+pref_vec = c(0,10,10);
+operLimit<- 6
 result <- CallAllocation(algoVersion,callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
 result
 
