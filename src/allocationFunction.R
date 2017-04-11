@@ -86,7 +86,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
 
     #### Run CoreAlgo Start ######################
     if(algoVersion==1){
-      resultGroup_list <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue,initAllocation_list)
+      resultGroup_list <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue)#,initAllocation_list)
     } else if(algoVersion==2){
       resultGroup_list <- CoreAlgoV2(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,operLimit,minMoveValue,initAllocation_list)
     }
@@ -97,7 +97,8 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
 
     status <- resultGroup_list$status
     lpsolveRun <- resultGroup_list$lpsolveRun
-    solverObjValue <- round(resultGroup_list$solverObjValue,2)
+    #solverObjValue <- round(resultGroup_list$solverObjValue,2)
+    solverObjValue <- resultGroup_list$solverObjValue
     checkCallGroup_mat <- resultGroup_list$checkCall_mat
     resultAnalysis_list <- resultGroup_list$resultAnalysis_list
     costDaily <- resultAnalysis_list$costDaily + costDaily

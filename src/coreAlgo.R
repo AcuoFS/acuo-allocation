@@ -248,12 +248,17 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
     
     #### Build the Optimization Model ########
     # objective function
+    costObj_vec <-  c(minUnitValue_vec[idxEli_vec]*costBasis_vec[idxEli_vec],rep(0,varNum3-varNum))
+    liquidityObj_vec <-  c(minUnitValue_vec[idxEli_vec]*normLiquidity_vec[idxEli_vec],rep(0,varNum3-varNum))
     operationTemp_vec <- normOperation_vec[idxEli_vec]
     operationObj_vec <-  c(rep(0,varNum),operationTemp_vec*max(callAmount_mat)*10,-operationTemp_vec[msVar_mat[,1]-varNum]*max(callAmount_mat)*10)
-    liquidityObj_vec <-  c(minUnitValue_vec[idxEli_vec]*normLiquidity_vec[idxEli_vec],rep(0,varNum3-varNum))
-    costObj_vec <-  c(minUnitValue_vec[idxEli_vec]*costBasis_vec[idxEli_vec],rep(0,varNum3-varNum))
-    fObj_vec <- operationObj_vec*pref_vec[3]+liquidityObj_vec*pref_vec[2]+costObj_vec*pref_vec[1]
+
     
+    costObj_vec[19:36] <- 40
+    costObj_vec[18+c(1:3,7:9,13:15)]<- 10
+    
+    fObj_vec <- costObj_vec*pref_vec[1]+liquidityObj_vec*pref_vec[2]+operationObj_vec*pref_vec[3]
+    print(fObj_vec)
     names(fObj_vec) <- varName_vec
     
     # constraints
@@ -338,16 +343,19 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
     lpType_vec <- rep('real',varNum3)
     lpType_vec[which(minUnitValue_vec[idxEli_vec]>=1)] <- 'integer'
     lpType_vec[(varNum+1):varNum3] <- 'integer'
-    lpLowerBound_vec <- c(minMoveQuantity_vec,rep(1,varNum3-varNum))
+    lpLowerBound_vec <- c(minMoveQuantity_vec,rep(0,varNum3-varNum))
     lpUpperBound_vec <- c(minUnitQuantity_vec[idxEli_vec],rep(1,varNum3-varNum))
-    lpBranchMode_vec <- c(rep('floor',varNum),rep('auto',varNum3-varNum))
+    lpBranchMode_vec <- c(rep('auto',varNum),rep('auto',varNum3-varNum))
     
     lpPresolve <- ifelse(callNum<=5,'none','knapsack')
-    lpEpsd <- 1e-11
+    lpEpsd <- 1e-9
+    lpEpsind <- 1e-9
     lpTimeout <- timeLimit
     lpVerbose <- 'normal'
     # bbRule <-  c("pseudononint", "restart","autoorder","stronginit", "dynamic","rcostfixing")
     bbRule <- c("pseudononint", "greedy", "dynamic","rcostfixing") # default
+    lpScale <- c("geometric","quadratic","equilibrate", "integers")
+    lpImprove <- c("solution","dualfeas","thetagap")
     
     #### INITIAL GUESS BASIS
     lpGuessBasis_vec <- rep(0,varNum3)
@@ -363,7 +371,8 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
     solverOutput_list <- CallLpSolve(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
                                      lpType_vec=lpType_vec,lpKind_vec=lpKind_vec,lpLowerBound_vec=lpLowerBound_vec,lpUpperBound_vec=lpUpperBound_vec,lpBranchMode_vec=lpBranchMode_vec,
                                      lpGuessBasis_vec=lpGuessBasis_vec,
-                                     presolve=lpPresolve,epsd=lpEpsd,timeout=lpTimeout,verbose=lpVerbose,bb.rule=bbRule)
+                                     presolve=lpPresolve,epsd=lpEpsd,timeout=lpTimeout,verbose=lpVerbose,bb.rule=bbRule,
+                                     epsind=lpEpsind, scaling=lpScale)
     
     #### Solver Outputs
     status<- solverOutput_list$resultStatus
@@ -403,8 +412,8 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
     resultDummy_mat[idxEli_vec]<- solverSolution_vec[(varNum+1):varNum2]
     result_mat[which(result_mat>0.5)] <- ceiling(result_mat[which(result_mat>0.5)])
     result_mat <- t(result_mat) ;   resultDummy_mat <- t(resultDummy_mat)     # convert solution into matrix format
-    #print('result_mat: '); print(result_mat)
-    #print('resultDummy_mat: '); print(resultDummy_mat)
+    print('result_mat: '); print(result_mat)
+    print('resultDummy_mat: '); print(resultDummy_mat)
     
     #### Solve the Model END #################
     
