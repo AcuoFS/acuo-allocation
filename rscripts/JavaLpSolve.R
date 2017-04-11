@@ -3,7 +3,8 @@ import(lpsolve.LpSolve)
 CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
                         lpType_vec,lpKind_vec,lpLowerBound_vec,lpUpperBound_vec,lpBranchMode_vec,
                         lpGuessBasis_vec,
-                        presolve,epsd,timeout,verbose,bb.rule){
+                        presolve,epsd,timeout,bbRule,
+                        scaling,improve){
   # input variables
   # must have: lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec
   # optional: lpType_vec,lpKind_vec,lpLowerBound_vec,lpUpperBound_vec,lpBranchMode_vec
@@ -16,9 +17,9 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
   # make model
   lpModel <- LpSolve$makeLp(0L, varNum)
 
-  if(!missing(verbose)){
-    lpModel$setVerbose(as.integer(verbose));
-  }
+#  if(!missing(verbose)){
+#    lpModel$setVerbose(as.integer(verbose));
+#  }
 
   # set objective
   strObj <- paste(lpObj_vec,collapse=' ')
@@ -116,10 +117,18 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
     lpModel$setTimeout(timeout)
   }
 
-  #if(!missing(bbRule)){
+  if(!missing(bbRule)){
   #  lpModel$setBbRule(bbRule)
-  #}
+  }
 
+  if(!missing(scaling)){
+  #  lpModel$setScaling(scaling)
+  }
+  
+  if(!missing(improve)){
+  #  lpModel$setScaling(improve)
+  }
+  
   # solve the problem
   resultStatus <- lpModel$solve()
 

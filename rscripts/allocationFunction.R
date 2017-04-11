@@ -1,17 +1,17 @@
 
 AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,
-                           algoVersion,minMoveValue,timeLimit,verbose,inputLimit_vec,callOrderMethod){
-
+                           algoVersion,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod){
+  
   #### Order callId_vec Start ######################################
   ## method 0: Keep original
   ## method 1: By margin call amount, decreasing
   ## method 2: By margin type, VM then IM; sub order by call amount
   ## method 3: By total call amount in margin statement, decreasing
-
+  
   if(missing(callOrderMethod)){
     callOrderMethod <-2
   }
-
+  
   callInfo_df <- OrderCallId(callOrderMethod,callInfo_df)
   callId_vec <- callInfo_df$id
   msId_vec <- unique(callInfo_df$marginStatement)
@@ -35,7 +35,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
   # allocate one group a time
   # after each allocation, update the tempQuantity_vec of each asset
   callOutput_list <- list()
-  #msOutput_list <- list()
+  msOutput_list <- list()
   checkCall_mat <- matrix(c(callInfo_df$callAmount,rep(0,callNum)),nrow=callNum, dimnames = list(callId_vec,c('callAmount','fulfilledAmount')))
   costDaily <- 0
   costMonthly <- 0
@@ -43,16 +43,16 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
   ############ ITERATE THE GROUP, RUN THE ALGO Start #########################
   
   for(i in 1:length(groupCallId_list)){
-
+    
     callIdGroup_vec <- groupCallId_list[[i]]
     msIdGroup_vec <- unique(callInfo_df$marginStatement[which(callInfo_df$id %in% callIdGroup_vec)])
     #cat(' group:',i,'\n','callId_vec:',callIdGroup_vec,'\n')
-
+    
     callInfoGroup_df <- callInfo_df[match(callIdGroup_vec,callInfo_df$id),]
     availAssetGroup_df <- availAsset_df[which(availAsset_df$callId %in% callIdGroup_vec),]
     
     resourceGroup_vec <- unique(availAssetGroup_df$assetCustacId)
-    assetIdGroup_vec <- as.character(data.frame(strsplit(resourceGroup_vec,'-'))[1,])
+    assetIdGroup_vec <- matrix(unlist(strsplit(resourceGroup_vec,'-')),nrow=2)[1,]
     assetInfoGroup_df <- assetInfo_df[match(assetIdGroup_vec,assetInfo_df$id),]
     
     # input data to the core Algo
@@ -62,10 +62,12 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
     availAssetPre_df <- availAssetGroup_df
     callInfoPre_df <- callInfoGroup_df
     assetInfoPre_df <- assetInfoGroup_df
-    callOutputPre_list <- callOutput_list
+    callOutputPre_list <- callOutput_list # currently, store all the cumulated margin calls
     for(p in 1:length(callIdGroup_vec)){
-      callId <- callIdGroup_vec[p]
-      res <- PreAllocation(algoVersion,callId,callInfoPre_df,availAssetPre_df,assetInfoPre_df,timeLimit,pref_vec,minMoveValue,verbose,callOutput_list,checkCall_mat)
+      # consider to change to margin statement 
+      callId <- callIdGroup_vec[p] 
+      operLimitMs <- operLimit/length(msIdGroup_vec) + 1 # this limit is supposed to set on ms not mc 
+      res <- PreAllocation(algoVersion,callId,callInfoPre_df,availAssetPre_df,assetInfoPre_df,pref_vec,operLimitMs,minMoveValue,timeLimit,callOutput_list,checkCall_mat)
       availAssetPre_df <- res$availAsset_df
       #availAssetPre_df[which(availAssetPre_df$callId %in% callId),] <- availAssetPreGroup_df
       callOutputPreGroup_list <- res$callOutput_list
@@ -73,29 +75,29 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
       checkCallPre_mat <- res$checkCall_mat
       callOutputPre_list[[callId]] <- callOutputPreGroup_list[[callId]]
     }
-
+    
     # parameteres need to pass to the CoreAlgoV2
     # callOutputPre_list
     # availAssetPre_df # don't need, solver will auto deduct the quantity while solving
     # combine into a single list: preAllocation_list
     
-    initAllocation_list <- callOutputPre_list
+    initAllocation_list <- callOutputPre_list # currently, store all the cumulated margin calls
     #### Pre-allocate End ########################
-
+    
     #### Run CoreAlgo Start ######################
     if(algoVersion==1){
-      resultGroup_list <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue,verbose,initAllocation_list)
+      resultGroup_list <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue)#,initAllocation_list)
     } else if(algoVersion==2){
-      resultGroup_list <- CoreAlgoV2(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,operLimit,minMoveValue,verbose,initAllocation_list)
+      resultGroup_list <- CoreAlgoV2(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,operLimit,minMoveValue,initAllocation_list)
     }
     #### Run CoreAlgo END ########################
     
-    #msOutputGroup_list <- resultGroup_list$msOutput_list
+    msOutputGroup_list <- resultGroup_list$msOutput_list
     callOutputGroup_list <- resultGroup_list$callOutput_list
-
+    
     status <- resultGroup_list$status
     lpsolveRun <- resultGroup_list$lpsolveRun
-    solverObjValue <- round(resultGroup_list$solverObjValue,2)
+    solverObjValue <- resultGroup_list$solverObjValue
     checkCallGroup_mat <- resultGroup_list$checkCall_mat
     resultAnalysis_list <- resultGroup_list$resultAnalysis_list
     costDaily <- resultAnalysis_list$costDaily + costDaily
@@ -108,29 +110,29 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
     for(k in 1:length(callIdGroup_vec)){
       callId <- callIdGroup_vec[k]
       j <- which(msIdGroup_vec==callInfo_df$marginStatement[which(callInfo_df$id==callId)])
-
+      
       msId <- msId_vec[j]
       callOutput_list[[callId]] <- callOutputGroup_list[[callId]]
-     # msOutput_list[[msId]] <- msOutputGroup_list[[msId]]
+      msOutput_list[[msId]] <- msOutputGroup_list[[msId]]
       checkCall_mat[which(rownames(checkCall_mat)==callId),2] <- checkCallGroup_mat[which(rownames(checkCallGroup_mat)==callId),2]
     }
   }
   
   costDaily <- round(costDaily,2)
   costMonthly <- round(costMonthly,2)
-  #cat('costDaily ',costDaily); cat('costMonthly',costMonthly)
+  
   resultAnalysis <- list(costDaily=costDaily,costMonthly=costMonthly)
   ############ ITERATE THE GROUP, RUN THE ALGO END #########################
   
   return(list(#msOutput=msOutput_list,
-              callOutput=callOutput_list,checkCall_mat=checkCall_mat,
-              status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue,resultAnalysis=resultAnalysis))
+    callOutput=callOutput_list,checkCall_mat=checkCall_mat,
+    status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue,resultAnalysis=resultAnalysis))
 }
 
 
 #### OTHER FUNCTIONS(CALLED IN THE MAIN FUNCTION)##########################
 
-PreAllocation <- function(algoVersion,callIdGroup_vec,callInfo_df,availAsset_df,assetInfo_df,timeLimit,pref_vec,minMoveValue,verbose,callOutput_list,checkCall_mat){
+PreAllocation <- function(algoVersion,callIdGroup_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit, minMoveValue,timeLimit,callOutput_list,checkCall_mat){
   
   msIdGroup_vec <- unique(callInfo_df$marginStatement[which(callInfo_df$id %in% callIdGroup_vec)])
   #cat(' group:',i,'\n','callId_vec:',callIdGroup_vec,'\n')
@@ -138,7 +140,7 @@ PreAllocation <- function(algoVersion,callIdGroup_vec,callInfo_df,availAsset_df,
   availAssetGroup_df <- availAsset_df[which(availAsset_df$callId %in% callIdGroup_vec),]
   
   resourceGroup_vec <- unique(availAssetGroup_df$assetCustacId)
-  assetIdGroup_vec <- as.character(data.frame(strsplit(resourceGroup_vec,'-'))[1,])
+  assetIdGroup_vec <- matrix(unlist(strsplit(resourceGroup_vec,'-')),nrow=2)[1,]
   assetInfoGroup_df <- assetInfo_df[match(assetIdGroup_vec,assetInfo_df$id),]
   
   # input data to the core Algo
@@ -146,9 +148,9 @@ PreAllocation <- function(algoVersion,callIdGroup_vec,callInfo_df,availAsset_df,
   
   # core Algo, assume all data comes in a list
   if(algoVersion==1){
-    resultGroup_list <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue,verbose)
+    resultGroup_list <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue)
   } else if(algoVersion==2){
-    resultGroup_list <- CoreAlgoV2(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,operLimit,minMoveValue,verbose)
+    resultGroup_list <- CoreAlgoV2(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,operLimit,minMoveValue)
   }
   #msOutputGroup_list <- resultGroup_list$msOutput_list
   callOutputGroup_list <- resultGroup_list$callOutput_list
