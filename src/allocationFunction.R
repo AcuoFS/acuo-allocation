@@ -35,7 +35,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
   # allocate one group a time
   # after each allocation, update the tempQuantity_vec of each asset
   callOutput_list <- list()
-  #msOutput_list <- list()
+  msOutput_list <- list()
   checkCall_mat <- matrix(c(callInfo_df$callAmount,rep(0,callNum)),nrow=callNum, dimnames = list(callId_vec,c('callAmount','fulfilledAmount')))
   costDaily <- 0
   costMonthly <- 0
@@ -92,12 +92,11 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
     }
     #### Run CoreAlgo END ########################
     
-    #msOutputGroup_list <- resultGroup_list$msOutput_list
+    msOutputGroup_list <- resultGroup_list$msOutput_list
     callOutputGroup_list <- resultGroup_list$callOutput_list
 
     status <- resultGroup_list$status
     lpsolveRun <- resultGroup_list$lpsolveRun
-    #solverObjValue <- round(resultGroup_list$solverObjValue,2)
     solverObjValue <- resultGroup_list$solverObjValue
     checkCallGroup_mat <- resultGroup_list$checkCall_mat
     resultAnalysis_list <- resultGroup_list$resultAnalysis_list
@@ -114,7 +113,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
 
       msId <- msId_vec[j]
       callOutput_list[[callId]] <- callOutputGroup_list[[callId]]
-     # msOutput_list[[msId]] <- msOutputGroup_list[[msId]]
+      msOutput_list[[msId]] <- msOutputGroup_list[[msId]]
       checkCall_mat[which(rownames(checkCall_mat)==callId),2] <- checkCallGroup_mat[which(rownames(checkCallGroup_mat)==callId),2]
     }
   }
