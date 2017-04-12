@@ -597,14 +597,14 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
   
   #### Result Analysis Start ########################
   #### calculate the daily cost & month cost
-  costDaily <- CostFun(result_mat,costBasis_mat,minUnitValue_mat)
-  costMonthly <- costDaily*30
+  dailyCost <- CostFun(result_mat,costBasis_mat,minUnitValue_mat)
+  monthlyCost <- dailyCost*30
   #### calculate the operational movements 
   
   #### Result Analysis END ##########################
   
   #### Prepare Outputs Start #######################
-  resultAnalysis_list <- list(costDaily=costDaily,costMonthly=costMonthly)
+  resultAnalysis_list <- list(dailyCost=dailyCost,monthlyCost=monthlyCost)
   #### Convert the result_mat to List
   result_list <- Result2callList(result_mat,assetId_vec,availAsset_df,coreInput_list,callSelect_list,msSelect_list)
   
@@ -1255,24 +1255,19 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
 
   #### Result Analysis Start ########################
   #### calculate the daily cost & month cost
-  costDaily <- CostFun(result_mat,costBasis_mat,minUnitValue_mat)
-  costMonthly <- costDaily*30
+  dailyCost <- CostFun(result_mat,costBasis_mat,minUnitValue_mat)
+  monthlyCost <- dailyCost*30
   # movements:
   movements <- OperationFun(result_mat,callInfo_df)
   
   if(varNum3>varNum2){
     movements <- movements-sum(adjSolution_vec[(varNum2+1):varNum3])
   }
-  
-  #quantityTotal_vec <- minUnitQuantity_mat[1,];
-  #quantityRes_vec <- quantityTotal_vec-apply(result_mat,2,sum);
-  #liquidRatio_vec <- LiquidFun(quantityRes_vec,quantityTotal_vec,liquidity_mat[1,],minUnitValue_mat[1,])
 
-  
   #### Result Analysis END ##########################
   
   #### Prepare Outputs Start #######################
-  resultAnalysis_list <- list(costDaily=costDaily,costMonthly=costMonthly,movements=movements)
+  resultAnalysis_list <- list(dailyCost=dailyCost,monthlyCost=monthlyCost,movements=movements)
   #### convert the result_mat to list
   result_list <- Result2callList(result_mat,assetId_vec,availAsset_df,coreInput_list,callSelect_list,msSelect_list)
   
