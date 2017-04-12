@@ -36,6 +36,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
   # after each allocation, update the tempQuantity_vec of each asset
   callOutput_list <- list()
   msOutput_list <- list()
+  availAssetOri_df <- availAsset_df
   checkCall_mat <- matrix(c(callInfo_df$callAmount,rep(0,callNum)),nrow=callNum, dimnames = list(callId_vec,c('callAmount','fulfilledAmount')))
   costDaily <- 0
   costMonthly <- 0
@@ -102,6 +103,8 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
     resultAnalysis_list <- resultGroup_list$resultAnalysis_list
     costDaily <- resultAnalysis_list$costDaily + costDaily
     costMonthly <- resultAnalysis_list$costMonthly + costMonthly
+    # liquidRatio <- resultAnalysis_list$liquidityRatio
+    movements <- resultAnalysis_list$movements + movements
     
     # update the availAsset 
     availAssetGroup_df <- resultGroup_list$availAsset_df
@@ -121,7 +124,23 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
   costDaily <- round(costDaily,2)
   costMonthly <- round(costMonthly,2)
   
-  resultAnalysis <- list(costDaily=costDaily,costMonthly=costMonthly)
+  # the calculation of the liquidity ratio should be done at the top level
+  
+  coreInputOri_list <- AllocationInputData(callId_vec,resource_vec,callInfo_df,availAssetOri_df,assetInfo_df)
+  quantityTotal_mat <- coreInputOri_list$minUnitQuantity_mat
+  quantityTotal_vec <- apply(quantityTotal_mat,2,max)
+  
+  coreInput_list <- AllocationInputData(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df)
+  quantityRes_mat <- coreInput_list$minUnitQuantity_mat
+
+  quantityRes_vec <- apply(quantityRes_mat,2,max)
+  liquidity_vec <- apply((1-coreInput_list$haircut_mat)^2,2,max)
+  minUnitValue_vec <- apply(coreInput_list$minUnitValue_mat,2,max)
+  liquidRatio_vec <- LiquidFun(quantityRes_vec,quantityTotal_vec,liquidity_vec,minUnitValue_vec)
+  
+  
+  
+  resultAnalysis <- list(costDaily=costDaily,costMonthly=costMonthly,movements=movements,liquidRatio=liquidRatio)
   ############ ITERATE THE GROUP, RUN THE ALGO END #########################
   
   return(list(#msOutput=msOutput_list,
@@ -131,6 +150,14 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
 
 
 #### OTHER FUNCTIONS(CALLED IN THE MAIN FUNCTION)##########################
+
+LiquidFun <- function(quantityRes_vec,quantityTotal_vec,liquidity_vec,minUnitValue_vec){
+  numerator <- sum(quantityRes_vec*liquidity_vec*minUnitValue_vec)
+  denominator <- sum(quantityTotal_vec*liquidity_vec*minUnitValue_vec)
+  ratio <- numerator/denominator
+  liquidRatio_vec <- c(numerator,denominator,ratio)
+  return(liquidRatio_vec)
+}
 
 PreAllocation <- function(algoVersion,callIdGroup_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit, minMoveValue,timeLimit,callOutput_list,checkCall_mat){
   
