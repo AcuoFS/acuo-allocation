@@ -172,7 +172,8 @@ PreAllocation <- function(algoVersion,callIdGroup_vec,callInfo_df,availAsset_df,
     checkCall_mat[which(rownames(checkCall_mat)==callId),2] <- checkCallGroup_mat[which(rownames(checkCallGroup_mat)==callId),2]
   }
   
-  solveOutput_list <- list(resultGroup_list=resultGroup_list,availAsset_df=availAsset_df,checkCall_mat=checkCall_mat,callOutput_list=callOutput_list)
+  solveOutput_list <- list(#msOutput_list=msOutput_list,
+    resultGroup_list=resultGroup_list,availAsset_df=availAsset_df,checkCall_mat=checkCall_mat,callOutput_list=callOutput_list)
   return(solveOutput_list)
 }
 

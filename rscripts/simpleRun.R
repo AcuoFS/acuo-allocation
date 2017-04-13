@@ -59,7 +59,7 @@ CallAllocation <- function(algoVersion,callId_vec,resource_vec,callInfo_df,avail
 algoVersion <- 1
 operLimit<- 10; 
 
-pref_vec <- c(10,0,0)
+#pref_vec <- c(10,0,0)
 
 result <- CallAllocation(algoVersion,callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
 
