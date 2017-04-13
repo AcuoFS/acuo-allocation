@@ -769,7 +769,7 @@ for(i in 1:length(groupCallId_list)){
           
           resultGroup_list<- list(msOutput_list=msSelect_list,
                       callOutput_list=callSelect_list,checkCall_mat=checkCall_mat,availAsset_df=availAsset_df,
-                      status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue,resultAnalysis_list=resultAnalysis_list))
+                      status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue,resultAnalysis_list=resultAnalysis_list)
 
         
         
