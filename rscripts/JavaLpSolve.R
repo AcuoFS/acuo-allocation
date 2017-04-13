@@ -105,8 +105,8 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
     lpModel$setEpsd(epsd)
   }
     
-  if(!missing(epsd)){
-    lpModel$setEpsint(epsint)
+  if(!missing(epsind)){
+    lpModel$setEpsint(epsind)
   }
   
   if(!missing(presolve)){
