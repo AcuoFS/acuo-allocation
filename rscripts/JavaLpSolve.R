@@ -3,7 +3,7 @@ import(lpsolve.LpSolve)
 CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
                         lpType_vec,lpKind_vec,lpLowerBound_vec,lpUpperBound_vec,lpBranchMode_vec,
                         lpGuessBasis_vec,
-                        presolve,epsd,timeout,bbRule,
+                        presolve,epsd,timeout,bbRule,epsind=lpEpsind,
                         scaling,improve){
   # input variables
   # must have: lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec
@@ -104,7 +104,11 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
   if(!missing(epsd)){
     lpModel$setEpsd(epsd)
   }
-
+    
+  if(!missing(epsd)){
+    lpModel$setEpsint(epsint)
+  }
+  
   if(!missing(presolve)){
     if(presolve=='none'){
         lpModel$setPresolve(LpSolve$PRESOLVE_NONE,as.integer(1e6))
