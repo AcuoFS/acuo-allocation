@@ -184,7 +184,17 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
   #### Calculate the Optimal Asset Sufficiency END ##########
   
   #### ALLOCATION START #####################################
-
+  #### Construct Variable Names Start ######
+  varInfo_list <- VarInfo(eli_vec,callInfo_df,resource_vec,callId_vec)
+  
+  varName_vec <- varInfo_list$varName_vec
+  varNum <- varInfo_list$varNum
+  varNum2 <- varInfo_list$varNum2
+  varNum3 <- varInfo_list$varNum3
+  msVar_mat <- varInfo_list$msVar_mat
+  idxEli_vec <- which(eli_vec==1)  
+  #### Construct Variable Names END ########
+  
   if(!is.element(0,ifSelectAssetSuff_vec)){
     #### Optimal Assets are Sufficient Start ##########
     result_mat <- matrix(0,nrow=callNum,ncol=resourceNum,dimnames=list(callId_vec,resource_vec))
@@ -203,17 +213,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
     #### Optimal Assets are not Sufficient Start #########
     lpsolveRun<-TRUE
     
-    #### Construct Variable Names Start ######
-    varInfo_list <- VarInfo(eli_vec,callInfo_df,resource_vec,callId_vec)
-    
-    varName_vec <- varInfo_list$varName_vec
-    varNum <- varInfo_list$varNum
-    varNum2 <- varInfo_list$varNum2
-    varNum3 <- varInfo_list$varNum3
-    msVar_mat <- varInfo_list$msVar_mat
-    idxEli_vec <- which(eli_vec==1)  
-    #### Construct Variable Names END ########
-    
+
     #### MODEL SETUP Start ##################################################
     # decision variables: x, qunatity used of each asset for each margin call
     #                 quantity or minUnitQuantity
@@ -595,18 +595,10 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
     #### CHECK ALLOCATION RESULT END ################
   } # else if END
   
-  #### Result Analysis Start ########################
-  #### calculate the daily cost & month cost
-  dailyCost <- CostFun(result_mat,costBasis_mat,minUnitValue_mat)
-  monthlyCost <- dailyCost*30
-  #### calculate the operational movements 
-  
-  #### Result Analysis END ##########################
-  
+
   #### Prepare Outputs Start #######################
-  resultAnalysis_list <- list(dailyCost=dailyCost,monthlyCost=monthlyCost)
   #### Convert the result_mat to List
-  result_list <- Result2callList(result_mat,assetId_vec,availAsset_df,coreInput_list,callSelect_list,msSelect_list)
+  result_list <- Result2callList(result_mat,resource_vec,assetId_vec,availAsset_df,coreInput_list,callSelect_list,msSelect_list)
   
   callSelect_list <- result_list$callSelect_list
   msSelect_list <- result_list$msSelect_list
@@ -620,8 +612,9 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
   #### Prepare Outputs END ########################
   
   return(list(msOutput_list=msSelect_list,
+              varName_vec,varNum,
               callOutput_list=callSelect_list,checkCall_mat=checkCall_mat,availAsset_df=availAsset_df,
-              status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue,resultAnalysis_list=resultAnalysis_list))
+              status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue))
 }
     
     
@@ -1233,43 +1226,31 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
         result_mat[i,idxAddNew] <- addNewQuantity
       }
     }
+
     #### CHECK ALLOCATION RESULT END ################
   } # else if end
   
   #### Update the Results Start ##########
-  resultDummy_mat <- 1*(result_mat & 1)
+ # resultDummy_mat <- 1*(result_mat & 1)
   
-  adjSolution_vec <- rep(0,varNum3)
-  adjSolution_vec[1:varNum] <- result_mat[idxEli_vec]
-  adjSolution_vec[(varNum+1):varNum2] <- resultDummy_mat[idxEli_vec]
+ # adjSolution_vec <- rep(0,varNum3)
+ # adjSolution_vec[1:varNum] <- result_mat[idxEli_vec]
+ # adjSolution_vec[(varNum+1):varNum2] <- resultDummy_mat[idxEli_vec]
   
-  if(varNum3>varNum2){
-    idxTemp1_vec <- msVar_mat[,1]
-    idxTemp2_vec <- msVar_mat[,2]
-    solNum3_vec <- 1*(adjSolution_vec[idxTemp1_vec] & adjSolution_vec[idxTemp2_vec])
-    adjSolution_vec[(varNum2+1):varNum3] <- solNum3_vec
-  }
+ # if(varNum3>varNum2){
+ #   idxTemp1_vec <- msVar_mat[,1]
+ #   idxTemp2_vec <- msVar_mat[,2]
+ #   solNum3_vec <- 1*(adjSolution_vec[idxTemp1_vec] & adjSolution_vec[idxTemp2_vec])
+ #   adjSolution_vec[(varNum2+1):varNum3] <- solNum3_vec
+ # }
   
   
   #### Update the Results END ############
 
-  #### Result Analysis Start ########################
-  #### calculate the daily cost & month cost
-  dailyCost <- CostFun(result_mat,costBasis_mat,minUnitValue_mat)
-  monthlyCost <- dailyCost*30
-  # movements:
-  movements <- OperationFun(result_mat,callInfo_df)
-  
-  if(varNum3>varNum2){
-    movements <- movements-sum(adjSolution_vec[(varNum2+1):varNum3])
-  }
-
-  #### Result Analysis END ##########################
   
   #### Prepare Outputs Start #######################
-  resultAnalysis_list <- list(dailyCost=dailyCost,monthlyCost=monthlyCost,movements=movements)
   #### convert the result_mat to list
-  result_list <- Result2callList(result_mat,assetId_vec,availAsset_df,coreInput_list,callSelect_list,msSelect_list)
+  result_list <- Result2callList(result_mat,resource_vec,assetId_vec,availAsset_df,coreInput_list,callSelect_list,msSelect_list)
   
   callSelect_list <- result_list$callSelect_list
   msSelect_list <- result_list$msSelect_list
@@ -1281,10 +1262,10 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
   }
   checkCall_mat <- subtotalFulfilled_mat
   #### Prepare Outputs END ########################
-  
+  print(availAsset_df)
   return(list(msOutput_list=msSelect_list,
     callOutput_list=callSelect_list,checkCall_mat=checkCall_mat,availAsset_df=availAsset_df,
-    status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue,resultAnalysis_list=resultAnalysis_list))
+    status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue))
 
 }
 
@@ -1292,7 +1273,7 @@ CheckSolverResult <- function(){
   
 }
 
-Result2callList <- function(result_mat,assetId_vec,availAsset_df,coreInput_list,callSelect_list,msSelect_list){
+Result2callList <- function(result_mat,resource_vec,assetId_vec,availAsset_df,coreInput_list,callSelect_list,msSelect_list){
   venue <- coreInput_list$venue
   custodianAccount <- coreInput_list$custodianAccount
   assetInfo_df <- coreInput_list$assetInfo_df
@@ -1363,7 +1344,6 @@ Result2callList <- function(result_mat,assetId_vec,availAsset_df,coreInput_list,
 
   result_list <- list(callSelect_list=callSelect_list,  msSelect_list=msSelect_list,
                       availAsset_df=availAsset_df)
-  
   return(result_list)
 }
     
@@ -1467,35 +1447,22 @@ VarInfo <- function(eli_vec,callInfo_df,resource_vec,callId_vec){
   ## add new auxiliary variables, two margin calls coming from one margin statement
   varNum3 <- varNum2+msVarNum
   msVarName_mat <- varSplitName_mat[msVar_mat[,1],]
-  msVarName_mat[,2] <- msVarName_mat[,1]
-  msVarName_mat[,4] <- msVar_mat[,3]
-  
-  msVarName_vec <- apply(msVarName_mat[,1:3],1,PasteFun2)
+  if(is.vector(msVarName_mat)){
+    msVarName_mat[2] <- msVarName_mat[1]
+    msVarName_mat[4] <- msVar_mat[3]
+    
+    msVarName_vec <- PasteFun2(msVarName_mat[1:3]) 
+  } else{
+    msVarName_mat[,2] <- msVarName_mat[,1]
+    msVarName_mat[,4] <- msVar_mat[,3]
+    
+    msVarName_vec <- apply(msVarName_mat[,1:3],1,PasteFun2)
+  }
+
   varName_vec <- c(varName_vec,msVarName_vec)
   
   var_list <- list(varName_vec=varName_vec,varNum=varNum,varNum2=varNum2,varNum3=varNum3,msVar_mat=msVar_mat)
   return(var_list)
-}
-
-CostFun <- function(quantity_mat,cost_mat,unitValue_mat){
-  cost <- sum(quantity_mat*cost_mat*unitValue_mat)
-  return(cost)
-}
-
-OperationFun <- function(result_mat,callInfo_df){
-  resultDummy_mat <- 1*(result_mat&1)
-  msDul_vec <- callInfo_df$marginStatement
-  msId_vec <- unique(msDul_vec)
-  movements <- 0
-  for(m in 1:length(msId_vec)){
-    idxTemp_vec <- which(msDul_vec==msId_vec[m])
-    if(length(idxTemp_vec)==1){
-      movements <- movements+sum(resultDummy_mat[idxTemp_vec,])
-    } else{
-      movements <- movements+sum(apply(resultDummy_mat[idxTemp_vec,],2,max))
-    }
-  }
-  return(movements)
 }
 
 
@@ -1509,14 +1476,44 @@ PasteFun2 <- function(x){
   return(temp)
 }
 
-PasteResource <- function(assets,custodianAccounts){
-  temp <- paste(assets,custodianAccounts,sep='-')
+PasteResource <- function(assetId_vec,custodianAccount_vec){
+  temp <- paste(assetId_vec,custodianAccount_vec,sep='-')
   return(temp)
 }
 
-PasteFullName <- function(statements,calls,resources){
-  temp <- paste(statements,calls,resources,sep='_')
+PasteFullName <- function(msId_vec,callId_vec,resource_vec){
+  temp <- paste(msId_vec,callId_vec,resource_vec,sep='_')
   return(temp)
+}
+
+SplitResource <- function(resource_vec,target){
+  resource_mat <- matrix(unlist(strsplit(resource_vec,'-')),nrow=2)
+  if(missing(target)){
+    target <- 'all'
+  }
+  if(target=='asset'){
+    return(resource_mat[1,])
+  } else if(target=='custodianAccount'){
+    return(resource_mat[2,])
+  } else{
+    return(resource_mat)
+  }
+}
+
+SplitVarName <- function(varName_vec,target){
+  varName_mat <- matrix(unlist(strsplit(varName_vec,'_')),nrow=3)
+  if(missing(target)){
+    target <- 'all'
+  }
+  if(target=='call'){
+    return(varName_mat[1,])
+  } else if(target=='ms'){
+    return(varName_mat[2,])
+  } else if(target=='resource'){
+    return(varName_mat[3,])
+  } else{
+    return(varName_mat)
+  }
 }
 
 renjinFix <- function(frame, name) {
