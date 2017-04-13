@@ -143,7 +143,7 @@ for(i in 1:length(groupCallId_list)){
       if(algoVersion==1){
         print('algoVersion');print(algoVersion)
         availAssetOri_df <- availAsset_df
-        resultGroup_list <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue)
+        #resultGroup_list <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue)
         
         availAsset_df <- availAssetGroup_df
           #### Prepare Parameters Start #############################
