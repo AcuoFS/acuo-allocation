@@ -505,10 +505,10 @@ for(i in 1:length(groupCallId_list)){
             
             #### INITIAL GUESS BASIS
             lpGuessBasis_vec <- rep(0,varNum3)
-            if(!missing(initAllocation_list)){
+            #if(!missing(initAllocation_list)){
               # the initial guess must be a feasible point
-              lpGuessBasis_vec<-callList2Var(initAllocation_list,callId_vec,minUnit_vec,varName_vec,varNum3,varNum,idxEli_vec)
-            }
+            #  lpGuessBasis_vec<-callList2Var(initAllocation_list,callId_vec,minUnit_vec,varName_vec,varNum3,varNum,idxEli_vec)
+            #}
             
             #### Solver Inputs END ###################
             
