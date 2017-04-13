@@ -619,7 +619,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
   checkCall_mat <- subtotalFulfilled_mat
   #### Prepare Outputs END ########################
   
-  return(list(msOutput_list=msSelect_list,
+  return(list(#msOutput_list=msSelect_list,
               callOutput_list=callSelect_list,checkCall_mat=checkCall_mat,availAsset_df=availAsset_df,
               status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue,resultAnalysis_list=resultAnalysis_list))
 }
@@ -1254,7 +1254,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
   checkCall_mat <- subtotalFulfilled_mat
   #### Prepare Outputs END ########################
   
-  return(list(msOutput_list=msSelect_list,
+  return(list(#msOutput_list=msSelect_list,
               callOutput_list=callSelect_list,checkCall_mat=checkCall_mat,availAsset_df=availAsset_df,
               status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue,resultAnalysis_list=resultAnalysis_list))
   

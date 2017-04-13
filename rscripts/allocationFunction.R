@@ -35,7 +35,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
   # allocate one group a time
   # after each allocation, update the tempQuantity_vec of each asset
   callOutput_list <- list()
-  msOutput_list <- list()
+  #msOutput_list <- list()
   checkCall_mat <- matrix(c(callInfo_df$callAmount,rep(0,callNum)),nrow=callNum, dimnames = list(callId_vec,c('callAmount','fulfilledAmount')))
   costDaily <- 0
   costMonthly <- 0
@@ -92,7 +92,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
     }
     #### Run CoreAlgo END ########################
     
-    msOutputGroup_list <- resultGroup_list$msOutput_list
+   # msOutputGroup_list <- resultGroup_list$msOutput_list
     callOutputGroup_list <- resultGroup_list$callOutput_list
     
     status <- resultGroup_list$status
@@ -113,7 +113,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,ass
       
       msId <- msId_vec[j]
       callOutput_list[[callId]] <- callOutputGroup_list[[callId]]
-      msOutput_list[[msId]] <- msOutputGroup_list[[msId]]
+      #msOutput_list[[msId]] <- msOutputGroup_list[[msId]]
       checkCall_mat[which(rownames(checkCall_mat)==callId),2] <- checkCallGroup_mat[which(rownames(checkCallGroup_mat)==callId),2]
     }
   }
@@ -152,7 +152,7 @@ PreAllocation <- function(algoVersion,callIdGroup_vec,callInfo_df,availAsset_df,
   } else if(algoVersion==2){
     resultGroup_list <- CoreAlgoV2(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,operLimit,minMoveValue)
   }
-  msOutputGroup_list <- resultGroup_list$msOutput_list
+  #msOutputGroup_list <- resultGroup_list$msOutput_list
   callOutputGroup_list <- resultGroup_list$callOutput_list
   status <- resultGroup_list$status
   lpsolveRun <- resultGroup_list$lpsolveRun
@@ -168,7 +168,7 @@ PreAllocation <- function(algoVersion,callIdGroup_vec,callInfo_df,availAsset_df,
     j <- which(msIdGroup_vec==callInfo_df$marginStatement[which(callInfo_df$id==callId)])
     msId <- msIdGroup_vec[j]
     callOutput_list[[callId]] <- callOutputGroup_list[[callId]]
-    msOutput_list[[msId]] <- msOutputGroup_list[[msId]]
+    #msOutput_list[[msId]] <- msOutputGroup_list[[msId]]
     checkCall_mat[which(rownames(checkCall_mat)==callId),2] <- checkCallGroup_mat[which(rownames(checkCallGroup_mat)==callId),2]
   }
   
