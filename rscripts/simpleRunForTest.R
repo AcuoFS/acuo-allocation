@@ -359,6 +359,7 @@ for(i in 1:length(groupCallId_list)){
             varNum3 <- varInfo_list$varNum3
             msVar_mat <- varInfo_list$msVar_mat
             idxEli_vec <- which(eli_vec==1)  
+            print('line 362'); print(msVar_mat)
             #### Construct Variable Names END ########
             
             #### MODEL SETUP Start ##################################################
