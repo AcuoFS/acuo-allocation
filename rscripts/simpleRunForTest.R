@@ -182,9 +182,7 @@ for(i in 1:length(groupCallId_list)){
           #### Prepare Parameters END ##############################
           
           #### CONSTANTS DEFINED INSIDE THE ALGO START #############
-          if(missing(minMoveValue)){
-            minMoveValue <- 1000
-          }
+
           #### CONSTANTS DEFINED INSIDE THE ALGO END ###############
           
           #### Output Format Start ######################
