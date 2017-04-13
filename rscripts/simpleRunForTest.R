@@ -116,8 +116,8 @@ for(i in 1:length(groupCallId_list)){
   callInfoPre_df <- callInfoGroup_df
   assetInfoPre_df <- assetInfoGroup_df
   callOutputPre_list <- callOutput_list
-  print('callOutputPre_list before pre'); print(callOutputPre_list)
-  print('callIdGroup_vec'); print(callIdGroup_vec)
+  #print('callOutputPre_list before pre'); print(callOutputPre_list)
+  #print('callIdGroup_vec'); print(callIdGroup_vec)
   for(p in 1:length(callIdGroup_vec)){
     callId <- callIdGroup_vec[p]
     res <- PreAllocation(algoVersion,callId,callInfoPre_df,availAssetPre_df,assetInfoPre_df,pref_vec,operLimit,minMoveValue,timeLimit,callOutput_list,checkCall_mat)
@@ -125,12 +125,12 @@ for(i in 1:length(groupCallId_list)){
     availAssetPre_df <- res$availAsset_df
     #availAssetPre_df[which(availAssetPre_df$callId %in% callId),] <- availAssetPreGroup_df
     callOutputPreGroup_list <- res$callOutput_list
-    print('callOutputPreGroup_list:');print(callOutputPreGroup_list)
-    print('callOutputPreGroup_list[[callId]]'); print(callOutputPreGroup_list[[callId]])
+    #print('callOutputPreGroup_list:');print(callOutputPreGroup_list)
+    #print('callOutputPreGroup_list[[callId]]'); print(callOutputPreGroup_list[[callId]])
     #resultPre_list <- res$resultGroup_list
     checkCallPre_mat <- res$checkCall_mat
     callOutputPre_list[[callId]] <- callOutputPreGroup_list[[callId]]
-    print('callOutputPre_list');print(callOutputPre_list)
+    #print('callOutputPre_list');print(callOutputPre_list)
   }
   
   # parameteres need to pass to the CoreAlgoV2
