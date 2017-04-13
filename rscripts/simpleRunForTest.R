@@ -409,6 +409,7 @@ for(i in 1:length(groupCallId_list)){
             fObj_vec <- costObj_vec*pref_vec[1]+liquidityObj_vec*pref_vec[2]+operationObj_vec*pref_vec[3]
             names(fObj_vec) <- varName_vec
             
+            print('fObj_vec');print(fObj_vec)
             # constraints
             fCon0_mat <- matrix(0,nrow=varNum,ncol=varNum3)
             fCon0_mat[cbind(1:varNum,1:varNum)] <- 1
