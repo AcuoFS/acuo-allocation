@@ -147,6 +147,7 @@ for(i in 1:length(groupCallId_list)){
         
         availAsset_df <- availAssetGroup_df
           #### Prepare Parameters Start #############################
+        print('coreInput_list');print(coreInput_list)
           pref_vec <- pref_vec/sum(pref_vec) # Recalculate the parameters weight setting
           callId_vec<-coreInput_list$callId_vec
           resource_vec<-coreInput_list$resource_vec
@@ -330,7 +331,7 @@ for(i in 1:length(groupCallId_list)){
           #### Calculate the Optimal Asset Sufficiency END ##########
           
           #### ALLOCATION START #####################################
-          
+          print('ifSelectAssetSuff_vec');print(ifSelectAssetSuff_vec)
           if(!is.element(0,ifSelectAssetSuff_vec)){
             #### Optimal Assets are Sufficient Start ##########
             result_mat <- matrix(0,nrow=callNum,ncol=resourceNum,dimnames=list(callId_vec,resource_vec))
