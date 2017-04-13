@@ -102,7 +102,7 @@ for(i in 1:length(groupCallId_list)){
   availAssetGroup_df <- availAsset_df[which(availAsset_df$callId %in% callIdGroup_vec),]
   
   resourceGroup_vec <- unique(availAssetGroup_df$assetCustacId)
-  assetIdGroup_vec <- as.character(data.frame(strsplit(resourceGroup_vec,'-'))[1,])
+  assetIdGroup_vec <- matrix(unlist(strsplit(resourceGroup_vec,'-')),nrow=2)[1,]
   assetInfoGroup_df <- assetInfo_df[match(assetIdGroup_vec,assetInfo_df$id),]
   
   # input data to the core Algo
