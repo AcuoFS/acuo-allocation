@@ -37,7 +37,7 @@ for(k in 1:length(assetInfo_df[,1])){
 # venue: all SG
 venue_vec <- rep('SG',length(availAsset_df[,1]))
 availAsset_df$venue <- venue_vec
-print(availAsset_df)
+#print(availAsset_df)
 ###### END ####################################
 
 callId_vec <- callIds
