@@ -110,7 +110,7 @@ for(i in 1:length(groupCallId_list)){
   #print('assetInfoGroup_df');print(assetInfoGroup_df)
   # input data to the core Algo
   coreInput_list <- AllocationInputData(callIdGroup_vec,resourceGroup_vec,callInfoGroup_df,availAssetGroup_df,assetInfoGroup_df)
-  print(coreInput_list)
+  #print(coreInput_list)
   #### Pre-allocate Start ######################
   availAssetPre_df <- availAssetGroup_df
   callInfoPre_df <- callInfoGroup_df
@@ -125,9 +125,11 @@ for(i in 1:length(groupCallId_list)){
     #availAssetPre_df[which(availAssetPre_df$callId %in% callId),] <- availAssetPreGroup_df
     callOutputPreGroup_list <- res$callOutput_list
     print('callOutputPreGroup_list:');print(callOutputPreGroup_list)
+    print('callOutputPreGroup_list[[callId]]'); print(callOutputPreGroup_list[[callId]])
     #resultPre_list <- res$resultGroup_list
     checkCallPre_mat <- res$checkCall_mat
     callOutputPre_list[[callId]] <- callOutputPreGroup_list[[callId]]
+    print('callOutputPre_list');print(callOutputPre_list)
   }
   
   # parameteres need to pass to the CoreAlgoV2
