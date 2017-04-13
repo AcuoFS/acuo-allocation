@@ -767,17 +767,10 @@ for(i in 1:length(groupCallId_list)){
           checkCall_mat <- subtotalFulfilled_mat
           #### Prepare Outputs END ########################
           
-          resultGroup_list<- list(msOutput_list=msSelect_list,
+          resultGroup_list<- list(#msOutput_list=msSelect_list,
                       callOutput_list=callSelect_list,checkCall_mat=checkCall_mat,availAsset_df=availAsset_df,
                       status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue,resultAnalysis_list=resultAnalysis_list)
 
-        
-        
-        
-        
-        
-        
-        
         
       } else if(algoVersion==2){
         resultGroup_list <- CoreAlgoV2(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,operLimit,minMoveValue)
@@ -810,7 +803,7 @@ for(i in 1:length(groupCallId_list)){
     }
    #
     
-    
+    availAsset_df
     
     print(paste('res',p,callId)); #print(res)
     availAssetPre_df <- res$availAsset_df
