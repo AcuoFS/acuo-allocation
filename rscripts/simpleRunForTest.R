@@ -107,7 +107,7 @@ for(i in 1:length(groupCallId_list)){
   
   # input data to the core Algo
   coreInput_list <- AllocationInputData(callIdGroup_vec,resourceGroup_vec,callInfoGroup_df,availAssetGroup_df,assetInfoGroup_df)
-  
+  print(coreInput_list)
   #### Pre-allocate Start ######################
   availAssetPre_df <- availAssetGroup_df
   callInfoPre_df <- callInfoGroup_df
@@ -116,7 +116,7 @@ for(i in 1:length(groupCallId_list)){
   for(p in 1:length(callIdGroup_vec)){
     callId <- callIdGroup_vec[p]
     res <- PreAllocation(algoVersion,callId,callInfoPre_df,availAssetPre_df,assetInfoPre_df,pref_vec,operLimit,minMoveValue,timeLimit,callOutput_list,checkCall_mat)
-
+    print(res)
     availAssetPre_df <- res$availAsset_df
     #availAssetPre_df[which(availAssetPre_df$callId %in% callId),] <- availAssetPreGroup_df
     callOutputPreGroup_list <- res$callOutput_list
