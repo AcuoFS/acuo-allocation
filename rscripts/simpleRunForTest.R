@@ -101,10 +101,13 @@ for(i in 1:length(groupCallId_list)){
   callInfoGroup_df <- callInfo_df[match(callIdGroup_vec,callInfo_df$id),]
   availAssetGroup_df <- availAsset_df[which(availAsset_df$callId %in% callIdGroup_vec),]
   
+  print('availAssetGroup_df'); print(availAssetGroup_df)
+  
   resourceGroup_vec <- unique(availAssetGroup_df$assetCustacId)
   assetIdGroup_vec <- matrix(unlist(strsplit(resourceGroup_vec,'-')),nrow=2)[1,]
+  print('assetIdGroup_vec'); print(assetIdGroup_vec)
   assetInfoGroup_df <- assetInfo_df[match(assetIdGroup_vec,assetInfo_df$id),]
-  
+  print('assetInfoGroup_df');print(assetInfoGroup_df)
   # input data to the core Algo
   coreInput_list <- AllocationInputData(callIdGroup_vec,resourceGroup_vec,callInfoGroup_df,availAssetGroup_df,assetInfoGroup_df)
   print(coreInput_list)
