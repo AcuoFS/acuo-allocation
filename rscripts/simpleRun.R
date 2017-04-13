@@ -40,7 +40,7 @@ availAsset_df$venue <- venue_vec
 print(availAsset_df)
 ###### END ####################################
 
-
+pref <- c(0,0,10)
 callId_vec <- callIds
 pref_vec <- pref
 
@@ -60,6 +60,7 @@ CallAllocation <- function(algoVersion,callId_vec,resource_vec,callInfo_df,avail
 algoVersion <- 1
 operLimit<- 10; 
 result <- CallAllocation(algoVersion,callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
+
 callOutput <- result$callOutput; 
 col_vec <- names(result$callOutput[[1]])
 callNum <- length(callId_vec)

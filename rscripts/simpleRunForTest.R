@@ -1,5 +1,10 @@
 options(stringsAsFactors = FALSE)
 
+#source("rscripts/allocationFunction.R")
+#source("rscripts/coreAlgo.R")
+#source("src/callLpSolve.R")
+
+
 
 callInfo_df <- callInfoByCallId
 callInfo_df$callAmount <- abs(as.numeric(callInfo_df$callAmount)) # make sure the callAmount is non-negative
@@ -52,7 +57,7 @@ inputLimit_vec <- c(7,7,7,5);
 timeLimit <- 10; 
 callOrderMethod <- 3
 minMoveValue <- 1000;
-verbose <- 3
+
 
 callInfo_df <- OrderCallId(callOrderMethod,callInfo_df)
 callId_vec <- callInfo_df$id
@@ -91,7 +96,7 @@ for(i in 1:length(groupCallId_list)){
   
   callIdGroup_vec <- groupCallId_list[[i]]
   msIdGroup_vec <- unique(callInfo_df$marginStatement[which(callInfo_df$id %in% callIdGroup_vec)])
-  #cat(' group:',i,'\n','callId_vec:',callIdGroup_vec,'\n')
+  cat(' group:',i,'\n','callId_vec:',callIdGroup_vec,'\n')
   
   callInfoGroup_df <- callInfo_df[match(callIdGroup_vec,callInfo_df$id),]
   availAssetGroup_df <- availAsset_df[which(availAsset_df$callId %in% callIdGroup_vec),]
@@ -110,7 +115,8 @@ for(i in 1:length(groupCallId_list)){
   callOutputPre_list <- callOutput_list
   for(p in 1:length(callIdGroup_vec)){
     callId <- callIdGroup_vec[p]
-    res <- PreAllocation(algoVersion,callId,callInfoPre_df,availAssetPre_df,assetInfoPre_df,pref_vec,minMoveValue,verbose,timeLimit,callOutput_list,checkCall_mat)
+    res <- PreAllocation(algoVersion,callId,callInfoPre_df,availAssetPre_df,assetInfoPre_df,pref_vec,operLimit,minMoveValue,timeLimit,callOutput_list,checkCall_mat)
+
     availAssetPre_df <- res$availAsset_df
     #availAssetPre_df[which(availAssetPre_df$callId %in% callId),] <- availAssetPreGroup_df
     callOutputPreGroup_list <- res$callOutput_list
