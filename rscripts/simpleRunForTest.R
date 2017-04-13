@@ -85,7 +85,7 @@ callNum <- length(callId_vec)
 # allocate one group a time
 # after each allocation, update the tempQuantity_vec of each asset
 callOutput_list <- list()
-#msOutput_list <- list()
+msOutput_list <- list()
 checkCall_mat <- matrix(c(callInfo_df$callAmount,rep(0,callNum)),nrow=callNum, dimnames = list(callId_vec,c('callAmount','fulfilledAmount')))
 costDaily <- 0
 costMonthly <- 0
@@ -116,14 +116,15 @@ for(i in 1:length(groupCallId_list)){
   callInfoPre_df <- callInfoGroup_df
   assetInfoPre_df <- assetInfoGroup_df
   callOutputPre_list <- callOutput_list
+  print('callOutputPre_list before pre'); print(callOutputPre_list)
   for(p in 1:length(callIdGroup_vec)){
     callId <- callIdGroup_vec[p]
     res <- PreAllocation(algoVersion,callId,callInfoPre_df,availAssetPre_df,assetInfoPre_df,pref_vec,operLimit,minMoveValue,timeLimit,callOutput_list,checkCall_mat)
-    print(res)
+    print(paste('res',p,callId));print(res)
     availAssetPre_df <- res$availAsset_df
     #availAssetPre_df[which(availAssetPre_df$callId %in% callId),] <- availAssetPreGroup_df
     callOutputPreGroup_list <- res$callOutput_list
-    resultPre_list <- res$resultGroup_list
+    #resultPre_list <- res$resultGroup_list
     checkCallPre_mat <- res$checkCall_mat
     callOutputPre_list[[callId]] <- callOutputPreGroup_list[[callId]]
   }
