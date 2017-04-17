@@ -153,8 +153,9 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
   }
   #cat('quantityTotal_vec',quantityTotal_vec,'\n')
   #cat('quantityRes_vec',quantityRes_vec,'\n')
+  #print('coreInputOri_list$haircut_mat: '); print(coreInputOri_list$haircut_mat)
   
-  liquidity_vec <- apply((1-coreInputOri_list$haircut_mat)^2,2,max)
+  liquidity_vec <- apply((1-coreInputOri_list$haircut_mat)^2,2,min)
   minUnitValue_vec <- apply(coreInputOri_list$minUnitValue_mat,2,max)
   
   #cat('liquidity_vec',liquidity_vec,'\n')
