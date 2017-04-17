@@ -250,6 +250,8 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
     # objective function
     costObj_vec <-  c(minUnitValue_vec[idxEli_vec]*costBasis_vec[idxEli_vec],rep(0,varNum3-varNum))
     liquidityObj_vec <-  c(minUnitValue_vec[idxEli_vec]*normLiquidity_vec[idxEli_vec],rep(0,varNum3-varNum))
+    # consider FX 
+    
     operationTemp_vec <- normOperation_vec[idxEli_vec]
     operationObj_vec <-  c(rep(0,varNum),operationTemp_vec*max(callAmount_mat)*10,-operationTemp_vec[msVar_mat[,1]-varNum]*max(callAmount_mat)*10)
 
@@ -1262,7 +1264,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
   }
   checkCall_mat <- subtotalFulfilled_mat
   #### Prepare Outputs END ########################
-  print(availAsset_df)
+  #print(availAsset_df)
   return(list(msOutput_list=msSelect_list,
     callOutput_list=callSelect_list,checkCall_mat=checkCall_mat,availAsset_df=availAsset_df,
     status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue))
