@@ -108,7 +108,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
 
       msId <- msId_vec[j]
       callOutput_list[[callId]] <- callOutputGroup_list[[callId]]
-      msOutput_list[[msId]] <- msOutputGroup_list[[msId]]
+      #msOutput_list[[msId]] <- msOutputGroup_list[[msId]]
       checkCall_mat[which(rownames(checkCall_mat)==callId),2] <- checkCallGroup_mat[which(rownames(checkCallGroup_mat)==callId),2]
     }
   }
@@ -131,11 +131,10 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
   movements <- OperationFun(varAmount_mat,callInfo_df)
   
   #### Liquidity
-  # the calculation of the liquidity ratio should be done at the top level
   coreInputOri_list <- AllocationInputData(callId_vec,resourceOri_vec,callInfo_df,availAssetOri_df,assetInfoOri_df)
   quantityTotal_mat <- coreInputOri_list$minUnitQuantity_mat;
   resourceTotal_vec <- coreInputOri_list$resource_vec
-
+  
   if(callNum==1){
     quantityTotal_vec <- quantityTotal_mat
   } else{
@@ -145,15 +144,21 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
   coreInput_list <- AllocationInputData(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df)
   quantityRes_mat <- coreInput_list$minUnitQuantity_mat
   quantityRes_vec <- quantityTotal_vec
+  
   idxTemp_vec <-match(resource_vec,resourceTotal_vec)
   if(callNum==1){
     quantityRes_vec[idxTemp_vec] <- quantityRes_mat
   } else{
     quantityRes_vec[idxTemp_vec] <- apply(quantityRes_mat,2,max)
   }
-
-  liquidity_vec <- apply((1-coreInput_list$haircut_mat)^2,2,max)
-  minUnitValue_vec <- apply(coreInput_list$minUnitValue_mat,2,max)
+  #cat('quantityTotal_vec',quantityTotal_vec,'\n')
+  #cat('quantityRes_vec',quantityRes_vec,'\n')
+  
+  liquidity_vec <- apply((1-coreInputOri_list$haircut_mat)^2,2,max)
+  minUnitValue_vec <- apply(coreInputOri_list$minUnitValue_mat,2,max)
+  
+  #cat('liquidity_vec',liquidity_vec,'\n')
+  #cat('minUnitValue_vec',minUnitValue_vec,'\n')
   reservedLiquidityRatio <- LiquidFun(quantityRes_vec,quantityTotal_vec,liquidity_vec,minUnitValue_vec)
   
   resultAnalysis <- list(dailyCost=dailyCost,monthlyCost=monthlyCost,movements=movements,reservedLiquidityRatio=reservedLiquidityRatio)
@@ -285,7 +290,7 @@ PreAllocation <- function(algoVersion,callIdGroup_vec,callInfo_df,availAsset_df,
     j <- which(msIdGroup_vec==callInfo_df$marginStatement[which(callInfo_df$id==callId)])
     msId <- msIdGroup_vec[j]
     callOutput_list[[callId]] <- callOutputGroup_list[[callId]]
-    # msOutput_list[[msId]] <- msOutputGroup_list[[msId]]
+    msOutput_list[[msId]] <- msOutputGroup_list[[msId]]
     checkCall_mat[which(rownames(checkCall_mat)==callId),2] <- checkCallGroup_mat[which(rownames(checkCallGroup_mat)==callId),2]
   }
   
