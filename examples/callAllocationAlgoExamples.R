@@ -26,7 +26,7 @@ callId_vec = c("mcp1","mcp5","mcp7","mcp38","mcp20","mcp22","mcp15","mcp30","mcp
 callId_vec = c("mcp32","mcp33","mcp37","mcp26","mcp39");
 callId_vec = c("mcp45","mcp50","mcp43","mcp38")
 callId_vec = c("mcp1","mcp31","mcp43","mcp10")
-
+callId_vec = c("mcp43")
 clientId = '999';
 
 # get info #
@@ -122,7 +122,8 @@ result2
 
 # scenario 2: post least liquid assets
 pref_vec <- c(0,10,0)
-result3 <- CallAllocation(algoVersion,callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
+operLimit <-10
+result3 <- CallAllocation(algoVersion,callId_vec,resource_vec,resource_vec,callInfo_df,availAsset_df,availAsset_df,assetInfo_df,assetInfo_df,pref_vec,operLimit)
 result3
 #### Scenario Analysis Output END #######################
 

@@ -99,6 +99,8 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
     checkCallGroup_mat <- resultGroup_list$checkCall_mat
   
     # update the availAsset 
+    # consider to move the update of available asset from CoreAlgo to outside
+    # based on the result list
     availAssetGroup_df <- resultGroup_list$availAsset_df
     availAsset_df[which(availAsset_df$callId %in% callIdGroup_vec),] <- availAssetGroup_df
 
@@ -169,8 +171,8 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
   
   ############ ITERATE THE GROUP, RUN THE ALGO END #########################
   
-  return(list(#msOutput=msOutput_list,
-              callOutput=callOutput_list,checkCall_mat=checkCall_mat,availAsset_df=availAsset_df,
+  return(list(#msOutput=msOutput_list,availAsset_df=availAsset_df,
+              callOutput=callOutput_list,checkCall_mat=checkCall_mat,
               status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue,resultAnalysis=resultAnalysis))
 }
 
