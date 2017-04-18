@@ -129,8 +129,8 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
   monthlyCost <- round(monthlyCost,2)
 
   #### Movements
-  varAmount_mat <- varVec2mat(varAmount_vec[1:varNum],varName_vec[1:varNum],callId_vec,resource_vec)
-  movements <- OperationFun(varAmount_mat,callInfo_df)
+  varAmount_mat <- VarVec2mat(varAmount_vec[1:varNum],varName_vec[1:varNum],callId_vec,resource_vec)
+  movements <- OperationFun(varAmount_mat,callInfo_df,'matrix')
   
   #### Liquidity
   coreInputOri_list <- AllocationInputData(callId_vec,resourceOri_vec,callInfo_df,availAssetOri_df,assetInfoOri_df)
@@ -178,84 +178,6 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
 
 
 #### OTHER FUNCTIONS(CALLED IN THE MAIN FUNCTION)##########################
-callList2AmountVec <- function(callOutput_list,callId_vec,varName_vec){
-  callNum <- length(callId_vec)
-  varNum <- length(varName_vec)
-  var_vec <- rep(0,varNum)
-  
-  for(i in 1:callNum){
-    callId <- callId_vec[i]
-    currentAlloc_df <- callOutput_list[[callId]]
-    currentResource_vec <- PasteResource(currentAlloc_df$Asset,currentAlloc_df$CustodianAccount)
-    currentVarName_vec <- PasteFullName(currentAlloc_df$marginStatement,currentAlloc_df$marginCall,currentResource_vec)
-    currentAmount_vec <- currentAlloc_df$`Amount(USD)`
-    #currentQuantity_vec <- currentAlloc_df$Quantity
-    #currentVarValue_vec <- currentQuantity_vec/minUnit_vec
-    currentVarLoc_vec <- match(currentVarName_vec,varName_vec)
-    
-    ## fill in the var_vec
-    var_vec[currentVarLoc_vec] <- currentAmount_vec
-  }
-  return(var_vec)
-}
-
-varVec2mat <- function(var_vec,varName_vec,callId_vec,resource_vec){
-  callNum <- length(callId_vec)
-  resourceNum <- length(resource_vec)
-  # row1: ms; row2: call; row3: resource.
-  varName_mat <- SplitVarName(varName_vec)
-  var_mat <- matrix(0,nrow=callNum,ncol=resourceNum, dimnames = list(callId_vec,resource_vec))
-  
-  for(i in 1:callNum){
-    callId <- callId_vec[i]
-    idxTemp_vec <- which(varName_mat[2,]==callId)
-    currentResource_vec <- varName_mat[3,idxTemp_vec]
-    currentValue <- var_vec[idxTemp_vec]
-    currentLoc_vec <- match(currentResource_vec,resource_vec)
-    
-    var_mat[i,currentLoc_vec] <- currentValue
-  }
-  return(var_mat)
-}
-
-LiquidFun <- function(quantity_vec,quantityTotal_vec,liquidity_vec,minUnitValue_vec){
-  numerator <- sum(quantity_vec*liquidity_vec*minUnitValue_vec)
-  denominator <- sum(quantityTotal_vec*liquidity_vec*minUnitValue_vec)
-  ratio <- numerator/denominator
-  return(ratio)
-}
-
-CostFun <- function(amount_vec,cost_vec){
-  cost <- sum(amount_vec*cost_vec)
-  return(cost)
-}
-
-OperationFun <- function(result_mat,callInfo_df){
-  resultDummy_mat <- 1*(result_mat&1)
-  msDul_vec <- callInfo_df$marginStatement
-  msId_vec <- unique(msDul_vec)
-  movements <- 0
-  if(length(result_mat[1,])==1){
-    for(m in 1:length(msId_vec)){
-      idxTemp_vec <- which(msDul_vec==msId_vec[m])
-      if(length(idxTemp_vec)==1){
-        movements <- movements+sum(resultDummy_mat[idxTemp_vec])
-      } else{
-        movements <- movements+max(resultDummy_mat[idxTemp_vec])
-      }
-    }
-  } else{
-    for(m in 1:length(msId_vec)){
-      idxTemp_vec <- which(msDul_vec==msId_vec[m])
-      if(length(idxTemp_vec)==1){
-        movements <- movements+sum(resultDummy_mat[idxTemp_vec,])
-      } else{
-        movements <- movements+sum(apply(resultDummy_mat[idxTemp_vec,],2,max))
-      }
-    }
-  }
-  return(movements)
-}
 
 
 PreAllocation <- function(algoVersion,callIdGroup_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit, minMoveValue,timeLimit,callOutput_list,checkCall_mat){
@@ -277,7 +199,7 @@ PreAllocation <- function(algoVersion,callIdGroup_vec,callInfo_df,availAsset_df,
   } else if(algoVersion==2){
     resultGroup_list <- CoreAlgoV2(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,operLimit,minMoveValue)
   }
-  msOutputGroup_list <- resultGroup_list$msOutput_list
+  #msOutputGroup_list <- resultGroup_list$msOutput_list
   callOutputGroup_list <- resultGroup_list$callOutput_list
   status <- resultGroup_list$status
   lpsolveRun <- resultGroup_list$lpsolveRun
@@ -293,7 +215,7 @@ PreAllocation <- function(algoVersion,callIdGroup_vec,callInfo_df,availAsset_df,
     j <- which(msIdGroup_vec==callInfo_df$marginStatement[which(callInfo_df$id==callId)])
     msId <- msIdGroup_vec[j]
     callOutput_list[[callId]] <- callOutputGroup_list[[callId]]
-    msOutput_list[[msId]] <- msOutputGroup_list[[msId]]
+    #msOutput_list[[msId]] <- msOutputGroup_list[[msId]]
     checkCall_mat[which(rownames(checkCall_mat)==callId),2] <- checkCallGroup_mat[which(rownames(checkCallGroup_mat)==callId),2]
   }
   
