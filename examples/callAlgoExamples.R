@@ -1,7 +1,7 @@
 
 ########### FUNCTION INPUT FROM JAVA LAYER Start #######################
-# 1. call ids
-# 2. user id
+# 1. callId_vec
+# 2. clientId
 # 3. uesr preference: 
 #   3.1. objective vector: pref_vec
 #   3.2. operation limit: operLimit
@@ -52,60 +52,6 @@ assetInfo_df <- assetInfoByAssetId(assetId_vec)
 assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
 #### Input Prepare END #############
 
-#### Main Function-Interface of Java Start #######
-CallAllocation <- function(algoVersion,scenario,callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit){
-  #### Scenario Code Start #########
-  # scenario = 1, Algo suggestion
-  # scenario = 2, post settlement cash only
-  # scenario = 3, post least liquid assets
-  #### Scenario Code END ###########
-  
-  inputLimit_vec <- c(7,7,7,5); 
-  timeLimit=20; 
-  callOrderMethod=3
-  minMoveValue<- 1000;
-  # build scenario into the function
-  #### Scenario: Algo suggestion: #####
-  if(scenario==1){
-    result <- AllocationAlgo(callId_vec,resource_vec,resource_vec,
-                             callInfo_df,availAsset_df,availAsset_df,assetInfo_df,assetInfo_df,pref_vec,operLimit,
-                             algoVersion,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod)
-  } else if(scenario==2){
-    
-    availAssetCash_df <- availAsset_df
-    resourceCash_vec <- resource_vec
-    assetInfoCash_df <- assetInfo_df
-    settleCcy_vec <- callInfo_df$currency
-    
-    idxKeep_vec <- rep(0,length(availAssetCash_df$callId))
-    count <- 0
-    for(i in 1:length(callId_vec)){
-      idxTemp_vec <- which(availAssetCash_df$callId==callId_vec[i] & availAsset_df$assetId==callInfo_df$currency[i])
-      numTemp <- length(idxTemp_vec)
-      count <- count+numTemp
-      idxKeep_vec[(count-numTemp+1):count] <- idxTemp_vec
-    }
-    idxKeep_vec <- idxKeep_vec[1:count]
-    availAssetCash_df <- availAssetCash_df[idxKeep_vec,]
-    resourceCash_vec <- unique(availAssetCash_df$assetCustacId)
-    assetIdCash_vec <- matrix(unlist(strsplit(resourceCash_vec,'-')),nrow=2)[1,]
-    assetInfoCash_df <- assetInfoByAssetId(assetIdCash_vec)
-    assetInfoCash_df <- assetInfoCash_df[match(assetIdCash_vec,assetInfoCash_df$id),]
-    
-    result <- AllocationAlgo(callId_vec,resourceCash_vec,resource_vec,
-                             callInfo_df,availAssetCash_df,availAsset_df,assetInfoCash_df,assetInfo_df,pref_vec,operLimit,
-                             algoVersion,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod)
-  } else if(scenario==3){
-    pref_vec <- c(0,10,0)
-    result <- AllocationAlgo(callId_vec,resource_vec,resource_vec,
-                              callInfo_df,availAsset_df,availAsset_df,assetInfo_df,assetInfo_df,pref_vec,operLimit,
-                              algoVersion,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod)
-  } else{
-    stop('Please input a valid scenario!')
-  }
-  return(result)
-}
-#### Main Function-Interface of Java End #########
 
 #### Scenario Analysis Output Start #####################
 scenarios <- list()
