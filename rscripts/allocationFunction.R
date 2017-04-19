@@ -554,7 +554,7 @@ ResultList2Mat <- function(callOutput_list,callId_vec,resource_vec,minUnit_mat){
     # the 'Quantity'= decision variable * minUnit
     # find the corresponding decision variable index from the varName
     resourceTemp_vec <- PasteResource(callAlloc_df$Asset,callAlloc_df$CustodianAccount)
-    #varNameTemp_vec <- PasteFullName(callAlloc_df$marginStatement,callAlloc_df$marginCall,resourceTemp_vec)
+    #varNameTemp_vec <- PasteVarName(callAlloc_df$marginStatement,callAlloc_df$marginCall,resourceTemp_vec)
     
     idxTemp_vec <- match(resourceTemp_vec,resource_vec)
     
@@ -578,7 +578,7 @@ CallList2Var <- function(callOutput_list,callId_vec,minUnit_vec,varName_vec,varN
     # the 'Quantity'= decision variable * minUnit
     # find the corresponding decision variable index from the varName
     resourceTemp_vec <- PasteResource(callAlloc_df$Asset,callAlloc_df$CustodianAccount)
-    varNameTemp_vec <- PasteFullName(callAlloc_df$marginStatement,callAlloc_df$marginCall,resourceTemp_vec)
+    varNameTemp_vec <- PasteVarName(callAlloc_df$marginStatement,callAlloc_df$marginCall,resourceTemp_vec)
     
     minUnitEli_vec <- minUnit_vec[idxEli_vec]
     
@@ -706,7 +706,7 @@ callList2AmountVec <- function(callOutput_list,callId_vec,varName_vec){
     callId <- callId_vec[i]
     currentAlloc_df <- callOutput_list[[callId]]
     currentResource_vec <- PasteResource(currentAlloc_df$Asset,currentAlloc_df$CustodianAccount)
-    currentVarName_vec <- PasteFullName(currentAlloc_df$marginStatement,currentAlloc_df$marginCall,currentResource_vec)
+    currentVarName_vec <- PasteVarName(currentAlloc_df$marginStatement,currentAlloc_df$marginCall,currentResource_vec)
     currentAmount_vec <- currentAlloc_df$`Amount(USD)`
     #currentQuantity_vec <- currentAlloc_df$Quantity
     #currentVarValue_vec <- currentQuantity_vec/minUnit_vec
