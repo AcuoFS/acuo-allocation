@@ -5,7 +5,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
   callId_vec<-coreInput_list$callId_vec
   resource_vec<-coreInput_list$resource_vec
   
-  assetId_vec <- matrix(unlist(strsplit(resource_vec,'-')),nrow=2)[1,]
+  assetId_vec <- SplitResource(resource_vec,'asset')
   msId_vec <- unique(callInfo_df$marginStatement)
   
   callInfo_df <- renjinFix(coreInput_list$callInfo_df, "callInfo.")
@@ -632,7 +632,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
   callId_vec<-coreInput_list$callId_vec
   resource_vec<-coreInput_list$resource_vec
   
-  assetId_vec <- matrix(unlist(strsplit(resource_vec,'-')),nrow=2)[1,]
+  assetId_vec <- SplitResource(resource_vec,'asset')
   msId_vec <- unique(callInfo_df$marginStatement)
   
   callInfo_df <- renjinFix(coreInput_list$callInfo_df, "callInfo.")
