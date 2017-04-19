@@ -66,37 +66,6 @@ for(i in 1:length(dsCallId_vec)){
 #msIds <- callInfo_df$marginStatement
 #### Input Prepare END ##############
 
-#### Main Function Start ############
-callSecondAllocation <- function(algoVersion,callId_vec, resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,
-                                 dsAssetId,dsCallId_vec, currentSelection_list){
-  callIdTotal_vec <- callId_vec
-  callInfoTotal_df <- callInfo_df
-  resourceTotal_vec <- resource_vec
-  availAssetTotal_df <- availAsset_df
-  assetInfoTotal_df <- assetInfo_df
-  
-  if(length(dsCallId_vec)==1){
-    dsCallId <- dsCallId_vec
-
-    
-    if(algoVersion==1){
-      result <- SecondAllocationAlgoV1(callId_vec, resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,
-                                        dsAssetId,dsCallId, 
-                                        currentSelection_list)
-    } else if(algoVersion==2){
-      result <- SecondAllocationAlgoV2(callIdTotal_vec,callInfoTotal_df,resourceTotal_vec,availAssetTotal_df,assetInfoTotal_df,
-                                       dsAssetId,dsCallId,
-                                       pref_vec,operLimit,currentSelection_list)
-    }
-  } else if(length(dsCallId_vec)>1){
-    stop('Cannot handle deselection from multiple margin calls currently!')
-  } else{
-    stop('Please specify which margin calls the asset is removed from!')
-  }
-  return(result)
-}
-#### Main Function END ##############
-
 result <- callSecondAllocation(algoVersion,callId_vec, resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,
                      dsAssetId,dsCallId_vec,
                      currentSelection_list)
