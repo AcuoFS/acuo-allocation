@@ -53,6 +53,10 @@ operLimit<- 2*length(callId_vec)
 # result <- CallAllocation(algoVersion,callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
 result <- CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
                           callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
+
+
+#### for tests purposes #########
+#### print the result details 
 callOutput <- result$callOutput;  print(callOutput)
 col_vec <- names(result$callOutput[[1]])
 callNum <- length(callId_vec)
@@ -73,9 +77,9 @@ for(i in 1:callNum){
 
 
 print(callOutput_mat)
-checkCall_mat <-result$checkCall_mat; print(checkCall_mat)
-solverObjValue <- result$solverObjValue; print(solverObjValue)
-availAssetResult_df <- result$availAsset_df; print(availAssetResult_df)
+#checkCall_mat <-result$checkCall_mat; print(checkCall_mat)
+#solverObjValue <- result$solverObjValue; print(solverObjValue)
+#availAssetResult_df <- result$availAsset_df; print(availAssetResult_df)
 
 result <- result
 
