@@ -228,8 +228,8 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
   ############ ITERATE THE GROUP, RUN THE ALGO END #########################
   
   callOutput <- callOutput_list
-  result <- list(#msOutput=msOutput_list,
-    callOutput=callOutput,checkCall_mat=checkCall_mat,availAsset_df=availAsset_df,
+  result <- list(callOutput=callOutput,
+    callOutput_list=callOutput_list,checkCall_mat=checkCall_mat,availAsset_df=availAsset_df,
     status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue,resultAnalysis=resultAnalysis)
   return(result)
 }
