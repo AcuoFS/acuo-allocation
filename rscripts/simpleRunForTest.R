@@ -197,7 +197,7 @@ for(i in 1:length(groupCallId_list)){
   }
 }
 
-
+print('line200')
 #### Result Analysis Output Start #####################
 coreInput_list <- AllocationInputData(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df)
 eli_vec <- coreInput_list$eli_vec; idxEli_vec <- which(eli_vec==1)
