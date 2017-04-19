@@ -127,14 +127,14 @@ for(i in 1:length(groupCallId_list)){
   callIdGroup_vec <- groupCallId_list[[i]]
   msIdGroup_vec <- unique(callInfo_df$marginStatement[which(callInfo_df$id %in% callIdGroup_vec)])
   #cat(' group:',i,'\n','callId_vec:',callIdGroup_vec,'\n')
-  
+  print('line130')
   callInfoGroup_df <- callInfo_df[match(callIdGroup_vec,callInfo_df$id),]
   availAssetGroup_df <- availAsset_df[which(availAsset_df$callId %in% callIdGroup_vec),]
-  
+  print('line133')
   resourceGroup_vec <- unique(availAssetGroup_df$assetCustacId)
   assetIdGroup_vec <- matrix(unlist(strsplit(resourceGroup_vec,'-')),nrow=2)[1,]
   assetInfoGroup_df <- assetInfo_df[match(assetIdGroup_vec,assetInfo_df$id),]
-  
+  print('line137')
   # input data to the core Algo
   coreInput_list <- AllocationInputData(callIdGroup_vec,resourceGroup_vec,callInfoGroup_df,availAssetGroup_df,assetInfoGroup_df)
   print('line140')
@@ -167,7 +167,7 @@ for(i in 1:length(groupCallId_list)){
   #### Run CoreAlgo Start ######################
   if(algoVersion==1){
     resultGroup_list <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue)#,initAllocation_list)
-  } else if(algoVersion==2){
+  } else if(algoVersion==2){print('line170')
     resultGroup_list <- CoreAlgoV2(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,operLimit,minMoveValue,initAllocation_list)
   }
   #### Run CoreAlgo END ########################
