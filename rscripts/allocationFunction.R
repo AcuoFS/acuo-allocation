@@ -229,7 +229,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
   
   callOutput <- callOutput_list
   result <- list(#msOutput=msOutput_list,
-    callOutput,checkCall_mat=checkCall_mat,availAsset_df=availAsset_df,
+    callOutput=callOutput,checkCall_mat=checkCall_mat,availAsset_df=availAsset_df,
     status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue,resultAnalysis=resultAnalysis)
   return(result)
 }
