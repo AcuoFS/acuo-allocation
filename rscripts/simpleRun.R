@@ -54,3 +54,27 @@ operLimit<- 2*length(callId_vec)
 result <- CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
                           callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
 
+callOutput <- result$callOutput;  print(callOutput)
+col_vec <- names(result$callOutput[[1]])
+callNum <- length(callId_vec)
+rowNum_vec <- rep(0,callNum)
+for(i in 1:callNum){
+  rowNum_vec[i] <- length(callOutput[[i]][,1])
+}
+row_vec <- rep(callId_vec,rowNum_vec)
+callOutput_mat <- matrix(0,nrow=length(row_vec),ncol=length(col_vec),dimnames = list(row_vec,col_vec))
+count <- 0
+
+for(i in 1:callNum){
+  item_df <- callOutput[[i]]
+  itemNum <- length(item_df[,1])
+  count <- count+itemNum
+  callOutput_mat[(count-itemNum+1):count,] <- as.matrix(item_df)
+}
+
+
+print(callOutput_mat)
+checkCall_mat <-result$checkCall_mat; print(checkCall_mat)
+solverObjValue <- result$solverObjValue; print(solverObjValue)
+availAssetResult_df <- result$availAsset_df; print(availAssetResult_df)
+
