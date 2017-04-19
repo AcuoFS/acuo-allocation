@@ -54,7 +54,7 @@ AllocationInputData <- function(callId_vec,resource_vec,callInfo_df,availAsset_d
   unitValue_mat[] <- matrix(rep(resourceInfo_df$unitValue/resourceInfo_df$FXRate,callNum),nrow=callNum,byrow=TRUE)
   minUnit_mat[]<- matrix(rep(resourceInfo_df$minUnit,callNum),nrow=callNum,byrow=TRUE)
   minUnitValue_mat[] <- matrix(rep(resourceInfo_df$minUnitValue/resourceInfo_df$FXRate,callNum),nrow=callNum,byrow=TRUE)
-  minUnitQuantity_mat[]<- floor(resourceInfo_df/minUnit_mat) # round down to the nearest integer
+  minUnitQuantity_mat[]<- floor(quantity_mat/minUnit_mat) # round down to the nearest integer
   
   # convert the matrix format data to vector format
   # thinking of keeping only eligible parts
