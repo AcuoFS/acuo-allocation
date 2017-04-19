@@ -146,7 +146,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
     }
     #### Run CoreAlgo END ########################
     
-    msOutputGroup_list <- resultGroup_list$msOutput_list
+    #msOutputGroup_list <- resultGroup_list$msOutput_list
     callOutputGroup_list <- resultGroup_list$callOutput_list
     
     status <- resultGroup_list$status
