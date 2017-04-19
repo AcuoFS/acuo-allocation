@@ -54,7 +54,7 @@ operLimit<- 2*length(callId_vec)
 result <- CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
                           callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
 
-callOutput <- result$callOutput; 
+callOutput <- result$callOutput;  print(callOutput_mat)
 col_vec <- names(result$callOutput[[1]])
 callNum <- length(callId_vec)
 rowNum_vec <- rep(0,callNum)
