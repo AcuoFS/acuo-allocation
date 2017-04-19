@@ -172,7 +172,7 @@ for(i in 1:length(groupCallId_list)){
   }
   #### Run CoreAlgo END ########################
   print('line174')
-  msOutputGroup_list <- resultGroup_list$msOutput_list
+  #msOutputGroup_list <- resultGroup_list$msOutput_list
   callOutputGroup_list <- resultGroup_list$callOutput_list
   
   status <- resultGroup_list$status
