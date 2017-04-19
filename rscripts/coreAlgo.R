@@ -5,7 +5,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
   callId_vec<-coreInput_list$callId_vec
   resource_vec<-coreInput_list$resource_vec
   
-  assetId_vec <- matrix(unlist(strsplit(resource_vec,'-')),nrow=2)[1,]
+  assetId_vec <- SplitResource(resource_vec,'asset')
   msId_vec <- unique(callInfo_df$marginStatement)
   
   callInfo_df <- renjinFix(coreInput_list$callInfo_df, "callInfo.")
@@ -27,6 +27,11 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
   unitValue_mat<-coreInput_list$unitValue_mat; unitValue_vec <- coreInput_list$unitValue_vec     # asset unit value mat & vec
   minUnit_mat <- coreInput_list$minUnit_mat; minUnit_vec <- coreInput_list$minUnit_vec;
   minUnitValue_mat <- coreInput_list$minUnitValue_mat; minUnitValue_vec <- coreInput_list$minUnitValue_vec;
+  if(callNum==1){
+    quantityTotal_vec <- minUnitQuantity_mat
+  } else{
+    quantityTotal_vec <- apply(minUnitQuantity_mat,2,max)
+  }
   
   callAmount_mat <- coreInput_list$callAmount_mat; callAmount_vec <- as.vector(t(callAmount_mat)) 
   
@@ -56,7 +61,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
   
   #### CHECK WHETHER ASSET POOL IS SUFFICIENT START #######
   suffPerCall <- all(apply(eli_mat*(minUnitQuantity_mat*minUnitValue_mat*(1-haircut_mat)),1,sum) > callAmount_mat[,1])
-  suffAllCall <- sum(minUnitQuantity_mat[1,]*minUnitValue_mat[1,]*(1-apply(haircut_mat,2,max)))>sum(callAmount_mat[,1])
+  suffAllCall <- sum(quantityTotal_vec*minUnitValue_mat[1,]*(1-apply(haircut_mat,2,max)))>sum(callAmount_mat[,1])
   if(!(suffPerCall&suffAllCall)){
     #errorMsg <- 'Error: Asset inventory is insufficient!'
     stop('Asset inventory is insufficient!')
@@ -184,6 +189,16 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
   #### Calculate the Optimal Asset Sufficiency END ##########
   
   #### ALLOCATION START #####################################
+  #### Construct Variable Names Start ######
+  varInfo_list <- VarInfo(eli_vec,callInfo_df,resource_vec,callId_vec)
+  
+  varName_vec <- varInfo_list$varName_vec
+  varNum <- varInfo_list$varNum
+  varNum2 <- varInfo_list$varNum2
+  varNum3 <- varInfo_list$varNum3
+  msVar_mat <- varInfo_list$msVar_mat
+  idxEli_vec <- which(eli_vec==1)  
+  #### Construct Variable Names END ########
   
   if(!is.element(0,ifSelectAssetSuff_vec)){
     #### Optimal Assets are Sufficient Start ##########
@@ -203,16 +218,6 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
     #### Optimal Assets are not Sufficient Start #########
     lpsolveRun<-TRUE
     
-    #### Construct Variable Names Start ######
-    varInfo_list <- VarInfo(eli_vec,callInfo_df,resource_vec,callId_vec)
-    
-    varName_vec <- varInfo_list$varName_vec
-    varNum <- varInfo_list$varNum
-    varNum2 <- varInfo_list$varNum2
-    varNum3 <- varInfo_list$varNum3
-    msVar_mat <- varInfo_list$msVar_mat
-    idxEli_vec <- which(eli_vec==1)  
-    #### Construct Variable Names END ########
     
     #### MODEL SETUP Start ##################################################
     # decision variables: x, qunatity used of each asset for each margin call
@@ -250,6 +255,8 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
     # objective function
     costObj_vec <-  c(minUnitValue_vec[idxEli_vec]*costBasis_vec[idxEli_vec],rep(0,varNum3-varNum))
     liquidityObj_vec <-  c(minUnitValue_vec[idxEli_vec]*normLiquidity_vec[idxEli_vec],rep(0,varNum3-varNum))
+    # consider FX 
+    
     operationTemp_vec <- normOperation_vec[idxEli_vec]
     operationObj_vec <-  c(rep(0,varNum),operationTemp_vec*max(callAmount_mat)*10,-operationTemp_vec[msVar_mat[,1]-varNum]*max(callAmount_mat)*10)
     
@@ -280,7 +287,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
     fCon2_mat[na.omit(cbind(rep(c(1:resourceNum),rep(callNum,resourceNum)),idxCon2_vec))]<-1
     fCon2_mat <- cbind(fCon2_mat,fCon2_mat*0,fConTemp_mat)
     fDir2_vec <- rep('<=',resourceNum)
-    fRhs2_vec <- minUnitQuantity_mat[1,]
+    fRhs2_vec <- quantityTotal_vec
     
     fCon3_mat <- matrix(0,nrow=callNum,ncol=varNum)
     fConTemp_mat <- matrix(0,nrow=callNum,ncol=varNum3-varNum2)
@@ -360,7 +367,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
     lpGuessBasis_vec <- rep(0,varNum3)
     if(!missing(initAllocation_list)){
       # the initial guess must be a feasible point
-      lpGuessBasis_vec<-callList2Var(initAllocation_list,callId_vec,minUnit_vec,varName_vec,varNum3,varNum,idxEli_vec)
+      lpGuessBasis_vec<-CallList2Var(initAllocation_list,callId_vec,minUnit_vec,varName_vec,varNum3,varNum,idxEli_vec)
     }
     
     #### Solver Inputs END ###################
@@ -370,7 +377,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
     solverOutput_list <- CallLpSolve(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
                                      lpType_vec=lpType_vec,lpKind_vec=lpKind_vec,lpLowerBound_vec=lpLowerBound_vec,lpUpperBound_vec=lpUpperBound_vec,lpBranchMode_vec=lpBranchMode_vec,
                                      lpGuessBasis_vec=lpGuessBasis_vec,
-                                     presolve=lpPresolve,epsd=lpEpsd,timeout=lpTimeout,bbRule=bbRule,
+                                     presolve=lpPresolve,epsd=lpEpsd,timeout=lpTimeout,bb.rule=bbRule,
                                      epsind=lpEpsind, scaling=lpScale,improve=lpImprove)
     
     #### Solver Outputs
@@ -428,8 +435,8 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
     
     # 2. whether statisfy the quantity limits
     assetQuantityUsed_vec <- apply(result_mat,2,sum)
-    assetQuantityLeft_vec <- minUnitQuantity_mat[1,]-assetQuantityUsed_vec
-    idxExcess_vec <- which(assetQuantityUsed_vec>minUnitQuantity_mat[1,])
+    assetQuantityLeft_vec <- quantityTotal_vec-assetQuantityUsed_vec
+    idxExcess_vec <- which(assetQuantityUsed_vec>quantityTotal_vec)
     if(length(idxExcess_vec)>=1){
       for(i in idxExcess_vec){          # i: the index of the excess quantity asset in assetId_vec
         currentAllocation_mat <- matrix(c(which(result_mat[,i]>0),result_mat[which(result_mat[,i]>0),i]),nrow=2,byrow=T)
@@ -451,7 +458,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
               result_mat[j,i]<- newQuantity
               
               assetQuantityUsed_vec <- apply(result_mat,2,sum)
-              assetQuantityLeft_vec <- minUnitQuantity_mat[1,]-assetQuantityUsed_vec
+              assetQuantityLeft_vec <- quantityTotal_vec-assetQuantityUsed_vec
               break
             }
             # first check whether the other previous allocated assets are sufficient,based on the operation efficiency
@@ -480,7 +487,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
             result_mat[j,c(i,idxSwapNew)]<- c(newQuantity,swapNewQuantity)
             
             assetQuantityUsed_vec <- apply(result_mat,2,sum)
-            assetQuantityLeft_vec <- minUnitQuantity_mat[1,]-assetQuantityUsed_vec
+            assetQuantityLeft_vec <- quantityTotal_vec-assetQuantityUsed_vec
           }
           else{
             # the amount missing for the margin call j if excluding the asset i
@@ -503,7 +510,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
               newQuantity <-  ceiling((callAmount_mat[j,1]-otherAmount)/minUnitValue_mat[j,i]/(1-haircut_mat[j,i]))
               result_mat[j,i]<- newQuantity
               assetQuantityUsed_vec <- apply(result_mat,2,sum)
-              assetQuantityLeft_vec <- minUnitQuantity_mat[1,]-assetQuantityUsed_vec
+              assetQuantityLeft_vec <- quantityTotal_vec-assetQuantityUsed_vec
               break
             }
             
@@ -553,7 +560,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
             }
             
             assetQuantityUsed_vec <- apply(result_mat,2,sum)
-            assetQuantityLeft_vec <- minUnitQuantity_mat[1,]-assetQuantityUsed_vec
+            assetQuantityLeft_vec <- quantityTotal_vec-assetQuantityUsed_vec
             break
           }
         } 
@@ -562,7 +569,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
     
     # 3. whether meet all margin call requirements
     assetQuantityUsed_vec <- apply(result_mat,2,sum)
-    assetQuantityLeft_vec <- minUnitQuantity_mat[1,]-assetQuantityUsed_vec
+    assetQuantityLeft_vec <- quantityTotal_vec-assetQuantityUsed_vec
     # compare with the call amount, not the custimized amount based on the user preference
     callFulfilled_vec <- apply(result_mat*minUnitValue_mat*(1-haircut_mat),1,sum)
     callMissingAmount_vec <- callInfo_df$callAmount-callFulfilled_vec
@@ -595,18 +602,10 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
     #### CHECK ALLOCATION RESULT END ################
   } # else if END
   
-  #### Result Analysis Start ########################
-  #### calculate the daily cost & month cost
-  costDaily <- sum(result_mat * costBasis_mat * minUnitValue_mat)
-  costMonthly <- costDaily*30
-  #### calculate the operational movements 
-  
-  #### Result Analysis END ##########################
   
   #### Prepare Outputs Start #######################
-  resultAnalysis_list <- list(costDaily=costDaily,costMonthly=costMonthly)
   #### Convert the result_mat to List
-  result_list <- Result2callList(result_mat,assetId_vec,availAsset_df,coreInput_list,callSelect_list,msSelect_list)
+  result_list <- ResultMat2List(result_mat,resource_vec,assetId_vec,availAsset_df,coreInput_list,callSelect_list,msSelect_list)
   
   callSelect_list <- result_list$callSelect_list
   msSelect_list <- result_list$msSelect_list
@@ -619,9 +618,10 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
   checkCall_mat <- subtotalFulfilled_mat
   #### Prepare Outputs END ########################
   
-  return(list(#msOutput_list=msSelect_list,
-              callOutput_list=callSelect_list,checkCall_mat=checkCall_mat,availAsset_df=availAsset_df,
-              status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue,resultAnalysis_list=resultAnalysis_list))
+  return(list(msOutput_list=msSelect_list,availAsset_df=availAsset_df,
+              varName_vec,varNum,
+              callOutput_list=callSelect_list,checkCall_mat=checkCall_mat,
+              status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue))
 }
 
 
@@ -632,7 +632,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
   callId_vec<-coreInput_list$callId_vec
   resource_vec<-coreInput_list$resource_vec
   
-  assetId_vec <- matrix(unlist(strsplit(resource_vec,'-')),nrow=2)[1,]
+  assetId_vec <- SplitResource(resource_vec,'asset')
   msId_vec <- unique(callInfo_df$marginStatement)
   
   callInfo_df <- renjinFix(coreInput_list$callInfo_df, "callInfo.")
@@ -650,6 +650,11 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
   haircut_mat<-coreInput_list$haircut_mat; haircut_vec <- coreInput_list$haircut_vec      # haircut mat & vec
   quantity_mat<- coreInput_list$quantity_mat; quantity_vec <- coreInput_list$quantity_vec # asset quantity mat & vec
   minUnitQuantity_mat<- coreInput_list$minUnitQuantity_mat; minUnitQuantity_vec <- coreInput_list$minUnitQuantity_vec
+  if(callNum==1){
+    quantityTotal_vec <- minUnitQuantity_mat
+  } else{
+    quantityTotal_vec <- apply(minUnitQuantity_mat,2,max)
+  }
   
   unitValue_mat<-coreInput_list$unitValue_mat; unitValue_vec <- coreInput_list$unitValue_vec     # asset unit value mat & vec
   minUnit_mat <- coreInput_list$minUnit_mat; minUnit_vec <- coreInput_list$minUnit_vec;
@@ -683,7 +688,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
   
   #### CHECK WHETHER ASSET POOL IS SUFFICIENT START #######
   suffPerCall <- all(apply(eli_mat*(minUnitQuantity_mat*minUnitValue_mat*(1-haircut_mat)),1,sum) > callAmount_mat[,1])
-  suffAllCall <- sum(minUnitQuantity_mat[1,]*minUnitValue_mat[1,]*(1-apply(haircut_mat,2,max)))>sum(callAmount_mat[,1])
+  suffAllCall <- sum(quantityTotal_vec*minUnitValue_mat[1,]*(1-apply(haircut_mat,2,max)))>sum(callAmount_mat[,1])
   if(!(suffPerCall&suffAllCall)){
     #errorMsg <- 'Error: Asset inventory is insufficient!'
     stop('Asset inventory is insufficient!')
@@ -798,6 +803,15 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
   #### ALLOCATION ########################################
   
   if(!is.element(0,ifSelectAssetSuff_vec)){
+    
+    # exception
+    # USD is optimal for VM in ms1, and xxx Equity is optimal for IM in ms1
+    # the limit movement per margin statement is 1
+    # this will generate two movements
+    #
+    
+    
+    
     #### Optimal Assets are Sufficient Start ##########
     result_mat <- matrix(0,nrow=callNum,ncol=resourceNum,dimnames=list(callId_vec,resource_vec))
     for(k in 1:callNum){
@@ -824,6 +838,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     msVar_mat <- varInfo_list$msVar_mat
     idxEli_vec <- which(eli_vec==1)  
     #### Construct Variable Names END ########
+    
     
     #### MODEL SETUP Start ##################################################
     # decision variables: x, qunatity used of each asset for each margin call
@@ -865,6 +880,9 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     fObj_vec <- liquidityObj_vec*pref_vec[2]+costObj_vec*pref_vec[1]
     names(fObj_vec) <- varName_vec
     
+    #strTemp <- paste(fObj_vec,sep='',collapse=',')
+    #cat('fObj_vec:',strTemp,'\n')
+    
     # constraints
     fCon0_mat <- matrix(0,nrow=varNum,ncol=varNum3)
     fCon0_mat[cbind(1:varNum,1:varNum)] <- 1
@@ -884,7 +902,8 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     fCon2_mat[na.omit(cbind(rep(c(1:resourceNum),rep(callNum,resourceNum)),idxCon2_vec))]<-1
     fCon2_mat <- cbind(fCon2_mat,fCon2_mat*0,fConTemp_mat)
     fDir2_vec <- rep('<=',resourceNum)
-    fRhs2_vec <- minUnitQuantity_mat[1,]
+    fRhs2_vec <- quantityTotal_vec
+    
     
     fCon3_mat <- matrix(0,nrow=callNum,ncol=varNum)
     fConTemp_mat <- matrix(0,nrow=callNum,ncol=varNum3-varNum2)
@@ -990,8 +1009,12 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     lpGuessBasis_vec <- rep(0,varNum3)
     if(!missing(initAllocation_list)){
       # the initial guess must be a feasible point
-      lpGuessBasis_vec<-callList2Var(initAllocation_list,callId_vec,minUnit_vec,varName_vec,varNum3,varNum,idxEli_vec)
+      lpGuessBasis_vec<-CallList2Var(initAllocation_list,callId_vec,minUnit_vec,varName_vec,varNum3,varNum,idxEli_vec)
     }
+    
+    #guessValue <- sum(fObj_vec*lpGuessBasis_vec)
+    #cat('lpGuessBasis_vec:',lpGuessBasis_vec,'\n')
+    #cat('guess result: ', guessValue,'\n')
     #### Solver Inputs END ###################
     
     #### Solve the Model Start ###############
@@ -1006,6 +1029,10 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     status<- solverOutput_list$resultStatus
     solverSolution_vec <- solverOutput_list$solverSolution_vec
     solverObjValue <- solverOutput_list$solverObjValue
+    
+    #solverValue <- sum(fObj_vec*solverSolution_vec)
+    #cat('solverSolution_vec: ', solverSolution_vec,'\n')
+    #cat('solver result: ', solverValue,'\n')
     
     # round up the decimal quantity to the nearest integer.
     # if it's larger than 0.5
@@ -1026,11 +1053,6 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     solverSolution_vec[1:varNum] <- solNum1_vec 
     solverSolution_vec[(varNum+1):varNum2] <- solNum2_vec
     
-    #cat('solverSolution_vec: varNum',varNum,'\n')
-    #cat('solverSolution_vec: varNum',solverSolution_vec[1:varNum],'\n')
-    #cat('solverSolution_vec: varNum2',solverSolution_vec[(varNum+1):varNum2],'\n')
-    #cat('solverSolution_vec: varNum3',solverSolution_vec[(varNum2+1):varNum3],'\n')
-    
     if(varNum3>varNum2){
       idxTemp1_vec <- msVar_mat[,1]
       idxTemp2_vec <- msVar_mat[,2]
@@ -1038,19 +1060,24 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
       solverSolution_vec[(varNum2+1):varNum3] <- solNum3_vec
     }
     
+    #cat('solverSolution_vec: ', solverSolution_vec,'\n')
+    
     result_mat <- matrix(0,nrow=callNum,ncol=resourceNum,dimnames=list(callId_vec,resource_vec))
     result_mat <- t(result_mat); resultDummy_mat <- result_mat
     result_mat[idxEli_vec]<-solverSolution_vec[1:varNum]
     resultDummy_mat[idxEli_vec]<- solverSolution_vec[(varNum+1):varNum2]
     result_mat[which(result_mat>0.5)] <- ceiling(result_mat[which(result_mat>0.5)])
     result_mat <- t(result_mat) ;   resultDummy_mat <- t(resultDummy_mat)     # convert solution into matrix format
+    
+    #### number of movements ####
+    
     #print('result_mat: '); print(result_mat)
     #print('resultDummy_mat: '); print(resultDummy_mat)
-    resultFirst_list <- Result2callList(result_mat,assetId_vec,availAsset_df,coreInput_list,callSelect_list,msSelect_list)
-    print('resultFirst_list'); print(resultFirst_list$callSelect_list)
+    #resultFirst_list <- ResultMat2List(result_mat,assetId_vec,availAsset_df,coreInput_list,callSelect_list,msSelect_list)
+    #print('resultFirst_list'); print(resultFirst_list$callSelect_list)
     #### Solve the Model END #################
     
-    ##### CHECK ALLOCATION RESULT Start ###############
+    #### CHECK ALLOCATION RESULT Start ###############
     # STATUS: Developing
     #
     # 1. whether all variables are non-negative
@@ -1061,9 +1088,11 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     
     # 2. whether statisfy the quantity limits
     assetQuantityUsed_vec <- apply(result_mat,2,sum)
-    assetQuantityLeft_vec <- minUnitQuantity_mat[1,]-assetQuantityUsed_vec
-    idxExcess_vec <- which(assetQuantityUsed_vec>minUnitQuantity_mat[1,])
+    assetQuantityLeft_vec <- quantityTotal_vec-assetQuantityUsed_vec
+    idxExcess_vec <- which(assetQuantityUsed_vec>quantityTotal_vec)
     if(length(idxExcess_vec)>=1){
+      
+      stop('scenario 3')
       for(i in idxExcess_vec){          # i: the index of the excess quantity asset in assetId_vec
         currentAllocation_mat <- matrix(c(which(result_mat[,i]>0),result_mat[which(result_mat[,i]>0),i]),nrow=2,byrow=T)
         if(length(currentAllocation_mat[1,])>1){
@@ -1084,7 +1113,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
               result_mat[j,i]<- newQuantity
               
               assetQuantityUsed_vec <- apply(result_mat,2,sum)
-              assetQuantityLeft_vec <- minUnitQuantity_mat[1,]-assetQuantityUsed_vec
+              assetQuantityLeft_vec <- quantityTotal_vec-assetQuantityUsed_vec
               break
             }
             # first check whether the other previous allocated assets are sufficient,based on the operation efficiency
@@ -1113,7 +1142,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
             result_mat[j,c(i,idxSwapNew)]<- c(newQuantity,swapNewQuantity)
             
             assetQuantityUsed_vec <- apply(result_mat,2,sum)
-            assetQuantityLeft_vec <- minUnitQuantity_mat[1,]-assetQuantityUsed_vec
+            assetQuantityLeft_vec <- quantityTotal_vec-assetQuantityUsed_vec
           }
           else{
             # the amount missing for the margin call j if excluding the asset i
@@ -1136,7 +1165,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
               newQuantity <-  ceiling((callAmount_mat[j,1]-otherAmount)/minUnitValue_mat[j,i]/(1-haircut_mat[j,i]))
               result_mat[j,i]<- newQuantity
               assetQuantityUsed_vec <- apply(result_mat,2,sum)
-              assetQuantityLeft_vec <- minUnitQuantity_mat[1,]-assetQuantityUsed_vec
+              assetQuantityLeft_vec <- quantityTotal_vec-assetQuantityUsed_vec
               break
             }
             
@@ -1186,7 +1215,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
             }
             
             assetQuantityUsed_vec <- apply(result_mat,2,sum)
-            assetQuantityLeft_vec <- minUnitQuantity_mat[1,]-assetQuantityUsed_vec
+            assetQuantityLeft_vec <- quantityTotal_vec-assetQuantityUsed_vec
             break
           }
         } 
@@ -1195,12 +1224,15 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     
     # 3. whether meet all margin call requirements
     assetQuantityUsed_vec <- apply(result_mat,2,sum)
-    assetQuantityLeft_vec <- minUnitQuantity_mat[1,]-assetQuantityUsed_vec
+    assetQuantityLeft_vec <- quantityTotal_vec-assetQuantityUsed_vec
+    
     # compare with the call amount, not the custimized amount based on the user preference
     callFulfilled_vec <- apply(result_mat*minUnitValue_mat*(1-haircut_mat),1,sum)
     callMissingAmount_vec <- callInfo_df$callAmount-callFulfilled_vec
     idxCallMissing_vec <- which(callMissingAmount_vec>0)
     if(length(idxCallMissing_vec)>=1){
+      
+      stop('scenario 3')
       for(i in idxCallMissing_vec){
         
         currentAllocation_mat <- matrix(c(which(result_mat[i,]>0),result_mat[i,which(result_mat[i,]>0)]),nrow=2,byrow=T)
@@ -1229,20 +1261,29 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     #### CHECK ALLOCATION RESULT END ################
   } # else if end
   
+  #### Update the Results Start ##########
+  # resultDummy_mat <- 1*(result_mat & 1)
   
-  #### Result Analysis Start ########################
-  #### calculate the daily cost & month cost
-  costDaily <- sum(result_mat * costBasis_mat * minUnitValue_mat)
-  costMonthly <- costDaily*30
-  #### calculate the operational movements 
+  # adjSolution_vec <- rep(0,varNum3)
+  # adjSolution_vec[1:varNum] <- result_mat[idxEli_vec]
+  # adjSolution_vec[(varNum+1):varNum2] <- resultDummy_mat[idxEli_vec]
   
-  #### Result Analysis END ##########################
+  # if(varNum3>varNum2){
+  #   idxTemp1_vec <- msVar_mat[,1]
+  #   idxTemp2_vec <- msVar_mat[,2]
+  #   solNum3_vec <- 1*(adjSolution_vec[idxTemp1_vec] & adjSolution_vec[idxTemp2_vec])
+  #   adjSolution_vec[(varNum2+1):varNum3] <- solNum3_vec
+  # }
+  
+  
+  #### Update the Results END ############
+  
   
   #### Prepare Outputs Start #######################
-  resultAnalysis_list <- list(costDaily=costDaily,costMonthly=costMonthly)
   #### convert the result_mat to list
-  result_list <- Result2callList(result_mat,assetId_vec,availAsset_df,coreInput_list,callSelect_list,msSelect_list)
-  
+  #print('result_mat: '); print(result_mat)
+  result_list <- ResultMat2List(result_mat,resource_vec,assetId_vec,availAsset_df,coreInput_list,callSelect_list,msSelect_list)
+  #print('result_list: '); print(result_list$callSelect_list)
   callSelect_list <- result_list$callSelect_list
   msSelect_list <- result_list$msSelect_list
   availAsset_df <- result_list$availAsset_df
@@ -1253,10 +1294,10 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
   }
   checkCall_mat <- subtotalFulfilled_mat
   #### Prepare Outputs END ########################
-  
-  return(list(#msOutput_list=msSelect_list,
-              callOutput_list=callSelect_list,checkCall_mat=checkCall_mat,availAsset_df=availAsset_df,
-              status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue,resultAnalysis_list=resultAnalysis_list))
+  #print(availAsset_df)
+  return(list(msOutput_list=msSelect_list,availAsset_df=availAsset_df,
+              callOutput_list=callSelect_list,checkCall_mat=checkCall_mat,
+              status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue))
   
 }
 
@@ -1264,213 +1305,3 @@ CheckSolverResult <- function(){
   
 }
 
-Result2callList <- function(result_mat,assetId_vec,availAsset_df,coreInput_list,callSelect_list,msSelect_list){
-  venue <- coreInput_list$venue
-  custodianAccount <- coreInput_list$custodianAccount
-  assetInfo_df <- coreInput_list$assetInfo_df
-  callInfo_df <- coreInput_list$callInfo_df
-  unitValue_mat <- coreInput_list$unitValue_mat
-  minUnit_mat <- coreInput_list$minUnit_mat
-  haircut_mat <- coreInput_list$haircut_mat
-  msId_vec <- unique(callInfo_df$marginStatement)
-  callId_vec <- coreInput_list$callId_vec
-  callNum <- length(callId_vec)
-  
-  for(i in 1:callNum){                          # store the result into select list
-    # j, corresponding index of margin statement
-    # j <- which(msId_vec==callInfo_df$marginStatement[which(callInfo_df$id==callId_vec[i])])
-    j <- which(msId_vec==callInfo_df$marginStatement[i])
-    
-    idxSelectResource_vec <- which(result_mat[i,]!=0)
-    
-    selectResource_vec <- resource_vec[idxSelectResource_vec]
-    selectAssetId_vec <- assetId_vec[idxSelectResource_vec]
-    idxSelectAsset_vec <- rep(0,length(idxSelectResource_vec))
-    for(m in 1:length(idxSelectResource_vec)){
-      idxSelectAsset_vec[m] <- which(assetInfo_df$id==selectAssetId_vec[m])[1]
-    }
-    selectAssetCustodianAccount_vec <- custodianAccount[idxSelectResource_vec]
-    selectAssetVenue_vec <- venue[idxSelectResource_vec]
-    selectAssetName_vec <- assetInfo_df$name[idxSelectAsset_vec]
-    selectAssetHaircut_vec <- haircut_mat[i,idxSelectResource_vec]
-    selectAssetCurrency_vec <- assetInfo_df$currency[idxSelectAsset_vec]
-    selectAssetMinUnitQuantity_vec <- result_mat[i,idxSelectResource_vec]
-    selectAssetQuantity_vec <- result_mat[i,idxSelectResource_vec]*minUnit_mat[i,idxSelectResource_vec]
-    selectMarginType_vec <- rep(callInfo_df$marginType[i],length(idxSelectResource_vec))
-    selectMs_vec <- rep(callInfo_df$marginStatement[i],length(idxSelectResource_vec))
-    selectCall_vec <- rep(callId_vec[i],length(idxSelectResource_vec))
-    
-    #### UPDATE THE ASSET QUANTITY ########
-    for(k in 1:length(selectAssetId_vec)){
-      tempResource <- selectResource_vec[k]
-      tempAvailQuantity_vec <- availAsset_df$quantity[which(availAsset_df$assetCustacId==tempResource)]
-      tempQuantity_vec <- availAsset_df$totalQuantity[which(availAsset_df$assetCustacId==tempResource)]
-      availAsset_df$quantity[which(availAsset_df$assetCustacId==tempResource)]<- tempAvailQuantity_vec-selectAssetQuantity_vec[k]
-      availAsset_df$totalQuantity[which(availAsset_df$assetCustacId==tempResource)]<- tempQuantity_vec-selectAssetQuantity_vec[k]
-    }
-    #### END ##############################
-    
-    selectAssetUnitValue_vec <- unitValue_mat[i,idxSelectResource_vec]
-    selectAssetAmountUSD_vec <- round(selectAssetQuantity_vec*selectAssetUnitValue_vec,2)
-    selectAssetNetAmountUSD_vec <- selectAssetAmountUSD_vec*(1-haircut_mat[i,idxSelectResource_vec])
-    selectAssetFX_vec <- assetInfo_df$FXRate[idxSelectAsset_vec]
-    selectAssetAmount_vec <- selectAssetAmountUSD_vec*selectAssetFX_vec
-    selectAssetNetAmount_vec <- selectAssetNetAmountUSD_vec*selectAssetFX_vec
-    #######
-    # netAmount(in local currency) is surfacing in UI
-    #######
-    selectAsset_df <- data.frame(selectAssetId_vec,selectAssetName_vec,selectAssetNetAmount_vec,selectAssetNetAmountUSD_vec,selectAssetFX_vec,selectAssetHaircut_vec,selectAssetAmount_vec,selectAssetAmountUSD_vec,selectAssetCurrency_vec,
-                                 selectAssetQuantity_vec,selectAssetCustodianAccount_vec,selectAssetVenue_vec,selectMarginType_vec,selectMs_vec,selectCall_vec)
-    colnames(selectAsset_df)<- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType','marginStatement','marginCall')
-    
-    callSelect_list[[callId_vec[i]]] <- selectAsset_df
-    if(is.null(msSelect_list[[msId_vec[j]]])){
-      msSelect_list[[msId_vec[j]]] <- selectAsset_df
-    } else{
-      tempAsset_df <- msSelect_list[[msId_vec[j]]]
-      selectAsset_df <- rbind(selectAsset_df,tempAsset_df)
-      msSelect_list[[msId_vec[j]]] <- selectAsset_df
-    }
-  }
-  
-  result_list <- list(callSelect_list=callSelect_list,  msSelect_list=msSelect_list,
-                      availAsset_df=availAsset_df)
-  
-  return(result_list)
-}
-
-callList2Var <- function(callOutput_list,callId_vec,minUnit_vec,varName_vec,varNum3,varNum,idxEli_vec){
-  #varnum <- length(varName_vec)
-  var_vec <- rep(0,varNum3)
-  callNum <- length(callId_vec)
-  
-  for(m in 1:callNum){
-    callId <- callId_vec[m]
-    callAlloc_df <- callOutput_list[[callId]]
-    
-    # the 'Quantity'= decision variable * minUnit
-    # find the corresponding decision variable index from the varName
-    resourceTemp_vec <- PasteResource(callAlloc_df$Asset,callAlloc_df$CustodianAccount)
-    varNameTemp_vec <- PasteFullName(callAlloc_df$marginStatement,callAlloc_df$marginCall,resourceTemp_vec)
-    
-    minUnitEli_vec <- minUnit_vec[idxEli_vec]
-    
-    for(k in 1:length(resourceTemp_vec)){
-      idxVarTemp <- which(varName_vec==varNameTemp_vec[k])
-      quantityTemp <- callAlloc_df$Quantity[k]
-      
-      var_vec[idxVarTemp] <- quantityTemp/minUnitEli_vec[idxVarTemp]
-      var_vec[idxVarTemp+varNum] <- 1
-    }
-    # if inside one margin statement, two margin calls are using the same asset, 
-    # then assign 1 to (varNum3-varNum2)
-  }
-  return(var_vec)
-}
-
-VarInfo <- function(eli_vec,callInfo_df,resource_vec,callId_vec){
-  callNum <- length(callId_vec)
-  resourceNum <- length(resource_vec)
-  
-  # matrix store the index number, by row
-  idx_mat <- matrix(1:(callNum*resourceNum),nrow=callNum,byrow = TRUE,dimnames = list(callId_vec,resource_vec))
-  # matrix store the variable name("msId_mcId_assetCustId"), by row
-  fullNameOri_mat <-  matrix('',nrow=callNum,ncol=resourceNum,byrow = TRUE,dimnames = list(callId_vec,resource_vec))
-  for(i in 1:callNum){
-    msId <- callInfo_df$marginStatement[i]
-    fullNameOri_mat[i,]<-paste(msId,callId_vec[i],resource_vec,sep='_')
-  }
-  fullNameDummy_mat <- fullNameOri_mat
-  fullNameDummy_mat[] <- paste(fullNameOri_mat,'dummy',sep='-')
-  
-  fullNameAll_mat <- rbind(fullNameOri_mat,fullNameDummy_mat)
-  
-  splitName_mat <- matrix(unlist(strsplit(t(fullNameAll_mat),'_')),ncol=3,byrow=TRUE)
-  splitName_mat <- cbind(splitName_mat,1:(2*length(idx_mat)))
-  colnames(splitName_mat) <- c('msId','callId','assetCustId','index'); rownames(splitName_mat)<- 1:(2*length(idx_mat))
-  
-  ## filter the eligible/available asset variables
-  idxEli_vec <- which(eli_vec==1)  
-  ## variable numbers
-  varNum <- length(idxEli_vec)    # variable numbers
-  varNum2 <- varNum*2
-  
-  varName_vec <- c(t(fullNameOri_mat)[idxEli_vec],t(fullNameDummy_mat)[idxEli_vec])
-  varSplitName_mat <- rbind(splitName_mat[idxEli_vec,],splitName_mat[length(idx_mat)+idxEli_vec,])
-  
-  # update the variable index
-  varSplitName_mat[,4]<-1:varNum2
-  varDummy_mat <- varSplitName_mat[(varNum+1):varNum2,]
-  
-  ### Margin Statement ###
-  marginTypeNum <- 2
-  msVarNum <- 0
-  msVar_mat <- matrix(0,nrow=ceiling(varNum/2),ncol=3,dimnames=list(1:ceiling(varNum/2),c("index_1","index_2","index")))
-  
-  msId_vec <- unique(callInfo_df$marginStatement)
-  for(i in 1:length(msId_vec)){
-    tempCallId_vec <- which(callInfo_df$marginStatement==msId_vec[i])
-    tempLength <- length(tempCallId_vec)
-    if(tempLength==2){
-      idxTemp <- which(varDummy_mat[,1]==msId_vec[i])
-      temp_df <- as.data.frame(table(varDummy_mat[which(varDummy_mat[,1]==msId_vec[i]),3]))
-      idxTempRep_vec <- which(temp_df[,2]==2)
-      tempResource_vec <- as.character(temp_df[idxTempRep_vec,1])
-      
-      temp_mat <- varDummy_mat[idxTemp,]
-      temp2_mat <- temp_mat[which(!is.na(match(temp_mat[,3],tempResource_vec))),]
-      
-      tempRes_df <- aggregate(index~msId+assetCustId,data=temp2_mat,PasteFun1)
-      tempPair_vec <- tempRes_df[,3]
-      idxTempNew_vec <- msVarNum+1:length(tempPair_vec)
-      msVarNum <- msVarNum + length(tempPair_vec)
-      msVar_mat[idxTempNew_vec,c(1,2)] <- as.numeric(t(data.frame((strsplit(tempPair_vec,'_')))))
-      msVar_mat[idxTempNew_vec,3] <- idxTempNew_vec+varNum2
-    }
-  }
-  # update msVar_mat
-  if(msVarNum==0){
-    msVar_mat <- msVar_mat[-c(1:length(msVar_mat[,1])),]
-  } else{
-    msVar_mat <- msVar_mat[1:msVarNum,]
-    msVar_mat <- matrix(as.numeric(msVar_mat),ncol=3)
-  }
-  
-  ## add new auxiliary variables, two margin calls coming from one margin statement
-  varNum3 <- varNum2+msVarNum
-  msVarName_mat <- varSplitName_mat[msVar_mat[,1],]
-  msVarName_mat[,2] <- msVarName_mat[,1]
-  msVarName_mat[,4] <- msVar_mat[,3]
-  
-  msVarName_vec <- apply(msVarName_mat[,1:3],1,PasteFun2)
-  varName_vec <- c(varName_vec,msVarName_vec)
-  
-  var_list <- list(varName_vec=varName_vec,varNum=varNum,varNum2=varNum2,varNum3=varNum3,msVar_mat=msVar_mat)
-  return(var_list)
-}
-
-PasteFun1 <- function(x1='',x2=''){
-  temp=paste(x1,x2,sep='_',collapse = '')
-  return(temp)
-}
-
-PasteFun2 <- function(x){
-  temp=paste(x,collapse='_')
-  return(temp)
-}
-
-PasteResource <- function(assets,custodianAccounts){
-  temp <- paste(assets,custodianAccounts,sep='-')
-  return(temp)
-}
-
-PasteFullName <- function(statements,calls,resources){
-  temp <- paste(statements,calls,resources,sep='_')
-  return(temp)
-}
-
-renjinFix <- function(frame, name) {
-  d <- data.frame(frame);
-  colnames(d) <- gsub(name, "", colnames(d));
-  return(d);
-}

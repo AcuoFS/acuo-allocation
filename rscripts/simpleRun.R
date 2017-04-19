@@ -43,25 +43,16 @@ availAsset_df$venue <- venue_vec
 callId_vec <- callIds
 pref_vec <- pref
 
-## main function, interface of java #######
-CallAllocation <- function(algoVersion,callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit){
-  inputLimit_vec <- c(7,7,7,5); 
-  timeLimit=10; 
-  callOrderMethod=3
-  minMoveValue<- 1000;
-  result <- AllocationAlgo(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,
-                           algoVersion,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod)
-  return(result)
-}
-
 
 ## CALL THE ALLOCATION FUNCTION ###########
-algoVersion <- 1
-operLimit<- 10; 
+algoVersion <- 2
+operLimit<- 2*length(callId_vec)
 
 #pref_vec <- c(10,0,0)
 
-result <- CallAllocation(algoVersion,callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
+# result <- CallAllocation(algoVersion,callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
+result <- CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
+                          callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
 
 callOutput <- result$callOutput; 
 col_vec <- names(result$callOutput[[1]])
