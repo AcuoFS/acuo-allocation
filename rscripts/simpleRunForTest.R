@@ -4,7 +4,7 @@ options(stringsAsFactors = FALSE)
 #source("rscripts/coreAlgo.R")
 #source("src/callLpSolve.R")
 
-
+print('line7')
 
 callInfo_df <- callInfoByCallId
 callInfo_df$callAmount <- abs(as.numeric(callInfo_df$callAmount)) # make sure the callAmount is non-negative
@@ -13,7 +13,7 @@ callInfo_df$callAmount <- abs(as.numeric(callInfo_df$callAmount)) # make sure th
 
 availAsset_df <- availAssetByCallIdAndClientId
 availAsset_df <- availAsset_df[order(availAsset_df$callId),]
-
+print('line16')
 ###### 3 lines added fot testing purposes, comment them after tests ##################
 # changing the asset quantity and adding new custodian account to make the optimal assets insufficient,
 # so that the allocation function will call the lpSolver.
@@ -44,7 +44,7 @@ venue_vec <- rep('SG',length(availAsset_df[,1]))
 availAsset_df$venue <- venue_vec
 #print(availAsset_df)
 ###### END ####################################
-
+print('line47')
 
 callId_vec <- callIds
 pref_vec <- pref
