@@ -26,11 +26,11 @@ source("src/callLpSolve.R")
 #callId_vec = c("mcp1","mcp5","mcp7","mcp50")
 #callId_vec = c("mcp1","mcp5","mcp7","mcp38","mcp20","mcp22","mcp15","mcp30","mcp50","mcp51")
 #callId_vec = c("mcp32","mcp33","mcp37","mcp26","mcp39");
-#callId_vec = c("mcp45","mcp50","mcp43","mcp38")
-callId_vec = c("mcp1","mcp31","mcp43","mcp10")
+callId_vec = c("mcp46","mcp50","mcp47","mcp38","mcp7","mcp34","mcp35")
+callId_vec = c("mcp1","mcp38","mcp50")
 clientId = '999';
 pref_vec = c(10,10,0);
-operLimit<- 12
+operLimit<- 2*length(callId_vec)
 
 #### get info
 callInfo_df <- callInfoByCallId(callId_vec); callInfo_df<- callInfo_df[match(callId_vec,callInfo_df$id),]
@@ -38,16 +38,16 @@ availAsset_df <- availAssetByCallIdAndClientId(callId_vec,clientId) # available 
 availAsset_df <- availAsset_df[order(availAsset_df$callId),]
 
 #### added lines for testing purposes 
-# availAsset_df$quantity <- availAsset_df$quantity/10 # change tempQuantity_vec for testing
-# availAsset_df <- rbind(availAsset_df,availAsset_df) # add custodianAccount for testing
-# availAsset_df$CustodianAccount[1:length(availAsset_df[,1])/2] <- 'custodianAccountTest'
+ availAsset_df$quantity <- availAsset_df$quantity/4 # change tempQuantity_vec for testing
+ availAsset_df <- rbind(availAsset_df,availAsset_df) # add custodianAccount for testing
+ availAsset_df$CustodianAccount[1:(length(availAsset_df[,1])/2)] <- 'custodianAccountTest'
 #### end 
 
 assetCustacId_vec <- paste(availAsset_df$assetId,availAsset_df$CustodianAccount,sep='-')
 availAsset_df$assetCustacId <- assetCustacId_vec
 resource_vec <- unique(assetCustacId_vec)
 
-assetId_vec <- matrix(unlist(strsplit(resource_vec,'-')),nrow=2)[1,]
+assetId_vec <- unique(SplitResource(resource_vec,'asset'))
 assetInfo_df <- assetInfoByAssetId(assetId_vec)
 assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
 #### Input Prepare END #############
@@ -62,6 +62,10 @@ result1 <- CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
                           callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
 
 # scenario 2: Post Settlement Currency
+eliCcy_vec <- c('USD', 'EUR', 'JPY', 'SGD','AUD','GBP','HKD','CAD')
+staticCcy <- 'USD'
+callInfo_df$currency[which((callInfo_df$currency %in% eliCcy_vec)==FALSE)] <- staticCcy
+
 result2 <- CallAllocation(algoVersion,scenario=2,callId_vec,resource_vec,
                           callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
 

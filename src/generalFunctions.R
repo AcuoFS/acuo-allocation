@@ -2,7 +2,6 @@
 AllocationInputData <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df){
   
   ### new identifer ####
-  assetId_vec <- SplitResource(resource_vec,'asset')
   resourceNum <- length(resource_vec)
   callNum <- length(callId_vec)
   callInfo_df$currency[which(is.na(callInfo_df$currency))] <- 'ZZZ' 
@@ -49,6 +48,7 @@ AllocationInputData <- function(callId_vec,resource_vec,callInfo_df,availAsset_d
   cost_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- availAsset_df$internalCost+availAsset_df$externalCost+availAsset_df$opptCost-(availAsset_df$interestRate+availAsset_df$yield)
   
   #### restructure!
+  assetId_vec <- SplitResource(resource_vec,'asset') #### parallel with resource, not unique
   resourceInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
   
   unitValue_mat[] <- matrix(rep(resourceInfo_df$unitValue/resourceInfo_df$FXRate,callNum),nrow=callNum,byrow=TRUE)
@@ -84,7 +84,8 @@ AllocationInputData <- function(callId_vec,resource_vec,callInfo_df,availAsset_d
   return (output_list)
 }
 
-ResultMat2List <- function(result_mat,resource_vec,assetId_vec,availAsset_df,coreInput_list,callSelect_list,msSelect_list){
+ResultMat2List <- function(result_mat,resource_vec,availAsset_df,coreInput_list,callSelect_list,msSelect_list){
+  
   venue <- coreInput_list$venue
   custodianAccount <- coreInput_list$custodianAccount
   assetInfo_df <- coreInput_list$assetInfo_df
@@ -95,6 +96,7 @@ ResultMat2List <- function(result_mat,resource_vec,assetId_vec,availAsset_df,cor
   msId_vec <- unique(callInfo_df$marginStatement)
   callId_vec <- coreInput_list$callId_vec
   callNum <- length(callId_vec)
+  assetId_vec <- SplitResource(resource_vec,'asset') #### parallel with resource, not unique
   
   for(i in 1:callNum){                          # store the result into select list
     # j, corresponding index of margin statement

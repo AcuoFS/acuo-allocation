@@ -5,7 +5,6 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
   callId_vec<-coreInput_list$callId_vec
   resource_vec<-coreInput_list$resource_vec
   
-  assetId_vec <- SplitResource(resource_vec,'asset')
   msId_vec <- unique(callInfo_df$marginStatement)
   
   callInfo_df <- renjinFix(coreInput_list$callInfo_df, "callInfo.")
@@ -84,8 +83,9 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
   
   callCcy <- callInfo_df$currency
   operation_mat <- matrix(rep(1,resourceNum*callNum),nrow=callNum,byrow=TRUE,dimnames=list(callId_vec,resource_vec)) 
+  assetId_vec <- SplitResource(resource_vec,'asset') #### parallel with resource, not unique
   for(i in 1:callNum){
-    idxCcy <- which(callCcy[i]==assetId_vec)    # return the index of mc[i] currency cash in the assetId_vec list
+    idxCcy <- which(callCcy[i]==assetId_vec)    # return the index of mc[i] currency cash in the asset list
     idx1 <- which(eli_mat[i,]!=0)             # return elegible asset idx for mc[i]
     if(length(idxCcy)==1 && is.element(idxCcy,idx1)){  # if there exist call currency cash in the inventory, and it's available
       operation_mat[i,idxCcy] <- 0
@@ -183,7 +183,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
   
   for(i in 1:length(selectUniqueAsset_vec)){
     id <- selectUniqueAsset_vec[i]
-    idx.temp <- optimalAsset_mat[which(optimalAsset_mat[,2]==id),1] # calls have the least cost assetId_vec=id
+    idx.temp <- optimalAsset_mat[which(optimalAsset_mat[,2]==id),1] # calls have the least cost asset id
     ifSelectAssetSuff_vec[i] <- 1*(sum(assetSuffQty_mat[idx.temp,id]) < max(minUnitQuantity_mat[,id]))
   }
   #### Calculate the Optimal Asset Sufficiency END ##########
@@ -605,7 +605,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
 
   #### Prepare Outputs Start #######################
   #### Convert the result_mat to List
-  result_list <- ResultMat2List(result_mat,resource_vec,assetId_vec,availAsset_df,coreInput_list,callSelect_list,msSelect_list)
+  result_list <- ResultMat2List(result_mat,resource_vec,availAsset_df,coreInput_list,callSelect_list,msSelect_list)
   
   callSelect_list <- result_list$callSelect_list
   msSelect_list <- result_list$msSelect_list
@@ -632,7 +632,6 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
   callId_vec<-coreInput_list$callId_vec
   resource_vec<-coreInput_list$resource_vec
   
-  assetId_vec <- SplitResource(resource_vec,'asset')
   msId_vec <- unique(callInfo_df$marginStatement)
   
   callInfo_df <- renjinFix(coreInput_list$callInfo_df, "callInfo.")
@@ -1313,7 +1312,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
   #### Prepare Outputs Start #######################
   #### convert the result_mat to list
   #print('result_mat: '); print(result_mat)
-  result_list <- ResultMat2List(result_mat,resource_vec,assetId_vec,availAsset_df,coreInput_list,callSelect_list,msSelect_list)
+  result_list <- ResultMat2List(result_mat,resource_vec,availAsset_df,coreInput_list,callSelect_list,msSelect_list)
   #print('result_list: '); print(result_list$callSelect_list)
   callSelect_list <- result_list$callSelect_list
   msSelect_list <- result_list$msSelect_list

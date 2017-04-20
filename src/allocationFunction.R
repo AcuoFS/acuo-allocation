@@ -8,7 +8,7 @@ CallAllocation <- function(algoVersion,scenario,callId_vec,resource_vec,callInfo
   #### Scenario Code END ###########
   
   inputLimit_vec <- c(7,7,7,5); 
-  timeLimit=20; 
+  timeLimit=13; 
   callOrderMethod=3
   minMoveValue<- 1000;
   # build scenario into the function
@@ -35,7 +35,7 @@ CallAllocation <- function(algoVersion,scenario,callId_vec,resource_vec,callInfo
     idxKeep_vec <- idxKeep_vec[1:count]
     availAssetCash_df <- availAssetCash_df[idxKeep_vec,]
     resourceCash_vec <- unique(availAssetCash_df$assetCustacId)
-    assetIdCash_vec <- matrix(unlist(strsplit(resourceCash_vec,'-')),nrow=2)[1,]
+    assetIdCash_vec <- unique(SplitResource(resourceCash_vec,'asset'))
     assetInfoCash_df <- assetInfoByAssetId(assetIdCash_vec)
     assetInfoCash_df <- assetInfoCash_df[match(assetIdCash_vec,assetInfoCash_df$id),]
     
