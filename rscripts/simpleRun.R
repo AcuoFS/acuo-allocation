@@ -48,9 +48,25 @@ pref_vec <- pref
 algoVersion <- 2
 operLimit<- 2*length(callId_vec)
 
-#pref_vec <- c(10,0,0)
+if(length(callId_vec)==0){
+  stop('Empty callId_vec input!')
+}
 
-# result <- CallAllocation(algoVersion,callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
+if(length(resource_vec)==0){
+  stop('Empty resource_vec input!')
+}
+
+if(length(callInfo_df)==0){
+  stop('Empty callInfo_df input!')
+}
+
+if(length(availAsset_df)==0){
+  stop('Empty availAsset_df input!')
+}
+if(length(assetInfo_df)==0){
+  stop('Empty assetInfo_df input!')
+}
+
 result <- CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
                           callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
 result1 <- result
