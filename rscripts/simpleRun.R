@@ -53,8 +53,9 @@ operLimit<- 2*length(callId_vec)
 # result <- CallAllocation(algoVersion,callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
 result <- CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
                           callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
-
+result1 <- result
 if(length(result$callOutput)==0){
+  print('empty callOutput: ')
   selectAsset_df <- data.frame(matrix(1:15,nrow=1))
   colnames(selectAsset_df)<- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType','marginStatement','marginCall')
   
