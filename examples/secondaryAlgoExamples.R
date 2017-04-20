@@ -7,12 +7,12 @@
 # 3. uesr preference: 
 #   3.1. objective vector: pref_vec
 #   3.2. operation limit: operLimit
-# 4. dsAssetId
+# 4. dsAssetId: deselected asset
 # 5. dsCallId_vec: asset deselct from
 # 6. callInfo_df <- callInfoByCallId(callId_vec)
 # 7. availAsset_df <- availAssetByCallIdAndClientId(callId_vec,clientId)
 # 8. resource_vec <- unique(PasteResourcce(availAsset_df$assetId,availAsset_df$CustodianAccount))
-# 9. assetId_vec <- SplitResource(resource_vec,'asset')
+# 9. assetId_vec <- unique(SplitResource(resource_vec,'asset'))
 # 10. assetInfo_df <- assetInfoByAssetId(assetId_vec)
 # 11. currentSelection_list: same format as the output from algo, (already exclude the delected asset)
 #### FUNCTION INPUT FROM JAVA LAYER END ##########################
@@ -45,7 +45,7 @@ assetCustacId_vec <- PasteResource(availAsset_df$assetId,availAsset_df$Custodian
 availAsset_df$assetCustacId <- assetCustacId_vec
 resource_vec <- unique(assetCustacId_vec)
 
-assetId_vec <- SplitResource(resource_vec,'asset')
+assetId_vec <- unique(SplitResource(resource_vec,'asset'))
 assetInfo_df <- assetInfoByAssetId(assetId_vec)
 assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
 
@@ -61,12 +61,12 @@ for(i in 1:length(dsCallId_vec)){
   currentSelection_list[[dsCallId]] <- currentSelection_list[[dsCallId]][-idxTemp,]
 }
 
-
-#callInfo_df <- callInfoByCallId(dsCallId)
-#msIds <- callInfo_df$marginStatement
 #### Input Prepare END ##############
 
+#### Call Second Level Algo Start ###
 result <- callSecondAllocation(algoVersion,callId_vec, resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,
                      dsAssetId,dsCallId_vec,
                      currentSelection_list)
 result
+
+#### Call Second Level Algo END #####
