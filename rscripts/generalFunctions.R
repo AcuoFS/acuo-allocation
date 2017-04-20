@@ -2,7 +2,6 @@
 AllocationInputData <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df){
   
   ### new identifer ####
-  assetId_vec <- SplitResource(resource_vec,'asset')
   resourceNum <- length(resource_vec)
   callNum <- length(callId_vec)
   callInfo_df$currency[which(is.na(callInfo_df$currency))] <- 'ZZZ' 
@@ -49,6 +48,7 @@ AllocationInputData <- function(callId_vec,resource_vec,callInfo_df,availAsset_d
   cost_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- availAsset_df$internalCost+availAsset_df$externalCost+availAsset_df$opptCost-(availAsset_df$interestRate+availAsset_df$yield)
   
   #### restructure!
+  assetId_vec <- SplitResource(resource_vec,'asset') #### parallel with resource, not unique
   resourceInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
   
   unitValue_mat[] <- matrix(rep(resourceInfo_df$unitValue/resourceInfo_df$FXRate,callNum),nrow=callNum,byrow=TRUE)
@@ -84,7 +84,8 @@ AllocationInputData <- function(callId_vec,resource_vec,callInfo_df,availAsset_d
   return (output_list)
 }
 
-ResultMat2List <- function(result_mat,resource_vec,assetId_vec,availAsset_df,coreInput_list,callSelect_list,msSelect_list){
+ResultMat2List <- function(result_mat,resource_vec,availAsset_df,coreInput_list,callSelect_list,msSelect_list){
+  
   venue <- coreInput_list$venue
   custodianAccount <- coreInput_list$custodianAccount
   assetInfo_df <- coreInput_list$assetInfo_df
@@ -95,6 +96,7 @@ ResultMat2List <- function(result_mat,resource_vec,assetId_vec,availAsset_df,cor
   msId_vec <- unique(callInfo_df$marginStatement)
   callId_vec <- coreInput_list$callId_vec
   callNum <- length(callId_vec)
+  assetId_vec <- SplitResource(resource_vec,'asset') #### parallel with resource, not unique
   
   for(i in 1:callNum){                          # store the result into select list
     # j, corresponding index of margin statement
@@ -124,9 +126,9 @@ ResultMat2List <- function(result_mat,resource_vec,assetId_vec,availAsset_df,cor
     for(k in 1:length(selectAssetId_vec)){
       tempResource <- selectResource_vec[k]
       tempAvailQuantity_vec <- availAsset_df$quantity[which(availAsset_df$assetCustacId==tempResource)]
-      tempQuantity_vec <- availAsset_df$totalQuantity[which(availAsset_df$assetCustacId==tempResource)]
+      #tempQuantity_vec <- availAsset_df$totalQuantity[which(availAsset_df$assetCustacId==tempResource)]
       availAsset_df$quantity[which(availAsset_df$assetCustacId==tempResource)]<- tempAvailQuantity_vec-selectAssetQuantity_vec[k]
-      availAsset_df$totalQuantity[which(availAsset_df$assetCustacId==tempResource)]<- tempQuantity_vec-selectAssetQuantity_vec[k]
+      #availAsset_df$totalQuantity[which(availAsset_df$assetCustacId==tempResource)]<- tempQuantity_vec-selectAssetQuantity_vec[k]
     }
     #### END ##############################
     
@@ -261,7 +263,7 @@ VarInfo <- function(eli_vec,callInfo_df,resource_vec,callId_vec){
       
       # When IM and VM in the same margin statement have the same available asset
       # the frequency = 2 (assume only one IM and one VM in one margin statement)
-
+      
       idxTempRep_vec <- which(temp_df[,2]==2)
       if(length(idxTempRep_vec)>=1){ # at least one asset is eligible for both IM and VM
         
@@ -374,7 +376,7 @@ OperationFun <- function(result,callInfo_df,method){
     resultDummy_mat <- 1*(result_mat&1)
     msDul_vec <- callInfo_df$marginStatement
     msId_vec <- unique(msDul_vec)
-
+    
     if(length(result_mat[1,])==1){
       for(m in 1:length(msId_vec)){
         idxTemp_vec <- which(msDul_vec==msId_vec[m])
