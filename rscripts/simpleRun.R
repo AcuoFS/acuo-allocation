@@ -76,7 +76,7 @@ for(i in 1:callNum){
 }
 
 
-print(callOutput_mat)
+print(result)
 #checkCall_mat <-result$checkCall_mat; print(checkCall_mat)
 #solverObjValue <- result$solverObjValue; print(solverObjValue)
 #availAssetResult_df <- result$availAsset_df; print(availAssetResult_df)

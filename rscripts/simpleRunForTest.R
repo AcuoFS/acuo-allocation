@@ -252,7 +252,7 @@ resultAnalysis <- list(dailyCost=dailyCost,monthlyCost=monthlyCost,movements=mov
 
 
 ############ ITERATE THE GROUP, RUN THE ALGO END #########################
-
+callOutput=callOutput_list
 result <- list(#msOutput=msOutput_list,availAsset_df=availAsset_df,
   callOutput=callOutput_list,checkCall_mat=checkCall_mat,
   status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue,resultAnalysis=resultAnalysis)
