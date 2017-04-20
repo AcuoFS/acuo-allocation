@@ -2,11 +2,11 @@
 # Triggered after the user deselects an asset from a call
 
 #### FUNCTION INPUT FROM JAVA LAYER Start #######################
-# 1. callId_vec
+# 1. callId_vec: margin calls from current selected margin statements
 # 2. clientId
 # 3. uesr preference: 
-#   3.1. objective vector: pref_vec
-#   3.2. operation limit: operLimit
+#   3.1. objective vector: pref_vec (R treat it as 3 elements, but only use the first two--cost&liquidity)
+#   3.2. operation limit: operLimit (R using static 2*number of margin calls)
 # 4. dsAssetId: deselected asset
 # 5. dsCallId_vec: asset deselct from
 # 6. callInfo_df <- callInfoByCallId(callId_vec)
