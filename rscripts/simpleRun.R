@@ -49,11 +49,11 @@ algoVersion <- 2
 operLimit<- 2*length(callId_vec)
 
 if(length(callId_vec)==0){
-  stop('Empty callId_vec input!')
+  stop('Empty margin call ids!')
 }
 
 if(length(resource_vec)==0){
-  stop('Empty resource_vec input!')
+  stop('Empty eligible assets!')
 }
 
 if(length(callInfo_df)==0){
