@@ -801,7 +801,19 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
   #### Calculate the Optimal Asset Sufficiency END ##########
   
   #### ALLOCATION ########################################
-
+  
+  #### Construct Variable Names Start ######
+  varInfo_list <- VarInfo(eli_vec,callInfo_df,resource_vec,callId_vec)
+  
+  varName_vec <- varInfo_list$varName_vec
+  varName_mat <- SplitVarName(varName_vec)
+  varNum <- varInfo_list$varNum
+  varNum2 <- varInfo_list$varNum2
+  varNum3 <- varInfo_list$varNum3
+  msVar_mat <- varInfo_list$msVar_mat
+  idxEli_vec <- which(eli_vec==1)  
+  #### Construct Variable Names END ########
+  
   if(!is.element(0,ifSelectAssetSuff_vec)){
     
     # exception
@@ -809,8 +821,6 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     # the limit movement per margin statement is 1
     # this will generate two movements
     #
-    
-    
     
     #### Optimal Assets are Sufficient Start ##########
     result_mat <- matrix(0,nrow=callNum,ncol=resourceNum,dimnames=list(callId_vec,resource_vec))
@@ -827,18 +837,6 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
   } else if(1){
     #### Optimal Assets are not Sufficient Start #########
     lpsolveRun<-TRUE
-    
-    #### Construct Variable Names Start ######
-    varInfo_list <- VarInfo(eli_vec,callInfo_df,resource_vec,callId_vec)
-    
-    varName_vec <- varInfo_list$varName_vec
-    varNum <- varInfo_list$varNum
-    varNum2 <- varInfo_list$varNum2
-    varNum3 <- varInfo_list$varNum3
-    msVar_mat <- varInfo_list$msVar_mat
-    idxEli_vec <- which(eli_vec==1)  
-    #### Construct Variable Names END ########
-    
     
     #### MODEL SETUP Start ##################################################
     # decision variables: x, qunatity used of each asset for each margin call
@@ -862,9 +860,9 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     #    total net amount of assets for one margin call >= call amount
     # 4.& 5. movements
     #    Similating the dummy of each x
-    # 6. in same margin statement
+    # 6.& 7. in same margin statement
     #   
-    # 7. constraint on the asset movements(operLimit)
+    # 8. constraint on the asset movements(operLimit)
     #
     # variable bounds: a < x < x_quantity
     #    specified by constraint 0 and 1. 
@@ -945,7 +943,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
       fCon7_mat[cbind(1:(varNum3-varNum2),msVar_mat[,1])] <- 1
       fCon7_mat[cbind(1:(varNum3-varNum2),msVar_mat[,2])] <- 1
       fCon7_mat[cbind(1:(varNum3-varNum2),msVar_mat[,3])] <- -2
-      fDir7_vec <- rep("<=",varNum3-varNum2)
+      fDir7_vec <- rep(">=",varNum3-varNum2)
       fRhs7_vec <- rep(0,varNum3-varNum2)
       #cat('fCon7 num:',length(fDir7_vec),'\n')
     }
@@ -985,11 +983,22 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
       lpRhs_vec <- c(fRhs2_vec,fRhs3_vec,fRhs4_vec,fRhs5_vec,fRhs8_vec)      
     }
     
+    if(length(lpCon_mat[,1])==518){
+      #stop('Let us debug!')
+    }
     lpKind_vec <- rep('semi-continuous',varNum3)
     lpType_vec <- rep('real',varNum3)
     lpType_vec[which(minUnitValue_vec[idxEli_vec]>=1)] <- 'integer'
     lpType_vec[(varNum+1):varNum3] <- 'integer'
     lpLowerBound_vec <- c(minMoveQuantity_vec,rep(0,varNum3-varNum))
+    for(k in 1:resourceNum){
+      resourceTemp <- resource_vec[k]
+      idxTemp_vec <- which(varName_mat[3,]==resourceTemp)
+      lowerSumTemp <- sum(lpLowerBound_vec[idxTemp_vec])
+      if(lowerSumTemp > quantityTotal_vec[k]){
+        lpLowerBound_vec[idxTemp_vec] <- 0
+      }
+    }
     #using 0 or 1 is still under the consideration
     #lpLowerBound_vec <- c(minMoveQuantity_vec,rep(1,varNum3-varNum))
     lpUpperBound_vec <- c(minUnitQuantity_vec[idxEli_vec],rep(1,varNum3-varNum))
@@ -1010,6 +1019,29 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     if(!missing(initAllocation_list)){
       # the initial guess must be a feasible point
       lpGuessBasis_vec<-CallList2Var(initAllocation_list,callId_vec,minUnit_vec,varName_vec,varNum3,varNum,idxEli_vec)
+      if(length(lpCon_mat[,1])==518){
+        ## constraint pre-check
+        cons <- rep(0,518); 
+        for(i in 1:518){cons[i]=sum(lpCon_mat[i,]* lpGuessBasis_vec);
+        }
+        l2 <- length(fRhs2_vec)
+        l3 <- length(fRhs3_vec)
+        l4 <- length(fRhs4_vec)
+        l5 <- length(fRhs5_vec)
+        l6 <- length(fRhs6_vec)
+        l7 <- length(fRhs7_vec)
+        l8 <- length(fRhs8_vec)
+        
+        
+        all(cons[1:l2]<=lpRhs_vec[1:l2]); temp <- l2
+        all(cons[(temp+1):(temp+l3)] >= lpRhs_vec[(temp+1):(temp+l3)]); temp<- temp+l3
+        all(cons[(temp+1):(temp+l4)] <= lpRhs_vec[(temp+1):(temp+l4)]); temp<- temp+l4
+        all(cons[(temp+1):(temp+l5)] >= lpRhs_vec[(temp+1):(temp+l5)]); temp<- temp+l5
+        all(cons[(temp+1):(temp+l6)] >= lpRhs_vec[(temp+1):(temp+l6)]); temp<- temp+l6
+        all(cons[(temp+1):(temp+l7)] >= lpRhs_vec[(temp+1):(temp+l7)]); temp<- temp+l7
+        all(cons[(temp+1):(temp+l8)] <= lpRhs_vec[(temp+1):(temp+l8)]); temp<- temp+l8
+      }
+     # stop('Let us debug!')
     }
     
     #guessValue <- sum(fObj_vec*lpGuessBasis_vec)
@@ -1023,7 +1055,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
                                      lpType_vec=lpType_vec,lpKind_vec=lpKind_vec,lpLowerBound_vec=lpLowerBound_vec,lpUpperBound_vec=lpUpperBound_vec,lpBranchMode_vec=lpBranchMode_vec,
                                      lpGuessBasis_vec=lpGuessBasis_vec, 
                                      presolve=lpPresolve,epsd=lpEpsd,timeout=lpTimeout,bb.rule=bbRule,
-                                     scaling=lpScale,improve=lpImprove)
+                                     scaling=lpScale,improve=lpImprove,verbose='normal')
 
     #### solver outputs
     status<- solverOutput_list$resultStatus
@@ -1092,7 +1124,6 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     idxExcess_vec <- which(assetQuantityUsed_vec>quantityTotal_vec)
     if(length(idxExcess_vec)>=1){
       
-      stop('scenario 3')
       for(i in idxExcess_vec){          # i: the index of the excess quantity asset in assetId_vec
         currentAllocation_mat <- matrix(c(which(result_mat[,i]>0),result_mat[which(result_mat[,i]>0),i]),nrow=2,byrow=T)
         if(length(currentAllocation_mat[1,])>1){
@@ -1294,7 +1325,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
   }
   checkCall_mat <- subtotalFulfilled_mat
   #### Prepare Outputs END ########################
-  #print(availAsset_df)
+
   return(list(msOutput_list=msSelect_list,availAsset_df=availAsset_df,
     callOutput_list=callSelect_list,checkCall_mat=checkCall_mat,
     status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue))

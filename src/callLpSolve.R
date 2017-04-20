@@ -60,6 +60,8 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
   # guess basis
   if(!missing(lpGuessBasis_vec)){
     if(!all(lpGuessBasis_vec==0)){
+      print(varnum)
+      print(lpGuessBasis_vec)
       guess.basis(lpModel,lpGuessBasis_vec)
     }
   }
