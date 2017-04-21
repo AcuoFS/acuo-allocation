@@ -67,7 +67,7 @@ result2 <- CallAllocation(algoVersion,scenario=2,callId_vec,resource_vec,
 
 # scenario 3: post least liquid assets
 result3 <- CallAllocation(algoVersion,scenario=3,callId_vec,resource_vec,
-                          callInfo_df,availAsset_df,assetInfo_df,pref_vec=c(0,10,0),operLimit)
+                          callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
 scenarios[['Algo']] <- result1
 scenarios[['SettleCCY']] <- result2
 scenarios[['LeastLiquid']] <- result3
