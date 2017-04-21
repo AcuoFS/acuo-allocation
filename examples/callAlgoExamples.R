@@ -26,8 +26,8 @@ source("src/callLpSolve.R")
 #callId_vec = c("mcp1","mcp5","mcp7","mcp50")
 #callId_vec = c("mcp1","mcp5","mcp7","mcp38","mcp20","mcp22","mcp15","mcp30","mcp50","mcp51")
 #callId_vec = c("mcp32","mcp33","mcp37","mcp26","mcp39");
-callId_vec = c("mcp46","mcp50","mcp47","mcp38","mcp7","mcp34","mcp35")
 callId_vec = c("mcp1","mcp38","mcp50")
+callId_vec = c("mcp46","mcp50","mcp47","mcp38","mcp7","mcp34","mcp35")
 clientId = '999';
 pref_vec = c(10,10,0);
 operLimit<- 2*length(callId_vec)
@@ -38,9 +38,9 @@ availAsset_df <- availAssetByCallIdAndClientId(callId_vec,clientId) # available 
 availAsset_df <- availAsset_df[order(availAsset_df$callId),]
 
 #### added lines for testing purposes 
- availAsset_df$quantity <- availAsset_df$quantity/4 # change tempQuantity_vec for testing
- availAsset_df <- rbind(availAsset_df,availAsset_df) # add custodianAccount for testing
- availAsset_df$CustodianAccount[1:(length(availAsset_df[,1])/2)] <- 'custodianAccountTest'
+# availAsset_df$quantity <- availAsset_df$quantity/4 # change tempQuantity_vec for testing
+# availAsset_df <- rbind(availAsset_df,availAsset_df) # add custodianAccount for testing
+# availAsset_df$CustodianAccount[1:(length(availAsset_df[,1])/2)] <- 'custodianAccountTest'
 #### end 
 
 assetCustacId_vec <- paste(availAsset_df$assetId,availAsset_df$CustodianAccount,sep='-')

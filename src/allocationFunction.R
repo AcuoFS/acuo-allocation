@@ -28,6 +28,9 @@ CallAllocation <- function(algoVersion,scenario,callId_vec,resource_vec,callInfo
     count <- 0
     for(i in 1:length(callId_vec)){
       idxTemp_vec <- which(availAssetCash_df$callId==callId_vec[i] & availAsset_df$assetId==callInfo_df$currency[i])
+      if(length(idxTemp_vec)==0){
+        stop('Settlement currency is not available(not in inventory/not eligible)!')
+      }
       numTemp <- length(idxTemp_vec)
       count <- count+numTemp
       idxKeep_vec[(count-numTemp+1):count] <- idxTemp_vec
