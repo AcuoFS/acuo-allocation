@@ -193,6 +193,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
   varInfo_list <- VarInfo(eli_vec,callInfo_df,resource_vec,callId_vec)
   
   varName_vec <- varInfo_list$varName_vec
+  varName_mat <- SplitVarName(varName_vec)
   varNum <- varInfo_list$varNum
   varNum2 <- varInfo_list$varNum2
   varNum3 <- varInfo_list$varNum3
@@ -351,6 +352,14 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
     lpType_vec[which(minUnitValue_vec[idxEli_vec]>=1)] <- 'integer'
     lpType_vec[(varNum+1):varNum3] <- 'integer'
     lpLowerBound_vec <- c(minMoveQuantity_vec,rep(0,varNum3-varNum)) # 0 will give less optimal result
+    for(k in 1:resourceNum){
+      resourceTemp <- resource_vec[k]
+      idxTemp_vec <- which(varName_mat[3,]==resourceTemp)
+      lowerSumTemp <- sum(lpLowerBound_vec[idxTemp_vec])
+      if(lowerSumTemp > quantityTotal_vec[k]){
+        lpLowerBound_vec[idxTemp_vec] <- 0
+      }
+    }
     lpUpperBound_vec <- c(minUnitQuantity_vec[idxEli_vec],rep(1,varNum3-varNum))
     lpBranchMode_vec <- c(rep('auto',varNum),rep('auto',varNum3-varNum))
     

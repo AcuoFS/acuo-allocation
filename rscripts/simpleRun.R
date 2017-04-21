@@ -3,7 +3,6 @@ options(stringsAsFactors = FALSE)
 
 callInfo_df <- callInfoByCallId
 callInfo_df$callAmount <- abs(as.numeric(callInfo_df$callAmount)) # make sure the callAmount is non-negative
-#callInfo_df$callAmountUSD <- abs(as.numeric(callInfo_df$callAmountUSD)) # make sure the callAmount is non-negative
 #print(callInfo_df)
 
 availAsset_df <- availAssetByCallIdAndClientId
