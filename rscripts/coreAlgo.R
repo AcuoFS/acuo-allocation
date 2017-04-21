@@ -162,8 +162,8 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
       }
     }
     optimalAsset_mat[i,2] <- resource_vec[sortOptimal_mat[2,1]]
-    temp.minUnitQuantity <- tempMinUnitQuantity_mat[,sortOptimal_mat[2,1]]
-    tempMinUnitQuantity_mat[,sortOptimal_mat[2,1]]<- temp.minUnitQuantity-callAmount_mat[i,1]/(1-haircut_mat[i,1])/minUnitValue_mat[,sortOptimal_mat[2,1]]
+    tempMinUnitQuantity <- tempMinUnitQuantity_mat[,sortOptimal_mat[2,1]]
+    tempMinUnitQuantity_mat[,sortOptimal_mat[2,1]]<- tempMinUnitQuantity-callAmount_mat[i,1]/(1-haircut_mat[i,1])/minUnitValue_mat[,sortOptimal_mat[2,1]]
     #for(m in 1:length(idxMinScore_vec)){
     #  if(!is.element(temp.optimal.asset[m],optimalAsset_mat[,2])){
     #    optimalAsset_mat[i,2] <- temp.optimal.asset[m]
@@ -782,8 +782,8 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
       }
     }
     optimalAsset_mat[i,2] <- resource_vec[sortOptimal_mat[2,1]]
-    temp.minUnitQuantity <- tempMinUnitQuantity_mat[,sortOptimal_mat[2,1]]
-    tempMinUnitQuantity_mat[,sortOptimal_mat[2,1]]<- temp.minUnitQuantity-callAmount_mat[i,1]/(1-haircut_mat[i,1])/minUnitValue_mat[,sortOptimal_mat[2,1]]
+    tempMinUnitQuantity <- tempMinUnitQuantity_mat[,sortOptimal_mat[2,1]]
+    tempMinUnitQuantity_mat[,sortOptimal_mat[2,1]]<- tempMinUnitQuantity-callAmount_mat[i,1]/(1-haircut_mat[i,1])/minUnitValue_mat[,sortOptimal_mat[2,1]]
     #for(m in 1:length(idxMinScore_vec)){
     #  if(!is.element(temp.optimal.asset[m],optimalAsset_mat[,2])){
     #    optimalAsset_mat[i,2] <- temp.optimal.asset[m]
@@ -1271,7 +1271,6 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     idxCallMissing_vec <- which(callMissingAmount_vec>0)
     if(length(idxCallMissing_vec)>=1){
       
-      stop('scenario 3')
       for(i in idxCallMissing_vec){
         
         currentAllocation_mat <- matrix(c(which(result_mat[i,]>0),result_mat[i,which(result_mat[i,]>0)]),nrow=2,byrow=T)
