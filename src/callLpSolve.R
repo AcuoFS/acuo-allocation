@@ -29,7 +29,7 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
       print(lpDir_vec[i])
       print(lpRhs_vec[i])
     }
-
+    
     add.constraint(lpModel,lpCon_mat[i,],lpDir_vec[i],lpRhs_vec[i])
   }
   

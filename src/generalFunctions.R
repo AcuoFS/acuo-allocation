@@ -263,7 +263,7 @@ VarInfo <- function(eli_vec,callInfo_df,resource_vec,callId_vec){
       
       # When IM and VM in the same margin statement have the same available asset
       # the frequency = 2 (assume only one IM and one VM in one margin statement)
-
+      
       idxTempRep_vec <- which(temp_df[,2]==2)
       if(length(idxTempRep_vec)>=1){ # at least one asset is eligible for both IM and VM
         
@@ -376,7 +376,7 @@ OperationFun <- function(result,callInfo_df,method){
     resultDummy_mat <- 1*(result_mat&1)
     msDul_vec <- callInfo_df$marginStatement
     msId_vec <- unique(msDul_vec)
-
+    
     if(length(result_mat[1,])==1){
       for(m in 1:length(msId_vec)){
         idxTemp_vec <- which(msDul_vec==msId_vec[m])
@@ -488,4 +488,3 @@ SplitVarName <- function(varName_vec,target){
     stop('Please input a valid target!')
   }
 }
-

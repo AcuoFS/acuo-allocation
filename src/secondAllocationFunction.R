@@ -120,7 +120,7 @@ SecondAllocationAlgoV1<- function(callId_vec, resource_vec,callInfo_df,availAsse
     normCost_vec[]<-1
   }else{
     normCost_vec <- as.vector(scale(cost_vec))
-  normCost_vec <- normCost_vec + (-min(normCost_vec)*2)
+    normCost_vec <- normCost_vec + (-min(normCost_vec)*2)
   }
   normLiquidity_vec <- liquidity_vec
   if(length(unique(liquidity_vec))==1){
@@ -239,7 +239,7 @@ SecondAllocationAlgoV1<- function(callId_vec, resource_vec,callInfo_df,availAsse
         newCustodianAccount <- lineAvailAsset_df$CustodianAccount[which(lineAvailAsset_df$assetCustacId==resource)]
         
         newAsset_df <- data.frame(assetId,lineAssetInfo_df$name,newNetAmount,newNetAmountUSD,lineAssetInfo_df$FXRate,haircut_vec[i],newAmount,newAmountUSD,
-                       lineAssetInfo_df$currency,newQuantity,newCustodianAccount,newVenue,lineCallInfo_df$marginType,deselectMs,dsCallId)
+                                  lineAssetInfo_df$currency,newQuantity,newCustodianAccount,newVenue,lineCallInfo_df$marginType,deselectMs,dsCallId)
         newAllocationdsCall_df[length(allocationdsCall_df[,1])+1,]<- newAsset_df
         
         # update the lackAmount and lackQuantity_vec
@@ -263,7 +263,7 @@ SecondAllocationAlgoV1<- function(callId_vec, resource_vec,callInfo_df,availAsse
         newCustodianAccount <- lineAvailAsset_df$CustodianAccount[which(lineAvailAsset_df$assetCustacId==resource)]
         
         newAsset_df <- data.frame(assetId,lineAssetInfo_df$name,newNetAmount,newNetAmountUSD,lineAssetInfo_df$FXRate,haircut_vec[i],newAmount,newAmountUSD,
-                       lineAssetInfo_df$currency,newQuantity,newCustodianAccount,newVenue,lineCallInfo_df$marginType,deselectMs,dsCallId)
+                                  lineAssetInfo_df$currency,newQuantity,newCustodianAccount,newVenue,lineCallInfo_df$marginType,deselectMs,dsCallId)
         newAllocationdsCall_df[length(allocationdsCall_df[,1])+1,]<- newAsset_df
         
         # update the lackAmount and lackQuantity_vec
@@ -322,7 +322,7 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
   
   movementsUsed <- OperationFun(currentSelection_list,callInfo_df,'callList')
   movementsLeft <- operLimit- movementsUsed
-
+  
   #### Calculate the Current Movements END #########
   
   #### movements left cases Start ##################
@@ -413,7 +413,7 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
   names(optimal_vec) <- resource_vec
   optimal_vec <-sort(optimal_vec)  # sort the score of the assets, from the most to the least optimal
   idxOptimal_vec <- match(names(optimal_vec),resource_vec) # the index of the optimal_vec in the resource_vec
-
+  
   #### Calculate the Objective Parameters END ############ 
   
   if(movementsLeft < 0){
@@ -448,11 +448,11 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
     insuffSort_vec <- sort(optimal_vec[match(insuffResource_vec,names(optimal_vec))])
     optimal_vec <- c(suffSort_vec,insuffSort_vec)
     idxOptimal_vec <- match(names(optimal_vec),resource_vec) # the index of the optimal_vec in the resource_vec
-    }
+  }
   
-
-
-
+  
+  
+  
   
   # check whether the first optimal asset is already allocated to that margin statement
   # check whether the first optimal asset is enough to fulfill the margin call
@@ -484,7 +484,7 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
         addAmountUSD <- addAmount/lineAssetInfo_df$FXRate
         addNetamountUSD <- addAmountUSD*(1-haircut_vec[i])
         addNetAmount <- addNetamountUSD*FXRate_vec[i]
-  
+        
         newQuantity <- newAllocationdsCall_df$Quantity[idxResource_vec]+addTempQuantity_vec
         newAmountUSD <- newAllocationdsCall_df$`Amount(USD)`[idxResource_vec]+addAmountUSD
         newAmount <- newAllocationdsCall_df$Amount[idxResource_vec]+addAmount
@@ -543,7 +543,7 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
         newQuantity <- lackQuantity_vec[i] *minUnit_vec[i]
         quantityLeft_vec[i] <- quantityLeft_vec[i]-lackQuantity_vec[i]
         quantityUsed_vec[i] <- quantity_vec[i] -quantityLeft_vec[i]
-  
+        
         newAmount <- newQuantity*unitValue_vec[i]
         newAmountUSD <- newAmount/lineAssetInfo_df$FXRate
         newNetAmountUSD <- newAmountUSD*(1-haircut_vec[i])
@@ -553,7 +553,7 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
         newCustodianAccount <- lineAvailAsset_df$CustodianAccount[which(lineAvailAsset_df$assetCustacId==resource)]
         
         newAsset_df <- data.frame(assetId,lineAssetInfo_df$name,newNetAmount,newNetAmountUSD,lineAssetInfo_df$FXRate,haircut_vec[i],newAmount,newAmountUSD,
-                       lineAssetInfo_df$currency,newQuantity,newCustodianAccount,newVenue,lineCallInfo_df$marginType,deselectMs,dsCallId)
+                                  lineAssetInfo_df$currency,newQuantity,newCustodianAccount,newVenue,lineCallInfo_df$marginType,deselectMs,dsCallId)
         newAllocationdsCall_df[length(allocationdsCall_df[,1])+1,]<- newAsset_df
         
         # update the lackAmount and lackQuantity_vec
@@ -578,7 +578,7 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
         newCustodianAccount <- lineAvailAsset_df$CustodianAccount[which(lineAvailAsset_df$assetCustacId==resource)]
         
         newAsset_df <- data.frame(assetId,lineAssetInfo_df$name,newNetAmount,newNetAmountUSD,lineAssetInfo_df$FXRate,haircut_vec[i],newAmount,newAmountUSD,
-                       lineAssetInfo_df$currency,newQuantity,newCustodianAccount,newVenue,lineCallInfo_df$marginType,deselectMs,dsCallId)
+                                  lineAssetInfo_df$currency,newQuantity,newCustodianAccount,newVenue,lineCallInfo_df$marginType,deselectMs,dsCallId)
         newAllocationdsCall_df[length(allocationdsCall_df[,1])+1,]<- newAsset_df
         
         # update the lackAmount and lackQuantity_vec
@@ -603,7 +603,7 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
   #### allocation presented in minUnitQuatity matrix
   result_mat <- ResultList2Mat(currentSelection_list,callId_vec,resourceTotal_vec,minUnitTotal_mat)
   idxEli_vec <- which(coreInputTotal_list$eli_mat==1)
-
+  
   dailyCost <- CostFun(result_mat[idxEli_vec]*minUnitValueTotal_mat[idxEli_vec],costBasisTotal_mat[idxEli_vec])
   monthlyCost <- dailyCost*30
   dailyCost <- round(dailyCost,2)
@@ -623,9 +623,9 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
   quantityRes_vec <- quantityTotal_vec
   
   idxTemp_vec <-match(resource_vec,resourceTotal_vec)
-
+  
   quantityRes_vec[idxTemp_vec] <- quantityLeft_vec
-
+  
   liquidity_vec <- apply((1-coreInputTotal_list$haircut_mat)^2,2,min)
   minUnitValue_vec <- apply(coreInputTotal_list$minUnitValue_mat,2,max)
   
@@ -642,7 +642,5 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
   output_list <- list(newSuggestion=currentSelection_list,resultAnalysis=resultAnalysis)
   return(output_list)
 }
-
-
 
 
