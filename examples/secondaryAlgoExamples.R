@@ -30,8 +30,8 @@ source('src/secondAllocationFunction.R')
 
 callId_vec <- c('mcp47','mcp46','mcp42','mcp35','mcp34')
 clientId <- '999'
-pref_vec<-c(2,3,5)
-operLimit <- 12
+pref_vec<-c(10,0,0)
+operLimit <- 2*length(callId_vec)
 algoVersion <- 2
 #### deselct the asset from all custodian accounts? Currently yes. Location 'loc1'
 dsAssetId <- 'GBP'

@@ -424,8 +424,6 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
     #### sort the optimal_vec
     ## order the optimal asset by Score 
     ## put the sufficient assets in front
-    optimal_vec
-    idxOptimal_vec
     idxSuff_vec <- which(quantityLeft_vec >= lackQuantity_vec)
     if(length(idxSuff_vec)==0){
       warning('Allocating other assets will create more asset movements than limit!')
@@ -437,11 +435,12 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
       insuffSort_vec <- sort(optimal_vec[match(insuffResource_vec,names(optimal_vec))])
       optimal_vec <- c(suffSort_vec,insuffSort_vec)
       idxOptimal_vec <- match(names(optimal_vec),resource_vec) # the index of the optimal_vec in the resource_vec
-    }
+    } 
   } else if(movementsLeft>=2){
     # other scenarios will have more possibilities
     # for simplicity, use the same order method as the 1 movement left scenario
     # but warning at the end
+    idxSuff_vec <- which(quantityLeft_vec >= lackQuantity_vec)
     suffResource_vec <- resource_vec[idxSuff_vec]
     insuffResource_vec <- ifelse(length(idxSuff_vec)==0,resource_vec,resource_vec[-idxSuff_vec])
     #### sorting: 
@@ -449,7 +448,8 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
     insuffSort_vec <- sort(optimal_vec[match(insuffResource_vec,names(optimal_vec))])
     optimal_vec <- c(suffSort_vec,insuffSort_vec)
     idxOptimal_vec <- match(names(optimal_vec),resource_vec) # the index of the optimal_vec in the resource_vec
-  }
+    }
+  
 
 
 
@@ -610,9 +610,26 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
   monthlyCost <- round(monthlyCost,2)
   
   #### Liquidity
+  quantityTotal_mat <- coreInputTotal_list$minUnitQuantity_mat
   
-  #reservedLiquidityRatio <- LiquidFun(quantityLeft_vec,quantity_vec,liquidity_vec,minUnitValue_vec)
-  reservedLiquidityRatio <-0
+  if(callNum==1){
+    quantityTotal_vec <- quantityTotal_mat
+  } else{
+    quantityTotal_vec <- apply(quantityTotal_mat,2,max)
+  }
+  
+  coreInput_list <- AllocationInputData(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df)
+  quantityRes_mat <- coreInput_list$minUnitQuantity_mat
+  quantityRes_vec <- quantityTotal_vec
+  
+  idxTemp_vec <-match(resource_vec,resourceTotal_vec)
+
+  quantityRes_vec[idxTemp_vec] <- quantityLeft_vec
+
+  liquidity_vec <- apply((1-coreInputTotal_list$haircut_mat)^2,2,min)
+  minUnitValue_vec <- apply(coreInputTotal_list$minUnitValue_mat,2,max)
+  
+  reservedLiquidityRatio <- LiquidFun(quantityRes_vec,quantityTotal_vec,liquidity_vec,minUnitValue_vec)
   
   #### Movements
   movements <- OperationFun(currentSelection_list,callInfo_df,'callList')
