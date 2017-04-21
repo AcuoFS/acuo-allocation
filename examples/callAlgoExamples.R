@@ -62,10 +62,6 @@ result1 <- CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
                           callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
 
 # scenario 2: Post Settlement Currency
-eliCcy_vec <- c('USD', 'EUR', 'JPY', 'SGD','AUD','GBP','HKD','CAD')
-staticCcy <- 'USD'
-callInfo_df$currency[which((callInfo_df$currency %in% eliCcy_vec)==FALSE)] <- staticCcy
-
 result2 <- CallAllocation(algoVersion,scenario=2,callId_vec,resource_vec,
                           callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
 
