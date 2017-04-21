@@ -1,5 +1,6 @@
 CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
                         lpType_vec,lpKind_vec,lpLowerBound_vec,lpUpperBound_vec,lpBranchMode_vec,
+                        lpGuessBasis_vec,
                         ...){
   library(lpSolveAPI)
   # input variables
@@ -9,16 +10,26 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
   # if optional, then the default parameters will apply
   
   # number of decision variables
-  varNum <- length(lpCon_mat[1,])
+  varnum <- length(lpCon_mat[1,])
   
   # make model
-  lpModel <- make.lp(0,varNum)  
+  lpModel <- make.lp(0,varnum)  
+  name.lp(lpModel, 'Optimal Allocation')
   
   # set objective
   set.objfn(lpModel,lpObj_vec)                    
   
   # set constraints
-  for (i in 1:length(lpCon_mat[,1])){              
+  for (i in 1:length(lpCon_mat[,1])){    
+    t1 = sum(is.na(lpCon_mat[i,]))
+    t2 = sum(is.na(lpDir_vec[i]))
+    t3 = sum(is.na(lpRhs_vec[i]))
+    if((t1+t2+t3>=1)){
+      print(lpCon_mat[i,])
+      print(lpDir_vec[i])
+      print(lpRhs_vec[i])
+    }
+    
     add.constraint(lpModel,lpCon_mat[i,],lpDir_vec[i],lpRhs_vec[i])
   }
   
@@ -46,11 +57,29 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
     }  
   }
   
+  # guess basis
+  if(!missing(lpGuessBasis_vec)){
+    if(!all(lpGuessBasis_vec==0)){
+      guess.basis(lpModel,lpGuessBasis_vec)
+    }
+  }
+  
   # set control options
   lp.control(lpModel,...)
   
   # solve the problem
   resultStatus <- solve(lpModel)  
+  
+  #print('constraint: ')
+  #print(get.constraints(lpModel))
+  
+  
+  # write the model to output file
+  date <- format(Sys.time(), "%d%b%Y")
+  dir <- 'Result/'
+  filename <- paste(dir,'lpModel',date,'.lp',sep='')
+  write.lp(lpModel,filename,'lp')
+  
   
   # get the variables(minUnitQuantity)
   solverSolution_vec <- get.variables(lpModel)
