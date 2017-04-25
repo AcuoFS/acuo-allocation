@@ -1,10 +1,10 @@
-MATCH (cu:Custodian)-[:MANAGES]->(ca:CustodianAccount)-[h:HOLDS]->(a:Asset)-[is:IS_AVAILABLE_FOR]->(ag:Agreement)<-
+MATCH (cu:Custodian)-[:MANAGES]->(ca:CustodianAccount)-[h:HOLDS]->(a:Asset)<-[:APPLIES_TO]-(rule:Rule)<-[:IS_COMPOSED_OF]-(ag:Agreement)<-
 [:STEMS_FROM]-(ms:MarginStatement)-[:DIRECTED_TO]->(e:LegalEntity)<-[:MANAGES]-(c:Client)
 MATCH (mc:MarginCall)-[*1..2]->(ms:MarginStatement)
 
 WHERE mc.id IN {callId}
 AND c.id = {clientId}
-AND mc.marginType IN is.marginType
+AND mc.marginType IN rule.marginType
 AND (e)-[:CLIENT_SIGNS]-(ag)
 AND NOT (a)-[:EXCLUDED]->(mc)
 
@@ -38,8 +38,8 @@ RETURN DISTINCT
     h.internalCost AS internalCost,
     h.opptCost AS opptCost,
     a.yield AS yield,
-    is.haircut AS haircut,
-    is.FXHaircut AS FXHaircut,
-    is.externalCost AS externalCost,
-    is.interestRate AS interestRate,
+    rule.haircut AS haircut,
+    rule.FXHaircut AS FXHaircut,
+    rule.externalCost AS externalCost,
+    rule.interestRate AS interestRate,
     fx1.fxRate AS FXRate
