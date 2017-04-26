@@ -579,3 +579,15 @@ UsedQtyFromResultList <- function(result_list,resource_vec,callId_vec){ ## quant
   }
   return(quantityUsed_vec)
 }
+
+ResultDf2List <- function(result_df,callId_vec){
+  callNum <- length(callId_vec)
+  result_list <- list()
+  for(i in 1:callNum){
+    callId <- callId_vec[i]
+    idx_vec <- which(result_df$marginCall==callId)
+    call_df <- result_df[idx_vec,]
+    result_list[[callId]] <- call_df
+  }
+  return(result_list)
+}
