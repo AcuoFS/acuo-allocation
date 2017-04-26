@@ -489,7 +489,7 @@ SplitVarName <- function(varName_vec,target){
   }
 }
 
-UpdateQtyInAvailAsset <- function(resource_vec,quantity_vec,availAsset_df,qtyType,qtyLeft=T){
+UpdateQtyInAvailAsset <- function(resource_vec,quantity_vec,availAsset_df,qtyType,qtyLeft){
   ## quantity_vec: real quantity of corresponding resource
   if(qtyLeft){
     if(qtyType=='minUnit'){
