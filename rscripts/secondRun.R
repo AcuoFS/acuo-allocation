@@ -1,8 +1,8 @@
 options(stringsAsFactors = FALSE)
 
+#### Input Prepare Start ###########
 callId_vec <- callIds
 pref_vec <- pref
-operLimit <- 2*length(callId_vec)
 algoVersion <- 2
 dsAssetId <- assetId
 dsCallId_vec <- dsCallIds
@@ -24,21 +24,42 @@ assetId_vec <- unique(SplitResource(resource_vec,'asset'))
 assetInfo_df <- assetInfoByAssetId
 assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
 
+operLimitMs <- 3
+operLimit <- operLimitMs*length(unique(callInfo_df$marginStatement))
 #### Input Prepare END ##############
 
+#### Correct Order for One Margin Call Allocation
+outputColnames <- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType','marginStatement','marginCall')
+
+#### Fill in the Missing Columns from Java Start ####
+for(m in 1:length(callId_vec)){
+  
+  callId <- callId_vec[m]
+  temp_df <- currentSelection_list[[callId]] 
+  
+  #### add the missing columns 'NetAmount(USD)' and 'Amount(USD)'
+  NetAmountUSD_vec <- temp_df$NetAmount/temp_df$FXRate
+  AmountUSD_vec <- temp_df$Amount/temp_df$FXRate
+  temp_df$`NetAmount(USD)` <- NetAmountUSD_vec
+  temp_df$`Amount(USD)` <- AmountUSD_vec
+  currentSelection_list[[callId]] <- temp_df
+  
+  #### sort the columns into the dedault order defined in R
+  newOrder_vec <- match(outputColnames,names(temp_df))
+  temp_df <- temp_df[,newOrder_vec]
+  currentSelection_list[[callId]] <- temp_df
+  
+  #### delete rownames
+  rownames(temp_df) <- 1:length(temp_df[,1])
+  currentSelection_list[[callId]] <- temp_df
+}
+#### Fill in the Missing Columns from Java END ######
+
+
 #### Call Second Level Algo Start ###
-result <- callSecondAllocation(
-				algoVersion,
-				callId_vec,
-				resource_vec,
-				callInfo_df,
-				availAsset_df,
-				assetInfo_df,
-				pref_vec,
-				operLimit,
-                dsAssetId,
-                dsCallId_vec,
-                currentSelection_list)
+result <- callSecondAllocation(algoVersion,callId_vec, resource_vec,callInfo_df,availAsset_df,assetInfo_df,
+                               dsAssetId,dsCallId_vec,currentSelection_list,
+                               pref_vec,operLimit,operLimitMs)
 result
 
 #### Call Second Level Algo END #####
