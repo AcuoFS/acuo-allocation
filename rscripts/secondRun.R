@@ -66,6 +66,7 @@ for(m in 1:length(callId_vec)){
   currentSelection_list[[callId]] <- temp_df
   
   #### delete rownames
+  print('rownames(temp_df)'); print(rownames(temp_df))
   rownames(temp_df) <- 1:length(temp_df[,1])
   currentSelection_list[[callId]] <- temp_df
 }
