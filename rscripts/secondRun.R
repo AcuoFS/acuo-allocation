@@ -7,8 +7,8 @@ algoVersion <- 2
 dsAssetId <- assetId
 dsCallId_vec <- dsCallIds
 
-print("selections");print(typeof(selections),'\n'); print(length(selections))
-print(selections)
+#print("selections");print(typeof(selections),'\n'); print(length(selections))
+#print(selections)
 
 
 
@@ -17,11 +17,11 @@ print(selections)
 print('callId_vec');print(callId_vec)
 
 callId_vec <- unlist(callId_vec)
-print('unlist callId_vec');print(callId_vec)
+#print('unlist callId_vec');print(callId_vec)
 currentSelection_list <- ResultDf2List(selections,callId_vec)
 
-print("currentSelection_list");print(typeof(currentSelection_list),'\n'); print(length(currentSelection_list))
-print(currentSelection_list)
+#print("currentSelection_list");print(typeof(currentSelection_list),'\n'); print(length(currentSelection_list))
+#print(currentSelection_list)
 
 callInfo_df <- callInfoByCallId
 callInfo_df$callAmount <- abs(as.numeric(callInfo_df$callAmount)) # make sure the callAmount is non-negative
@@ -51,19 +51,17 @@ for(m in 1:length(callId_vec)){
   callId <- callId_vec[m]
   temp_df <- currentSelection_list[[callId]] 
   print(m)
-  print('temp_df'); print(names(temp_df))
+  #print('temp_df'); print(names(temp_df))
   #### add the missing columns 'NetAmount(USD)' and 'Amount(USD)'
   NetAmountUSD_vec <- temp_df$NetAmount/temp_df$FXRate
   AmountUSD_vec <- temp_df$Amount/temp_df$FXRate
   temp_df$`NetAmount(USD)` <- NetAmountUSD_vec
   temp_df$`Amount(USD)` <- AmountUSD_vec
-  currentSelection_list[[callId]] <- temp_df
   
   #### sort the columns into the dedault order defined in R
   print('temp_df'); print(names(temp_df))
   newOrder_vec <- match(outputColnames,names(temp_df))
   temp_df <- temp_df[,newOrder_vec]
-  currentSelection_list[[callId]] <- temp_df
   
   #### delete rownames
   print('rownames(temp_df)'); print(rownames(temp_df)); print(1:length(temp_df[,1]))
@@ -72,8 +70,8 @@ for(m in 1:length(callId_vec)){
 }
 
 
-print("currentSelection_list standard format");print(typeof(currentSelection_list),'\n'); print(length(currentSelection_list))
-print(currentSelection_list)
+#print("currentSelection_list standard format");print(typeof(currentSelection_list),'\n'); print(length(currentSelection_list))
+#print(currentSelection_list)
 
 #### Fill in the Missing Columns from Java END ######
 

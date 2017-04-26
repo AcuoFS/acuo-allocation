@@ -28,6 +28,7 @@ callSecondAllocation <- function(algoVersion,callId_vec, resource_vec,callInfo_d
                                        dsAssetId,dsCallId,currentSelection_list,
                                        pref_vec,operLimit,operLimitMs)
     } else if(length(dsCallId_vec)>1){
+      stop('line 31')
       result <- SecondAllocationAlgoAllMsV2(callIdTotal_vec,callInfoTotal_df,resourceTotal_vec,availAssetTotal_df,assetInfoTotal_df,
                                             dsAssetId,dsCallId_vec,currentSelection_list,
                                             pref_vec,operLimit,operLimitMs)
