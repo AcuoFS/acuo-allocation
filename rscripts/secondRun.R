@@ -8,7 +8,7 @@ dsAssetId <- assetId
 dsCallId_vec <- dsCallIds
 
 currentSelection_list <- selections
-
+print(currentSelection_list)
 callInfo_df <- callInfoByCallId
 callInfo_df$callAmount <- abs(as.numeric(callInfo_df$callAmount)) # make sure the callAmount is non-negative
 #print(callInfo_df)
