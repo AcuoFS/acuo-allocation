@@ -50,7 +50,8 @@ for(m in 1:length(callId_vec)){
   
   callId <- callId_vec[m]
   temp_df <- currentSelection_list[[callId]] 
-  
+  print(m)
+  print('temp_df'); print(names(temp_df))
   #### add the missing columns 'NetAmount(USD)' and 'Amount(USD)'
   NetAmountUSD_vec <- temp_df$NetAmount/temp_df$FXRate
   AmountUSD_vec <- temp_df$Amount/temp_df$FXRate
@@ -59,6 +60,7 @@ for(m in 1:length(callId_vec)){
   currentSelection_list[[callId]] <- temp_df
   
   #### sort the columns into the dedault order defined in R
+  print('temp_df'); print(names(temp_df))
   newOrder_vec <- match(outputColnames,names(temp_df))
   temp_df <- temp_df[,newOrder_vec]
   currentSelection_list[[callId]] <- temp_df
