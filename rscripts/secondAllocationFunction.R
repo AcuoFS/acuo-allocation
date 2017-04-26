@@ -676,7 +676,7 @@ SecondAllocationAlgoAllMsV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
   #### quantity left
   quantityTotalLeft_vec <- GetQtyFromAvailAsset(resourceTotal_vec,availAssetTotal_df,'minUnit',minUnitTotal_vec)
   
-  output_list <- list(newSuggestion=currentSelection_list,resultAnalysis=resultAnalysis,
+  output_list <- list(callOutput=currentSelection_list,resultAnalysis=resultAnalysis,
                       quantityTotalLeft_vec=quantityTotalLeft_vec)
   return(output_list)
 }
