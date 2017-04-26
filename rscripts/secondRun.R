@@ -24,6 +24,7 @@ ResultDf2List <- function(result_df,callId_vec){
   }
   return(result_list)
 }
+print('callId_vec');print(callId_vec)
 currentSelection_list <- ResultDf2List(selections,callId_vec)
 
 print("currentSelection_list");print(typeof(currentSelection_list),'\n'); print(length(currentSelection_list))
