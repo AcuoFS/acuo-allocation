@@ -14,10 +14,7 @@ print(selections)
 
 #### Convert the Java input to R input
 
-#print('callId_vec');print(callId_vec)
-
 callId_vec <- unlist(callId_vec)
-#print('unlist callId_vec');print(callId_vec)
 currentSelection_list <- ResultDf2List(selections,callId_vec)
 
 #print("currentSelection_list");print(typeof(currentSelection_list),'\n'); print(length(currentSelection_list))
@@ -50,8 +47,6 @@ for(m in 1:length(callId_vec)){
   
   callId <- callId_vec[m]
   temp_df <- currentSelection_list[[callId]] 
-  #print(m)
-  #print('temp_df'); print(names(temp_df))
   #### add the missing columns 'NetAmount(USD)' and 'Amount(USD)'
   NetAmountUSD_vec <- temp_df$NetAmount/temp_df$FXRate
   AmountUSD_vec <- temp_df$Amount/temp_df$FXRate
@@ -59,19 +54,13 @@ for(m in 1:length(callId_vec)){
   temp_df$`Amount(USD)` <- AmountUSD_vec
   
   #### sort the columns into the dedault order defined in R
-  #print('temp_df'); print(names(temp_df))
   newOrder_vec <- match(outputColnames,names(temp_df))
   temp_df <- temp_df[,newOrder_vec]
   
   #### delete rownames
-  #print('rownames(temp_df)'); print(rownames(temp_df)); print(1:length(temp_df[,1]))
   rownames(temp_df) <- 1:length(temp_df[,1])
   currentSelection_list[[callId]] <- temp_df
 }
-
-
-#print("currentSelection_list standard format");print(typeof(currentSelection_list),'\n'); print(length(currentSelection_list))
-#print(currentSelection_list)
 
 #### Fill in the Missing Columns from Java END ######
 
@@ -80,6 +69,6 @@ for(m in 1:length(callId_vec)){
 result <- callSecondAllocation(algoVersion,callId_vec, resource_vec,callInfo_df,availAsset_df,assetInfo_df,
                                dsAssetId,dsCallId_vec,currentSelection_list,
                                pref_vec,operLimit,operLimitMs)
-result
+print(result)
 
 #### Call Second Level Algo END #####

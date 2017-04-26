@@ -518,19 +518,12 @@ UpdateQtyInAvailAsset <- function(resource_vec,quantity_vec,availAsset_df,qtyTyp
     }
   } else{
     if(qtyType=='minUnit'){
-     # print('general 517')
       for(i in 1:length(resource_vec)){
         resource <- resource_vec[i]
         quantity <- quantity_vec[i]
         minUnit <- minUnit_vec[i]
         idx_vec <- which(availAsset_df$assetCustacId==resource)
-        #print('resource,quantity,idx_vec')
-        #print(resource);print(quantity);print(idx_vec)
         if(length(idx_vec)!=0){
-         # print('availAsset_df[idx_vec,],quantity')
-          #print(availAsset_df$quantity[idx_vec])
-          #print('availAsset_df$quantity[idx_vec]-quantity*availAsset_df$minUnit[idx_vec]')
-          #print(availAsset_df$quantity[idx_vec]-quantity*availAsset_df$minUnit[idx_vec])
           availAsset_df$quantity[idx_vec] <- availAsset_df$quantity[idx_vec]-quantity*minUnit
         }
       }
@@ -550,13 +543,14 @@ UpdateQtyInAvailAsset <- function(resource_vec,quantity_vec,availAsset_df,qtyTyp
   return(availAsset_df)
 }
 
-GetQtyFromAvailAsset <- function(resource_vec,availAsset_df,qtyType){ ## unit/minUnit quantity
+GetQtyFromAvailAsset <- function(resource_vec,availAsset_df,qtyType,minUnit_vec){ ## unit/minUnit quantity
   quantity_vec <- rep(0,length(resource_vec))
   if(qtyType=='minUnit'){
     for(i in 1:length(resource_vec)){
       resource <- resource_vec[i]
+      minUnit <- minUnit_vec[i]
       idx_vec <- which(availAsset_df$assetCustacId==resource)
-      quantity_vec[i] <- min(availAsset_df$quantity[idx_vec]/availAsset_df$minUnit[idx_vec])
+      quantity_vec[i] <- min(availAsset_df$quantity[idx_vec]/minUnit)
     }
   } else{
     for(i in 1:length(resource_vec)){

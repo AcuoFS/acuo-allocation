@@ -8,7 +8,7 @@ callSecondAllocation <- function(algoVersion,callId_vec, resource_vec,callInfo_d
   resourceTotal_vec <- resource_vec
   availAssetTotal_df <- availAsset_df
   assetInfoTotal_df <- assetInfo_df
-print('availAssetTotal_df');print(availAssetTotal_df)
+
   if(algoVersion==1){
     if(length(dsCallId_vec)==1){
       dsCallId <- dsCallId_vec
@@ -23,7 +23,7 @@ print('availAssetTotal_df');print(availAssetTotal_df)
     } 
   } else if(algoVersion==2){
     if(length(dsCallId_vec)==1){
-      dsCallId <- dsCallId_vec; print('dsCallId'); print(dsCallId)
+      dsCallId <- dsCallId_vec; 
 
       result <- SecondAllocationAlgoAllMsV2(callIdTotal_vec,callInfoTotal_df,resourceTotal_vec,availAssetTotal_df,assetInfoTotal_df,
                                        dsAssetId,dsCallId,currentSelection_list,
@@ -117,12 +117,12 @@ SecondAllocationAlgoV1<- function(callId_vec, resource_vec,callInfo_df,availAsse
     operation_vec[idxCcy] <- 1
   }
   # asset selection from the margin statement
-  resourceIndsCall_vec <- paste(currentSelection_list[[dsCallId]]$Asset,currentSelection_list[[dsCallId]]$CustodianAccount,sep='-')
+  resourceInDsCall_vec <- paste(currentSelection_list[[dsCallId]]$Asset,currentSelection_list[[dsCallId]]$CustodianAccount,sep='-')
   if(sameMsCallId!='na'){
     sameMsSelection_vec <- paste(currentSelection_list[[sameMsCallId]]$Asset,currentSelection_list[[sameMsCallId]]$CustodianAccount,sep='-')
-    resourceInDeselectMs_vec <- unique(c(resourceIndsCall_vec,sameMsSelection_vec))
+    resourceInDeselectMs_vec <- unique(c(resourceInDsCall_vec,sameMsSelection_vec))
   } else{
-    resourceInDeselectMs_vec <- resourceIndsCall_vec
+    resourceInDeselectMs_vec <- resourceInDsCall_vec
   }
   
   assetQuanityAllocateddsCall_vec <- currentSelection_list[[dsCallId]]$Quantity
@@ -171,7 +171,7 @@ SecondAllocationAlgoV1<- function(callId_vec, resource_vec,callInfo_df,availAsse
     lineAvailAsset_df <- availAsset_df[which(availAsset_df$callId==dsCallId),]
     lineCallInfo_df <- callInfo_df[which(callInfo_df$id==dsCallId),]
     
-    if(is.element(resource,resourceIndsCall_vec)){
+    if(is.element(resource,resourceInDsCall_vec)){
       # if asset[i] is alreadly selected in the margin statment
       
       if(quantityLeft_vec[i]>=lackQuantity_vec[i]){
@@ -313,20 +313,20 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
   pref_vec <- pref_vec/sum(pref_vec[1:2])
   resourceNum <- length(resource_vec)
   callNum <- length(callId_vec)
+  input_list <- AllocationInputData(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df)
+  minUnit_vec <- input_list$minUnit_vec
+  quantity_vec <- input_list$minUnitQuantity_vec
   
-  minUnit_vec <- availAsset_df$minUnit
-  quantity_vec <- availAsset_df$quantity/minUnit_vec
-  
-  haircut_vec <- availAsset_df$haircut+availAsset_df$FXHaircut
-  FXRate_vec <- availAsset_df$FXRate
-  minUnitValue_vec <- availAsset_df$minUnitValue
-  costBasis_vec <- availAsset_df$internalCost+availAsset_df$externalCost+availAsset_df$opptCost-availAsset_df$interestRate
+  haircut_vec <- input_list$haircut_vec
+  FXRate_vec <- input_list$FXRate_vec
+  minUnitValue_vec <- input_list$minUnitValue
+  costBasis_vec <- input_list$cost_vec
   quantityUsed_vec <- rep(0,resourceNum)
   #### Prepare Inputs Start #####
   
   #### Calculate the Current Movements Start #########
   resourceInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
-  minUnit_mat <- matrix(rep(resourceInfo_df$minUnit,callNum),nrow=callNum,byrow=TRUE)
+  minUnit_mat <- input_list$minUnit_mat
   #ResultList2Mat(callOutput_list,callId_vec,resource_vec,minUnit_mat)
   
   movementsUsed <- OperationFun(currentSelection_list,callInfo_df,'callList')
@@ -366,12 +366,15 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
   #### Calculate the Quantity Left of Each Asset END #########
   
   #### Find Resources Allocated to the Deselected Margin Statement Start ####
-  resourceIndsCall_vec <- PasteResource(currentSelection_list[[dsCallId]]$Asset,currentSelection_list[[dsCallId]]$CustodianAccount)
+  resourceInDsCall_vec <- PasteResource(currentSelection_list[[dsCallId]]$Asset,currentSelection_list[[dsCallId]]$CustodianAccount)
+  if(length(resourceInDsCall_vec)==0){
+    resourceInDsCall_vec <- 'na'
+  }
   if(sameMsCallId!='na'){
     sameMsSelection_vec <- PasteResource(currentSelection_list[[sameMsCallId]]$Asset,currentSelection_list[[sameMsCallId]]$CustodianAccount)
-    resourceInDeselectMs_vec <- unique(c(resourceIndsCall_vec,sameMsSelection_vec))
+    resourceInDeselectMs_vec <- unique(c(resourceInDsCall_vec,sameMsSelection_vec))
   } else{
-    resourceInDeselectMs_vec <- resourceIndsCall_vec
+    resourceInDeselectMs_vec <- resourceInDsCall_vec
   }
   
   assetQuanityAllocateddsCall_vec <- currentSelection_list[[dsCallId]]$Quantity
@@ -467,8 +470,8 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
     lineAssetInfo_df <- assetInfo_df[which(assetInfo_df$id==assetId),]
     lineAvailAsset_df <- availAsset_df[which(availAsset_df$callId==dsCallId),]
     lineCallInfo_df <- callInfo_df[which(callInfo_df$id==dsCallId),]
-    
-    if(is.element(resource,resourceIndsCall_vec)){
+
+    if(is.element(resource,resourceInDsCall_vec) & resourceInDsCall_vec!='na'){
       # if asset[i] is alreadly selected in the margin statement
       
       if(quantityLeft_vec[i]>=lackQuantity_vec[i]){
@@ -631,7 +634,7 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
   idxTemp_vec <-match(resource_vec,resourceTotal_vec)
   
   quantityRes_vec[idxTemp_vec] <- quantityLeft_vec
-  #cat('deselect call:',dsCallId,'\n'); print((quantityLeft_vec)); print(resource_vec)
+
   liquidity_vec <- apply((1-coreInputTotal_list$haircut_mat)^2,2,min)
   minUnitValue_vec <- apply(coreInputTotal_list$minUnitValue_mat,2,max)
   
@@ -655,14 +658,14 @@ SecondAllocationAlgoAllMsV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
   availAssetTotalOri_df <- availAssetTotal_df
   for(i in 1:length(dsCallId_vec)){
     dsCallId <- dsCallId_vec[i]
-    print('line658'); print(dsCallId)
+
     #### Remove the Deselected Asset Start ####
     idxTemp <- which(currentSelection_list[[dsCallId]]$Asset==dsAssetId) 
     if(length(idxTemp)!=0){
       currentSelection_list[[dsCallId]] <- currentSelection_list[[dsCallId]][-idxTemp,]
     }
     #### Remove the Deselected Asset END ######
-    print('line665')
+
     #### Remove Deselect Asset in The AvailAsset_df For Testing Start ####
     rmRow_vec <- which(availAssetTotal_df$callId==dsCallId & availAssetTotal_df$assetId==dsAssetId)
     if(length(rmRow_vec)>=1){
@@ -680,12 +683,9 @@ SecondAllocationAlgoAllMsV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
     assetTotal_vec <- SplitResource(resourceTotal_vec,'asset')
     minUnitTotal_vec <- minUnitTotal_vec[match(assetInfoTotal_df$id,assetTotal_vec)] 
     
-    print('UpdateQtyInAvailAsset(resourceTotal_vec,quantityTotalUsed_vec,availAssetTotal_df,minUnit,F)')
-    print(UpdateQtyInAvailAsset(resourceTotal_vec,quantityTotalUsed_vec,availAssetTotal_df,'minUnit',F,minUnitTotal_vec))
-    print('line685')
     availAssetTotal_df <- UpdateQtyInAvailAsset(resourceTotal_vec,quantityTotalUsed_vec,availAssetTotal_df,'minUnit',F,minUnitTotal_vec)
     #### Update the Quantity of Resource END #######
-    print('line686')
+
     tempResult <- SecondAllocationAlgoV2(callId_vec,callInfo_df,resourceTotal_vec,availAssetTotal_df,assetInfoTotal_df,
                                          dsAssetId,dsCallId,currentSelection_list,pref_vec,operLimit,operLimitMs)
     currentSelection_list <- tempResult$newSuggestion
@@ -693,7 +693,7 @@ SecondAllocationAlgoAllMsV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
     
   }
   #### quantity left
-  quantityTotalLeft_vec <- GetQtyFromAvailAsset(resourceTotal_vec,availAssetTotal_df,'minUnit')
+  quantityTotalLeft_vec <- GetQtyFromAvailAsset(resourceTotal_vec,availAssetTotal_df,'minUnit',minUnitTotal_vec)
   
   output_list <- list(newSuggestion=currentSelection_list,resultAnalysis=resultAnalysis,
                       quantityTotalLeft_vec=quantityTotalLeft_vec)
