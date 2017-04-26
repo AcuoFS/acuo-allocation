@@ -511,7 +511,7 @@ UpdateQtyInAvailAsset <- function(resource_vec,quantity_vec,availAsset_df,qtyTyp
         }
       }
     }
-  } else{
+  } else{ stop('line514')
     if(qtyType=='minUnit'){
       print('general 517')
       for(i in 1:length(resource_vec)){
@@ -521,6 +521,8 @@ UpdateQtyInAvailAsset <- function(resource_vec,quantity_vec,availAsset_df,qtyTyp
         print('resource,quantity,idx_vec')
         print(resource);print(quantity);print(idx_vec)
         if(length(idx_vec)!=0){
+          print('availAsset_df[idx_vec,],quantity')
+          print(availAsset_df$quantity[idx_vec])
           availAsset_df$quantity[idx_vec] <- availAsset_df$quantity[idx_vec]-quantity*availAsset_df$minUnit[idx_vec]
         }
       }
