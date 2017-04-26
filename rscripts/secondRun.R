@@ -7,8 +7,8 @@ algoVersion <- 2
 dsAssetId <- assetId
 dsCallId_vec <- dsCallIds
 
-#print("selections");print(typeof(selections),'\n'); print(length(selections))
-#print(selections)
+print("selections");print(typeof(selections)); print(length(selections))
+print(selections)
 
 
 
