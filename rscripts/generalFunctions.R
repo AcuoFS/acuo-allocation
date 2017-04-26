@@ -52,6 +52,8 @@ AllocationInputData <- function(callId_vec,resource_vec,callInfo_df,availAsset_d
   assetId_vec <- SplitResource(resource_vec,'asset') #### parallel with resource, not unique
   resourceInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
   
+  #unitValue_mat[] <- matrix(rep(resourceInfo_df$unitValue,callNum),nrow=callNum,byrow=TRUE)
+  
   unitValue_mat[] <- matrix(rep(resourceInfo_df$unitValue/resourceInfo_df$FXRate,callNum),nrow=callNum,byrow=TRUE)
   minUnit_mat[]<- matrix(rep(resourceInfo_df$minUnit,callNum),nrow=callNum,byrow=TRUE)
   FXRate_mat[]<- matrix(rep(resourceInfo_df$FXRate,callNum),nrow=callNum,byrow=TRUE)
