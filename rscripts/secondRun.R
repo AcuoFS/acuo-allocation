@@ -7,9 +7,28 @@ algoVersion <- 2
 dsAssetId <- assetId
 dsCallId_vec <- dsCallIds
 
-currentSelection_list <- selections
-print("currentSelection_list");print(typeof(selections),'\n'); print(length(selections))
+print("selections");print(typeof(selections),'\n'); print(length(selections))
+print(selections)
+
+
+
+#### Convert the Java input to R input
+ResultDf2List <- function(result_df,callId_vec){
+  callNum <- length(callId_vec)
+  result_list <- list()
+  for(i in 1:callNum){
+    callId <- callId_vec[i]
+    idx_vec <- which(result_df$marginCall==callId)
+    call_df <- result_df[idx_vec,]
+    result_list[[callId]] <- call_df
+  }
+  return(result_list)
+}
+currentSelection_list <- ResultDf2List(selections,callId_vec)
+
+print("currentSelection_list");print(typeof(currentSelection_list),'\n'); print(length(currentSelection_list))
 print(currentSelection_list)
+
 callInfo_df <- callInfoByCallId
 callInfo_df$callAmount <- abs(as.numeric(callInfo_df$callAmount)) # make sure the callAmount is non-negative
 #print(callInfo_df)
