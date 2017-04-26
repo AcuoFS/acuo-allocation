@@ -14,7 +14,7 @@ dsCallId_vec <- dsCallIds
 
 #### Convert the Java input to R input
 
-print('callId_vec');print(callId_vec)
+#print('callId_vec');print(callId_vec)
 
 callId_vec <- unlist(callId_vec)
 #print('unlist callId_vec');print(callId_vec)
@@ -50,7 +50,7 @@ for(m in 1:length(callId_vec)){
   
   callId <- callId_vec[m]
   temp_df <- currentSelection_list[[callId]] 
-  print(m)
+  #print(m)
   #print('temp_df'); print(names(temp_df))
   #### add the missing columns 'NetAmount(USD)' and 'Amount(USD)'
   NetAmountUSD_vec <- temp_df$NetAmount/temp_df$FXRate
