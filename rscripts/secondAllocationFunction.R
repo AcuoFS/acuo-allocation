@@ -676,8 +676,10 @@ SecondAllocationAlgoAllMsV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
     print('line676')
     print('UsedQtyFromResultList(currentSelection_list,resourceTotal_vec,callId_vec)');
     print(UsedQtyFromResultList(currentSelection_list,resourceTotal_vec,callId_vec))
-    quantityTotalUsed_vec <- UsedQtyFromResultList(currentSelection_list,resourceTotal_vec,callId_vec)
-    line('line680')
+    temp <- UsedQtyFromResultList(currentSelection_list,resourceTotal_vec,callId_vec)
+    print(temp)
+    quantityTotalUsed_vec <- temp
+    line('line682')
     print('UpdateQtyInAvailAsset(resourceTotal_vec,quantityTotalUsed_vec,availAssetTotal_df,minUnit,F)')
     print(dim(UpdateQtyInAvailAsset(resourceTotal_vec,quantityTotalUsed_vec,availAssetTotal_df,'minUnit',F)))
     print('line683')
