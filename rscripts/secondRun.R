@@ -59,7 +59,7 @@ for(m in 1:length(callId_vec)){
   temp_df$`Amount(USD)` <- AmountUSD_vec
   
   #### sort the columns into the dedault order defined in R
-  print('temp_df'); print(names(temp_df))
+  #print('temp_df'); print(names(temp_df))
   newOrder_vec <- match(outputColnames,names(temp_df))
   temp_df <- temp_df[,newOrder_vec]
   
