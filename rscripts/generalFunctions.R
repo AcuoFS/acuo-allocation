@@ -523,6 +523,8 @@ UpdateQtyInAvailAsset <- function(resource_vec,quantity_vec,availAsset_df,qtyTyp
         if(length(idx_vec)!=0){
           print('availAsset_df[idx_vec,],quantity')
           print(availAsset_df$quantity[idx_vec])
+          print('availAsset_df$quantity[idx_vec]-quantity*availAsset_df$minUnit[idx_vec]')
+          print(availAsset_df$quantity[idx_vec]-quantity*availAsset_df$minUnit[idx_vec])
           availAsset_df$quantity[idx_vec] <- availAsset_df$quantity[idx_vec]-quantity*availAsset_df$minUnit[idx_vec]
         }
       }
