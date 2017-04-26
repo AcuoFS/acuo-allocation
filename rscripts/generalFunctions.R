@@ -497,14 +497,18 @@ UpdateQtyInAvailAsset <- function(resource_vec,quantity_vec,availAsset_df,qtyTyp
         resource <- resource_vec[i]
         quantity <- quantity_vec[i]
         idx_vec <- which(availAsset_df$assetCustacId==resource)
-        availAsset_df$quantity[idx_vec] <- quantity*availAsset_df$minUnit[idx_vec]
+        if(length(idx_vec)!=0){
+          availAsset_df$quantity[idx_vec] <- quantity*availAsset_df$minUnit[idx_vec]
+        }
       }
     } else{
       for(i in 1:length(resource_vec)){
         resource <- resource_vec[i]
         quantity <- quantity_vec[i]
         idx_vec <- which(availAsset_df$assetCustacId==resource)
-        availAsset_df$quantity[idx_vec] <- quantity
+        if(length(idx_vec)!=0){
+          availAsset_df$quantity[idx_vec] <- quantity
+        }
       }
     }
   } else{
@@ -513,14 +517,18 @@ UpdateQtyInAvailAsset <- function(resource_vec,quantity_vec,availAsset_df,qtyTyp
         resource <- resource_vec[i]
         quantity <- quantity_vec[i]
         idx_vec <- which(availAsset_df$assetCustacId==resource)
-        availAsset_df$quantity[idx_vec] <- availAsset_df$quantity[idx_vec]-quantity*availAsset_df$minUnit[idx_vec]
+        if(length(idx_vec)!=0){
+          availAsset_df$quantity[idx_vec] <- availAsset_df$quantity[idx_vec]-quantity*availAsset_df$minUnit[idx_vec]
+        }
       }
     } else{
       for(i in 1:length(resource_vec)){
         resource <- resource_vec[i]
         quantity <- quantity_vec[i]
         idx_vec <- which(availAsset_df$assetCustacId==resource)
-        availAsset_df$quantity[idx_vec] <- availAsset_df$quantity[idx_vec]-quantity
+        if(length(idx_vec)!=0){
+          availAsset_df$quantity[idx_vec] <- availAsset_df$quantity[idx_vec]-quantity
+        }
       }
     }
   }
@@ -590,4 +598,8 @@ ResultDf2List <- function(result_df,callId_vec){
     result_list[[callId]] <- call_df
   }
   return(result_list)
+}
+
+ResultList2Df <- function(result_list,callId_vec){
+  
 }
