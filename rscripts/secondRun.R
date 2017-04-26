@@ -73,6 +73,11 @@ for(m in 1:length(callId_vec)){
   rownames(temp_df) <- 1:length(temp_df[,1])
   currentSelection_list[[callId]] <- temp_df
 }
+
+
+print("currentSelection_list standard format");print(typeof(currentSelection_list),'\n'); print(length(currentSelection_list))
+print(currentSelection_list)
+
 #### Fill in the Missing Columns from Java END ######
 
 
