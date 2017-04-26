@@ -33,6 +33,7 @@ AllocationInputData <- function(callId_vec,resource_vec,callInfo_df,availAsset_d
   unitValue_mat<- base_mat
   minUnit_mat <- base_mat  
   minUnitValue_mat <- base_mat
+  FXRate_mat <- base_mat
   
   # fill in matrixes with the data from availAsset_df
   
@@ -53,6 +54,7 @@ AllocationInputData <- function(callId_vec,resource_vec,callInfo_df,availAsset_d
   
   unitValue_mat[] <- matrix(rep(resourceInfo_df$unitValue/resourceInfo_df$FXRate,callNum),nrow=callNum,byrow=TRUE)
   minUnit_mat[]<- matrix(rep(resourceInfo_df$minUnit,callNum),nrow=callNum,byrow=TRUE)
+  FXRate_mat[]<- matrix(rep(resourceInfo_df$FXRate,callNum),nrow=callNum,byrow=TRUE)
   minUnitValue_mat[] <- minUnit_mat*unitValue_mat
   minUnitQuantity_mat[]<- floor(quantity_mat/minUnit_mat) # round down to the nearest integer
   
@@ -65,12 +67,14 @@ AllocationInputData <- function(callId_vec,resource_vec,callInfo_df,availAsset_d
   minUnitQuantity_vec <- as.vector(t(minUnitQuantity_mat))
   unitValue_vec <- as.vector(t(unitValue_mat))
   minUnit_vec <- as.vector(t(minUnit_mat))
+  FXRate_vec <- as.vector(t(FXRate_mat))
   minUnitValue_vec <- as.vector(t(minUnitValue_mat))
   callAmount_vec <- as.vector(t(callAmount_mat))
   
   output_list <- list(resource_vec=resource_vec,callId_vec=callId_vec,assetInfo_df=assetInfo_df,callInfo_df=callInfo_df,
                       custodianAccount=custodianAccount,venue=venue,
                       base_mat=base_mat,
+                      FXRate_mat=FXRate_mat,FXRate_vec=FXRate_vec,
                       eli_mat=eli_mat, eli_vec = eli_vec,
                       haircut_mat=haircut_mat, haircut_vec=haircut_vec,
                       cost_mat = cost_mat, cost_vec = cost_vec,
