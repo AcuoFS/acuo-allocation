@@ -21,14 +21,7 @@ callSecondAllocation <- function(algoVersion,callId_vec, resource_vec,callInfo_d
       stop('Please specify which margin calls the asset is removed from!')
     }
   } else if(algoVersion==2){
-    if(length(dsCallId_vec)==1){
-      dsCallId <- dsCallId_vec;
-      
-      result <- SecondAllocationAlgoAllMsV2(callIdTotal_vec,callInfoTotal_df,resourceTotal_vec,availAssetTotal_df,assetInfoTotal_df,
-                                            dsAssetId,dsCallId,currentSelection_list,
-                                            pref_vec,operLimit,operLimitMs)
-    } else if(length(dsCallId_vec)>1){
-      stop('line 32')
+    if(length(dsCallId_vec)>=1){
       result <- SecondAllocationAlgoAllMsV2(callIdTotal_vec,callInfoTotal_df,resourceTotal_vec,availAssetTotal_df,assetInfoTotal_df,
                                             dsAssetId,dsCallId_vec,currentSelection_list,
                                             pref_vec,operLimit,operLimitMs)
