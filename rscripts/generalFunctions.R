@@ -511,7 +511,7 @@ UpdateQtyInAvailAsset <- function(resource_vec,quantity_vec,availAsset_df,qtyTyp
         }
       }
     }
-  } else{ stop('line514')
+  } else{
     if(qtyType=='minUnit'){
       print('general 517')
       for(i in 1:length(resource_vec)){
