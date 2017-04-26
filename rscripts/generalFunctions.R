@@ -513,10 +513,13 @@ UpdateQtyInAvailAsset <- function(resource_vec,quantity_vec,availAsset_df,qtyTyp
     }
   } else{
     if(qtyType=='minUnit'){
+      print('general 517')
       for(i in 1:length(resource_vec)){
         resource <- resource_vec[i]
         quantity <- quantity_vec[i]
         idx_vec <- which(availAsset_df$assetCustacId==resource)
+        print('resource,quantity,idx_vec')
+        print(resource);print(quantity);print(idx_vec)
         if(length(idx_vec)!=0){
           availAsset_df$quantity[idx_vec] <- availAsset_df$quantity[idx_vec]-quantity*availAsset_df$minUnit[idx_vec]
         }
@@ -600,6 +603,3 @@ ResultDf2List <- function(result_df,callId_vec){
   return(result_list)
 }
 
-ResultList2Df <- function(result_list,callId_vec){
-  
-}
