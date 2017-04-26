@@ -673,10 +673,17 @@ SecondAllocationAlgoAllMsV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
     #### Update the Quantity of Resource Start #####
     #### restore the quantity of resources
     availAssetTotal_df <- availAssetTotalOri_df
+    print('line676')
+    print('UsedQtyFromResultList(currentSelection_list,resourceTotal_vec,callId_vec)');
+    print(UsedQtyFromResultList(currentSelection_list,resourceTotal_vec,callId_vec))
     quantityTotalUsed_vec <- UsedQtyFromResultList(currentSelection_list,resourceTotal_vec,callId_vec)
+    line('line680')
+    print('UpdateQtyInAvailAsset(resourceTotal_vec,quantityTotalUsed_vec,availAssetTotal_df,minUnit,F)')
+    print(dim(UpdateQtyInAvailAsset(resourceTotal_vec,quantityTotalUsed_vec,availAssetTotal_df,'minUnit',F)))
+    print('line683')
     availAssetTotal_df <- UpdateQtyInAvailAsset(resourceTotal_vec,quantityTotalUsed_vec,availAssetTotal_df,'minUnit',F)
     #### Update the Quantity of Resource END #######
-    print('line679')
+    print('line686')
     tempResult <- SecondAllocationAlgoV2(callId_vec,callInfo_df,resourceTotal_vec,availAssetTotal_df,assetInfoTotal_df,
                                          dsAssetId,dsCallId,currentSelection_list,pref_vec,operLimit,operLimitMs)
     currentSelection_list <- tempResult$newSuggestion
