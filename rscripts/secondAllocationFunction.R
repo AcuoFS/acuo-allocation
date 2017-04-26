@@ -669,19 +669,19 @@ SecondAllocationAlgoAllMsV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
       availAssetTotal_df <- availAssetTotal_df[-rmRow_vec,]
     }
     #### Remove Deselect Asset in The AvailAsset_df For Testing END ######
-    print('line672')
+  
     #### Update the Quantity of Resource Start #####
     #### restore the quantity of resources
     availAssetTotal_df <- availAssetTotalOri_df
-    print('line676')
-    print('UsedQtyFromResultList(currentSelection_list,resourceTotal_vec,callId_vec)');
-    print(UsedQtyFromResultList(currentSelection_list,resourceTotal_vec,callId_vec))
-    
     quantityTotalUsed_vec <- UsedQtyFromResultList(currentSelection_list,resourceTotal_vec,callId_vec)
     
-    print('line682')
+    #### Get minUnit from assetInfo
+    minUnitTotal_vec <- assetInfoTotal_df$minUnit
+    assetTotal_vec <- SplitResource(resourceTotal_vec,'asset')
+    minUnitTotal_vec <- minUnitTotal_vec[match(assetInfoTotal_df$id,assetTotal_vec)] 
+    
     print('UpdateQtyInAvailAsset(resourceTotal_vec,quantityTotalUsed_vec,availAssetTotal_df,minUnit,F)')
-    print(UpdateQtyInAvailAsset(resourceTotal_vec,quantityTotalUsed_vec,availAssetTotal_df,'minUnit',F))
+    print(UpdateQtyInAvailAsset(resourceTotal_vec,quantityTotalUsed_vec,availAssetTotal_df,'minUnit',F,minUnitTotal_vec))
     print('line685')
     availAssetTotal_df <- UpdateQtyInAvailAsset(resourceTotal_vec,quantityTotalUsed_vec,availAssetTotal_df,'minUnit',F)
     #### Update the Quantity of Resource END #######

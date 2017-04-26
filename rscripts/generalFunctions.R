@@ -489,16 +489,17 @@ SplitVarName <- function(varName_vec,target){
   }
 }
 
-UpdateQtyInAvailAsset <- function(resource_vec,quantity_vec,availAsset_df,qtyType,qtyLeft){
+UpdateQtyInAvailAsset <- function(resource_vec,quantity_vec,availAsset_df,qtyType,qtyLeft,minUnit_vec){
   ## quantity_vec: real quantity of corresponding resource
   if(qtyLeft){
     if(qtyType=='minUnit'){
       for(i in 1:length(resource_vec)){
         resource <- resource_vec[i]
         quantity <- quantity_vec[i]
+        minUnit <- minUnit_vec[i]
         idx_vec <- which(availAsset_df$assetCustacId==resource)
         if(length(idx_vec)!=0){
-          availAsset_df$quantity[idx_vec] <- quantity*availAsset_df$minUnit[idx_vec]
+          availAsset_df$quantity[idx_vec] <- quantity*minUnit
         }
       }
     } else{
@@ -513,19 +514,20 @@ UpdateQtyInAvailAsset <- function(resource_vec,quantity_vec,availAsset_df,qtyTyp
     }
   } else{
     if(qtyType=='minUnit'){
-      print('general 517')
+     # print('general 517')
       for(i in 1:length(resource_vec)){
         resource <- resource_vec[i]
         quantity <- quantity_vec[i]
+        minUnit <- minUnit_vec[i]
         idx_vec <- which(availAsset_df$assetCustacId==resource)
-        print('resource,quantity,idx_vec')
-        print(resource);print(quantity);print(idx_vec)
+        #print('resource,quantity,idx_vec')
+        #print(resource);print(quantity);print(idx_vec)
         if(length(idx_vec)!=0){
-          print('availAsset_df[idx_vec,],quantity')
-          print(availAsset_df$quantity[idx_vec])
-          print('availAsset_df$quantity[idx_vec]-quantity*availAsset_df$minUnit[idx_vec]')
-          print(availAsset_df$quantity[idx_vec]-quantity*availAsset_df$minUnit[idx_vec])
-          availAsset_df$quantity[idx_vec] <- availAsset_df$quantity[idx_vec]-quantity*availAsset_df$minUnit[idx_vec]
+         # print('availAsset_df[idx_vec,],quantity')
+          #print(availAsset_df$quantity[idx_vec])
+          #print('availAsset_df$quantity[idx_vec]-quantity*availAsset_df$minUnit[idx_vec]')
+          #print(availAsset_df$quantity[idx_vec]-quantity*availAsset_df$minUnit[idx_vec])
+          availAsset_df$quantity[idx_vec] <- availAsset_df$quantity[idx_vec]-quantity*minUnit
         }
       }
     } else{
