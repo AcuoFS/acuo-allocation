@@ -42,7 +42,7 @@ availAsset_df$venue <- venue_vec
 callId_vec <- callIds
 pref_vec <- pref
 
-print('callId_vec'); print(callId_vec)
+#print('callId_vec'); print(callId_vec)
 ## CALL THE ALLOCATION FUNCTION ###########
 algoVersion <- 2
 operLimit<- 2*length(callId_vec)

@@ -13,18 +13,11 @@ print(selections)
 
 
 #### Convert the Java input to R input
-ResultDf2List <- function(result_df,callId_vec){
-  callNum <- length(callId_vec)
-  result_list <- list()
-  for(i in 1:callNum){
-    callId <- callId_vec[i]
-    idx_vec <- which(result_df$marginCall==callId)
-    call_df <- result_df[idx_vec,]
-    result_list[[callId]] <- call_df
-  }
-  return(result_list)
-}
+
 print('callId_vec');print(callId_vec)
+
+callId_vec <- unlist(callId_vec)
+print('unlist callId_vec');print(callId_vec)
 currentSelection_list <- ResultDf2List(selections,callId_vec)
 
 print("currentSelection_list");print(typeof(currentSelection_list),'\n'); print(length(currentSelection_list))
