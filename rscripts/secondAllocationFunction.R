@@ -23,12 +23,13 @@ callSecondAllocation <- function(algoVersion,callId_vec, resource_vec,callInfo_d
     } 
   } else if(algoVersion==2){
     if(length(dsCallId_vec)==1){
-      dsCallId <- dsCallId_vec
+      dsCallId <- dsCallId_vec; print('dsCallId'); print(dsCallId)
+      stop('line 27')
       result <- SecondAllocationAlgoV2(callIdTotal_vec,callInfoTotal_df,resourceTotal_vec,availAssetTotal_df,assetInfoTotal_df,
                                        dsAssetId,dsCallId,currentSelection_list,
                                        pref_vec,operLimit,operLimitMs)
     } else if(length(dsCallId_vec)>1){
-      stop('line 31')
+      stop('line 32')
       result <- SecondAllocationAlgoAllMsV2(callIdTotal_vec,callInfoTotal_df,resourceTotal_vec,availAssetTotal_df,assetInfoTotal_df,
                                             dsAssetId,dsCallId_vec,currentSelection_list,
                                             pref_vec,operLimit,operLimitMs)
