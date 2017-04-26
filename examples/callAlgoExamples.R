@@ -43,7 +43,7 @@ availAsset_df <- availAsset_df[order(availAsset_df$callId),]
 # availAsset_df$CustodianAccount[1:(length(availAsset_df[,1])/2)] <- 'custodianAccountTest'
 #### end 
 
-assetCustacId_vec <- paste(availAsset_df$assetId,availAsset_df$CustodianAccount,sep='-')
+assetCustacId_vec <- PasteResource(availAsset_df$assetId,availAsset_df$CustodianAccount)
 availAsset_df$assetCustacId <- assetCustacId_vec
 resource_vec <- unique(assetCustacId_vec)
 
