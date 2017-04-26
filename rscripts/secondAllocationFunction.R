@@ -8,7 +8,7 @@ callSecondAllocation <- function(algoVersion,callId_vec, resource_vec,callInfo_d
   resourceTotal_vec <- resource_vec
   availAssetTotal_df <- availAsset_df
   assetInfoTotal_df <- assetInfo_df
-
+print('availAssetTotal_df');print(availAssetTotal_df)
   if(algoVersion==1){
     if(length(dsCallId_vec)==1){
       dsCallId <- dsCallId_vec
