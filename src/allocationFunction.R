@@ -7,7 +7,7 @@ CallAllocation <- function(algoVersion,scenario,callId_vec,resource_vec,callInfo
   # scenario = 3, post least liquid assets
   #### Scenario Code END ###########
   
-  inputLimit_vec <- c(7,7,6,3); 
+  inputLimit_vec <- c(7,7,7,4); 
   timeLimit=13; 
   callOrderMethod=3
   minMoveValue<- 1000;

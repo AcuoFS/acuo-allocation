@@ -33,6 +33,7 @@ AllocationInputData <- function(callId_vec,resource_vec,callInfo_df,availAsset_d
   unitValue_mat<- base_mat
   minUnit_mat <- base_mat  
   minUnitValue_mat <- base_mat
+  FXRate_mat <- base_mat
   
   # fill in matrixes with the data from availAsset_df
   
@@ -53,6 +54,7 @@ AllocationInputData <- function(callId_vec,resource_vec,callInfo_df,availAsset_d
   
   unitValue_mat[] <- matrix(rep(resourceInfo_df$unitValue/resourceInfo_df$FXRate,callNum),nrow=callNum,byrow=TRUE)
   minUnit_mat[]<- matrix(rep(resourceInfo_df$minUnit,callNum),nrow=callNum,byrow=TRUE)
+  FXRate_mat[]<- matrix(rep(resourceInfo_df$FXRate,callNum),nrow=callNum,byrow=TRUE)
   minUnitValue_mat[] <- minUnit_mat*unitValue_mat
   minUnitQuantity_mat[]<- floor(quantity_mat/minUnit_mat) # round down to the nearest integer
   
@@ -65,12 +67,14 @@ AllocationInputData <- function(callId_vec,resource_vec,callInfo_df,availAsset_d
   minUnitQuantity_vec <- as.vector(t(minUnitQuantity_mat))
   unitValue_vec <- as.vector(t(unitValue_mat))
   minUnit_vec <- as.vector(t(minUnit_mat))
+  FXRate_vec <- as.vector(t(FXRate_mat))
   minUnitValue_vec <- as.vector(t(minUnitValue_mat))
   callAmount_vec <- as.vector(t(callAmount_mat))
   
   output_list <- list(resource_vec=resource_vec,callId_vec=callId_vec,assetInfo_df=assetInfo_df,callInfo_df=callInfo_df,
                       custodianAccount=custodianAccount,venue=venue,
                       base_mat=base_mat,
+                      FXRate_mat=FXRate_mat,FXRate_vec=FXRate_vec,
                       eli_mat=eli_mat, eli_vec = eli_vec,
                       haircut_mat=haircut_mat, haircut_vec=haircut_vec,
                       cost_mat = cost_mat, cost_vec = cost_vec,
@@ -489,22 +493,27 @@ SplitVarName <- function(varName_vec,target){
   }
 }
 
-UpdateQtyInAvailAsset <- function(resource_vec,quantity_vec,availAsset_df,qtyType,qtyLeft=T){
+UpdateQtyInAvailAsset <- function(resource_vec,quantity_vec,availAsset_df,qtyType,qtyLeft,minUnit_vec){
   ## quantity_vec: real quantity of corresponding resource
   if(qtyLeft){
     if(qtyType=='minUnit'){
       for(i in 1:length(resource_vec)){
         resource <- resource_vec[i]
         quantity <- quantity_vec[i]
+        minUnit <- minUnit_vec[i]
         idx_vec <- which(availAsset_df$assetCustacId==resource)
-        availAsset_df$quantity[idx_vec] <- quantity*availAsset_df$minUnit[idx_vec]
+        if(length(idx_vec)!=0){
+          availAsset_df$quantity[idx_vec] <- quantity*minUnit
+        }
       }
     } else{
       for(i in 1:length(resource_vec)){
         resource <- resource_vec[i]
         quantity <- quantity_vec[i]
         idx_vec <- which(availAsset_df$assetCustacId==resource)
-        availAsset_df$quantity[idx_vec] <- quantity
+        if(length(idx_vec)!=0){
+          availAsset_df$quantity[idx_vec] <- quantity
+        }
       }
     }
   } else{
@@ -512,15 +521,20 @@ UpdateQtyInAvailAsset <- function(resource_vec,quantity_vec,availAsset_df,qtyTyp
       for(i in 1:length(resource_vec)){
         resource <- resource_vec[i]
         quantity <- quantity_vec[i]
+        minUnit <- minUnit_vec[i]
         idx_vec <- which(availAsset_df$assetCustacId==resource)
-        availAsset_df$quantity[idx_vec] <- availAsset_df$quantity[idx_vec]-quantity*availAsset_df$minUnit[idx_vec]
+        if(length(idx_vec)!=0){
+          availAsset_df$quantity[idx_vec] <- availAsset_df$quantity[idx_vec]-quantity*minUnit
+        }
       }
     } else{
       for(i in 1:length(resource_vec)){
         resource <- resource_vec[i]
         quantity <- quantity_vec[i]
         idx_vec <- which(availAsset_df$assetCustacId==resource)
-        availAsset_df$quantity[idx_vec] <- availAsset_df$quantity[idx_vec]-quantity
+        if(length(idx_vec)!=0){
+          availAsset_df$quantity[idx_vec] <- availAsset_df$quantity[idx_vec]-quantity
+        }
       }
     }
   }
@@ -529,13 +543,14 @@ UpdateQtyInAvailAsset <- function(resource_vec,quantity_vec,availAsset_df,qtyTyp
   return(availAsset_df)
 }
 
-GetQtyFromAvailAsset <- function(resource_vec,availAsset_df,qtyType){ ## unit/minUnit quantity
+GetQtyFromAvailAsset <- function(resource_vec,availAsset_df,qtyType,minUnit_vec){ ## unit/minUnit quantity
   quantity_vec <- rep(0,length(resource_vec))
   if(qtyType=='minUnit'){
     for(i in 1:length(resource_vec)){
       resource <- resource_vec[i]
+      minUnit <- minUnit_vec[i]
       idx_vec <- which(availAsset_df$assetCustacId==resource)
-      quantity_vec[i] <- min(availAsset_df$quantity[idx_vec]/availAsset_df$minUnit[idx_vec])
+      quantity_vec[i] <- min(availAsset_df$quantity[idx_vec]/minUnit)
     }
   } else{
     for(i in 1:length(resource_vec)){
@@ -579,3 +594,16 @@ UsedQtyFromResultList <- function(result_list,resource_vec,callId_vec){ ## quant
   }
   return(quantityUsed_vec)
 }
+
+ResultDf2List <- function(result_df,callId_vec){
+  callNum <- length(callId_vec)
+  result_list <- list()
+  for(i in 1:callNum){
+    callId <- callId_vec[i]
+    idx_vec <- which(result_df$marginCall==callId)
+    call_df <- result_df[idx_vec,]
+    result_list[[callId]] <- call_df
+  }
+  return(result_list)
+}
+
