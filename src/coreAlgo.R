@@ -58,8 +58,8 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
   #### Calculate the Objectives Parameters END ##############
   
   #### Calculate the Optimal Asset Sufficiency Start #######
-  optimalAsset_mat <- DeriveOptimalAssetsV1(minUnitQuantity_mat,eli_mat,objParams_list,pref_vec,objParams_list,
-                         callId_vec,resource_vec)
+  optimalAsset_mat <- DeriveOptimalAssetsV1(minUnitQuantity_mat,eli_mat,callAmount_mat,haircut_mat,minUnitValue_mat,
+                                             pref_vec,objParams_list,callId_vec,resource_vec)
   
   assetSuffQty_mat <- ceiling(callAmount_mat/(1-haircut_mat)/minUnitValue_mat) # quantity needed for a single asset to fulfill each call
   selectUniqueAsset_vec <- unique(optimalAsset_mat[,2]) 
@@ -368,8 +368,8 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
   #### Calculate the Objectives Parameters END ##############
   
   #### Calculate the Optimal Asset Sufficiency Start #######
-  optimalAsset_mat <- DeriveOptimalAssetsV2(minUnitQuantity_mat,eli_mat,objParams_list,pref_vec,objParams_list,
-                                  callId_vec,resource_vec)
+  optimalAsset_mat <- DeriveOptimalAssetsV2(minUnitQuantity_mat,eli_mat,callAmount_mat,haircut_mat,minUnitValue_mat,
+                                             pref_vec,objParams_list,callId_vec,resource_vec)
   
   
   assetSuffQty_mat <- ceiling(callAmount_mat/(1-haircut_mat)/minUnitValue_mat) # quantity needed for a single asset to fulfill each call

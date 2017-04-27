@@ -892,8 +892,8 @@ ConstructModelObj <- function(callAmount_mat,minUnitValue_mat,haircut_mat,costBa
   return(objParams_list)
 }
 
-DeriveOptimalAssetsV2 <- function(minUnitQuantity_mat,eli_mat,objParams_list,pref_vec,objParams_list,
-                                callId_vec,resource_vec){
+DeriveOptimalAssetsV2 <- function(minUnitQuantity_mat,eli_mat,callAmount_mat,haircut_mat,minUnitValue_mat,
+                                  pref_vec,objParams_list,callId_vec,resource_vec){
   callNum <- length(callId_vec); resourceNum <- length(resource_vec)
   normCost_mat <- objParams_list$cost_mat
   normLiquidity_mat <- objParams_list$liquidity_mat 
@@ -957,8 +957,8 @@ DeriveOptimalAssetsV2 <- function(minUnitQuantity_mat,eli_mat,objParams_list,pre
   return(optimalAsset_mat)
 }
 
-DeriveOptimalAssetsV1 <- function(minUnitQuantity_mat,eli_mat,objParams_list,pref_vec,objParams_list,
-                                  callId_vec,resource_vec){
+DeriveOptimalAssetsV1 <- function(minUnitQuantity_mat,eli_mat,callAmount_mat,haircut_mat,minUnitValue_mat,
+                                   pref_vec,objParams_list,callId_vec,resource_vec){
   callNum <- length(callId_vec); resourceNum <- length(resource_vec)
   normCost_mat <- objParams_list$cost_mat
   normLiquidity_mat <- objParams_list$liquidity_mat 
