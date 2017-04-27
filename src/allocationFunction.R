@@ -196,7 +196,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
   eli_vec <- coreInput_list$eli_vec; idxEli_vec <- which(eli_vec==1)
   varInfo_list <- VarInfo(eli_vec,callInfo_df,resource_vec,callId_vec)
   varName_vec <- varInfo_list$varName_vec; varNum <- varInfo_list$varNum
-  varAmount_vec <- callList2AmountVec(callOutput_list,callId_vec,varName_vec[1:varNum])
+  varAmount_vec <- resultList2AmountVec(callOutput_list,callId_vec,varName_vec[1:varNum])
   #### Costs
   dailyCost <- CostFun(varAmount_vec,coreInput_list$cost_vec[idxEli_vec])
   monthlyCost <- dailyCost*30
