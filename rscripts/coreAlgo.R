@@ -376,7 +376,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
     lpGuessBasis_vec <- rep(0,varNum3)
     if(!missing(initAllocation_list)){
       # the initial guess must be a feasible point
-      lpGuessBasis_vec<-CallList2Var(initAllocation_list,callId_vec,minUnit_vec,varName_vec,varNum3,varNum,idxEli_vec)
+      lpGuessBasis_vec<-ResultList2Vec(initAllocation_list,callId_vec,minUnit_vec,varName_vec,varNum3,varNum,idxEli_vec)
     }
     
     #### Solver Inputs END ###################
@@ -1026,7 +1026,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     lpGuessBasis_vec <- rep(0,varNum3)
     if(!missing(initAllocation_list)){
       # the initial guess must be a feasible point
-      lpGuessBasis_vec<-CallList2Var(initAllocation_list,callId_vec,minUnit_vec,varName_vec,varNum3,varNum,idxEli_vec)
+      lpGuessBasis_vec<-ResultList2Vec(initAllocation_list,callId_vec,minUnit_vec,varName_vec,varNum3,varNum,idxEli_vec)
       if(length(lpCon_mat[,1])==518){
         ## constraint pre-check
         cons <- rep(0,518); 

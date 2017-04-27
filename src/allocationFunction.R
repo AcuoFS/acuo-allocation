@@ -168,7 +168,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
     msOutputGroup_list <- resultGroup_list$msOutput_list
     callOutputGroup_list <- resultGroup_list$callOutput_list
     
-    status <- resultGroup_list$status
+    solverStatus <- resultGroup_list$solverStatus
     lpsolveRun <- resultGroup_list$lpsolveRun
     solverObjValue <- resultGroup_list$solverObjValue
     checkCallGroup_mat <- resultGroup_list$checkCall_mat
@@ -196,7 +196,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
   eli_vec <- coreInput_list$eli_vec; idxEli_vec <- which(eli_vec==1)
   varInfo_list <- VarInfo(eli_vec,callInfo_df,resource_vec,callId_vec)
   varName_vec <- varInfo_list$varName_vec; varNum <- varInfo_list$varNum
-  varAmount_vec <- resultList2AmountVec(callOutput_list,callId_vec,varName_vec[1:varNum])
+  varAmount_vec <- ResultList2AmountVec(callOutput_list,callId_vec,varName_vec[1:varNum])
   #### Costs
   dailyCost <- CostFun(varAmount_vec,coreInput_list$cost_vec[idxEli_vec])
   monthlyCost <- dailyCost*30
@@ -248,7 +248,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
   
   return(list(#msOutput=msOutput_list,
     callOutput=callOutput_list,checkCall_mat=checkCall_mat,#availAsset_df=availAsset_df,
-    status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue,resultAnalysis=resultAnalysis))
+    solverStatus=solverStatus,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue,resultAnalysis=resultAnalysis))
 }
 
 PreAllocation <- function(algoVersion,callIdGroup_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit, minMoveValue,timeLimit,callOutput_list,checkCall_mat){
@@ -274,7 +274,7 @@ PreAllocation <- function(algoVersion,callIdGroup_vec,callInfo_df,availAsset_df,
   }
   #msOutputGroup_list <- resultGroup_list$msOutput_list
   callOutputGroup_list <- resultGroup_list$callOutput_list
-  status <- resultGroup_list$status
+  solverStatus <- resultGroup_list$solverStatus
   lpsolveRun <- resultGroup_list$lpsolveRun
   solverObjValue <- resultGroup_list$solverObjValue
   checkCallGroup_mat <- resultGroup_list$checkCall_mat

@@ -343,7 +343,7 @@ renjinFix <- function(frame, name) {
   return(d);
 }
 
-resultList2AmountVec <- function(callOutput_list,callId_vec,varName_vec){
+ResultList2AmountVec <- function(callOutput_list,callId_vec,varName_vec){
   callNum <- length(callId_vec)
   varNum <- length(varName_vec)
   var_vec <- rep(0,varNum)
@@ -958,7 +958,7 @@ DeriveOptimalAssetsV2 <- function(minUnitQuantity_mat,eli_mat,callAmount_mat,hai
 }
 
 DeriveOptimalAssetsV1 <- function(minUnitQuantity_mat,eli_mat,callAmount_mat,haircut_mat,minUnitValue_mat,
-                                   pref_vec,objParams_list,callId_vec,resource_vec){
+                                  pref_vec,objParams_list,callId_vec,resource_vec){
   callNum <- length(callId_vec); resourceNum <- length(resource_vec)
   normCost_mat <- objParams_list$cost_mat
   normLiquidity_mat <- objParams_list$liquidity_mat 

@@ -343,7 +343,7 @@ renjinFix <- function(frame, name) {
   return(d);
 }
 
-resultList2AmountVec <- function(callOutput_list,callId_vec,varName_vec){
+ResultList2AmountVec <- function(callOutput_list,callId_vec,varName_vec){
   callNum <- length(callId_vec)
   varNum <- length(varName_vec)
   var_vec <- rep(0,varNum)
