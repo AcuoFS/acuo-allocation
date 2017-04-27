@@ -307,7 +307,7 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
   resourceNum <- length(resource_vec)
   callNum <- length(callId_vec)
   dsCallInfo <- callInfo_df[which(callInfo_df$id==dsCallId),]
-  input_list <- AllocationInputData(dsCallId_vec,resource_vec,dsCallInfo,availAsset_df,assetInfo_df)
+  input_list <- AllocationInputData(dsCallId,resource_vec,dsCallInfo,availAsset_df,assetInfo_df)
   
   minUnit_vec <- input_list$minUnit_vec
   quantity_vec <- input_list$minUnitQuantity_vec
