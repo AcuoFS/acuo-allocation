@@ -109,12 +109,12 @@ SecondAllocationAlgoV1<- function(callId_vec, resource_vec,callInfo_df,availAsse
     operation_vec[idxCcy] <- 1
   }
   # asset selection from the margin statement
-  resourceIndsCall_vec <- paste(currentSelection_list[[dsCallId]]$Asset,currentSelection_list[[dsCallId]]$CustodianAccount,sep='-')
+  resourceInDsCall_vec <- paste(currentSelection_list[[dsCallId]]$Asset,currentSelection_list[[dsCallId]]$CustodianAccount,sep='-')
   if(sameMsCallId!='na'){
     sameMsSelection_vec <- paste(currentSelection_list[[sameMsCallId]]$Asset,currentSelection_list[[sameMsCallId]]$CustodianAccount,sep='-')
-    resourceInDeselectMs_vec <- unique(c(resourceIndsCall_vec,sameMsSelection_vec))
+    resourceInDeselectMs_vec <- unique(c(resourceInDsCall_vec,sameMsSelection_vec))
   } else{
-    resourceInDeselectMs_vec <- resourceIndsCall_vec
+    resourceInDeselectMs_vec <- resourceInDsCall_vec
   }
   
   assetQuanityAllocateddsCall_vec <- currentSelection_list[[dsCallId]]$Quantity
@@ -163,7 +163,7 @@ SecondAllocationAlgoV1<- function(callId_vec, resource_vec,callInfo_df,availAsse
     lineAvailAsset_df <- availAsset_df[which(availAsset_df$callId==dsCallId),]
     lineCallInfo_df <- callInfo_df[which(callInfo_df$id==dsCallId),]
     
-    if(is.element(resource,resourceIndsCall_vec)){
+    if(is.element(resource,resourceInDsCall_vec)){
       # if asset[i] is alreadly selected in the margin statment
       
       if(quantityLeft_vec[i]>=lackQuantity_vec[i]){
@@ -355,16 +355,16 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
   #### Calculate the Quantity Left of Each Asset END #########
 
   #### Find Resources Allocated to the Deselected Margin Statement Start ####
-  resourceIndsCall_vec <- PasteResource(currentSelection_list[[dsCallId]]$Asset,currentSelection_list[[dsCallId]]$CustodianAccount)
+  resourceInDsCall_vec <- PasteResource(currentSelection_list[[dsCallId]]$Asset,currentSelection_list[[dsCallId]]$CustodianAccount)
 
-  if(length(resourceIndsCall_vec)==0){
-    resourceIndsCall_vec <- 'na'
+  if(length(resourceInDsCall_vec)==0){
+    resourceInDsCall_vec <- 'na'
   }
   if(sameMsCallId!='na'){
     sameMsSelection_vec <- PasteResource(currentSelection_list[[sameMsCallId]]$Asset,currentSelection_list[[sameMsCallId]]$CustodianAccount)
-    resourceInDeselectMs_vec <- unique(c(resourceIndsCall_vec,sameMsSelection_vec))
+    resourceInDeselectMs_vec <- unique(c(resourceInDsCall_vec,sameMsSelection_vec))
   } else{
-    resourceInDeselectMs_vec <- resourceIndsCall_vec
+    resourceInDeselectMs_vec <- resourceInDsCall_vec
   }
 
   assetQuanityAllocateddsCall_vec <- currentSelection_list[[dsCallId]]$Quantity
@@ -458,7 +458,7 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
     lineAssetInfo_df <- assetInfo_df[which(assetInfo_df$id==assetId),]
     lineAvailAsset_df <- availAsset_df[which(availAsset_df$callId==dsCallId),]
     lineCallInfo_df <- callInfo_df[which(callInfo_df$id==dsCallId),]
-    if(is.element(resource,resourceIndsCall_vec) & resourceIndsCall_vec!='na'){
+    if(is.element(resource,resourceInDsCall_vec) & resourceInDsCall_vec!='na'){
       # if asset[i] is alreadly selected in the margin statement
       if(quantityLeft_vec[i]>=lackQuantity_vec[i]){
         # scenario 1: asset[i] is alreadly selected in the margin statement

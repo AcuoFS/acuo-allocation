@@ -10,7 +10,7 @@ dsCallId_vec <- dsCallIds
 print("selections");print(typeof(selections)); print(length(selections))
 print(selections)
 
-
+selectedCallId_vec <- unique(selections$marginCall)
 
 #### Convert the Java input to R input
 
@@ -29,7 +29,7 @@ availAsset_df <- availAsset_df[order(availAsset_df$callId),]
 
 assetCustacId_vec <- PasteResource(availAsset_df$assetId,availAsset_df$CustodianAccount)
 availAsset_df$assetCustacId <- assetCustacId_vec
-resource_vec <- unique(assetCustacId_vec)
+resource_vec <- unique(assetCustacId_vec) 
 
 assetId_vec <- unique(SplitResource(resource_vec,'asset'))
 assetInfo_df <- assetInfoByAssetId
