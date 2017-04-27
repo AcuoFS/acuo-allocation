@@ -166,6 +166,15 @@ ResultMat2List <- function(result_mat,resource_vec,availAsset_df,coreInput_list,
   return(result_list)
 }
 
+ResultVec2Mat <- function(solution_vec,callId_vec,resource_vec,idxEli_vec,varNum){
+  callNum <- length(callId_vec); resourceNum <- length(resource_vec)
+  result_mat <- matrix(0,nrow=callNum,ncol=resourceNum,dimnames=list(callId_vec,resource_vec))
+  result_mat <- t(result_mat)
+  result_mat[idxEli_vec]<-solution_vec[1:varNum]
+  result_mat <- t(result_mat)
+  return(result_mat)
+}
+
 ResultList2Mat <- function(callOutput_list,callId_vec,resource_vec,minUnit_mat){
   callNum <- length(callId_vec)
   resourceNum <- length(resource_vec)
@@ -191,9 +200,9 @@ ResultList2Mat <- function(callOutput_list,callId_vec,resource_vec,minUnit_mat){
   return(result_mat)
 }
 
-CallList2Var <- function(callOutput_list,callId_vec,minUnit_vec,varName_vec,varNum3,varNum,idxEli_vec){
+ResultList2Vec <- function(callOutput_list,callId_vec,minUnit_vec,varName_vec,varNum3,varNum,idxEli_vec){
   #varnum <- length(varName_vec)
-  var_vec <- rep(0,varNum3)
+  result_vec <- rep(0,varNum3)
   callNum <- length(callId_vec)
   
   for(m in 1:callNum){
@@ -211,13 +220,25 @@ CallList2Var <- function(callOutput_list,callId_vec,minUnit_vec,varName_vec,varN
       idxVarTemp <- which(varName_vec==varNameTemp_vec[k])
       quantityTemp <- callAlloc_df$Quantity[k]
       
-      var_vec[idxVarTemp] <- quantityTemp/minUnitEli_vec[idxVarTemp]
-      var_vec[idxVarTemp+varNum] <- 1
+      result_vec[idxVarTemp] <- quantityTemp/minUnitEli_vec[idxVarTemp]
+      result_vec[idxVarTemp+varNum] <- 1
     }
     # if inside one margin statement, two margin calls are using the same asset, 
     # then assign 1 to (varNum3-varNum2)
   }
-  return(var_vec)
+  return(result_vec)
+}
+
+ResultDf2List <- function(result_df,callId_vec){
+  callNum <- length(callId_vec)
+  result_list <- list()
+  for(i in 1:callNum){
+    callId <- callId_vec[i]
+    idx_vec <- which(result_df$marginCall==callId)
+    call_df <- result_df[idx_vec,]
+    result_list[[callId]] <- call_df
+  }
+  return(result_list)
 }
 
 VarInfo <- function(eli_vec,callInfo_df,resource_vec,callId_vec){
@@ -322,7 +343,7 @@ renjinFix <- function(frame, name) {
   return(d);
 }
 
-callList2AmountVec <- function(callOutput_list,callId_vec,varName_vec){
+resultList2AmountVec <- function(callOutput_list,callId_vec,varName_vec){
   callNum <- length(callId_vec)
   varNum <- length(varName_vec)
   var_vec <- rep(0,varNum)
@@ -597,15 +618,418 @@ UsedQtyFromResultList <- function(result_list,resource_vec,callId_vec){ ## quant
   return(quantityUsed_vec)
 }
 
-ResultDf2List <- function(result_df,callId_vec){
-  callNum <- length(callId_vec)
-  result_list <- list()
-  for(i in 1:callNum){
-    callId <- callId_vec[i]
-    idx_vec <- which(result_df$marginCall==callId)
-    call_df <- result_df[idx_vec,]
-    result_list[[callId]] <- call_df
+AdjustResultVec <- function(solution_vec,varNum,varNum2,varNum3,msVar_mat){
+  
+  # round up the decimal quantity to the nearest integer.
+  # if it's larger than 0.5
+  # if close to 0, then set both real and dummies to 0, and if this action causes the 
+  # the insufficiency of the total amount, make it up at the checking module
+  # not only update result_mat but also the original solution_vec
+  
+  solNum1_vec <- solution_vec[1:varNum]
+  solNum2_vec <- solution_vec[(varNum+1):varNum2]
+  
+  # Rounding
+  solNum1_vec[which(solNum1_vec >= 0.5)] <- ceiling(solNum1_vec[which(solNum1_vec >= 0.5)])
+  solNum1_vec[which(solNum1_vec < 0.5)] <- 0
+  
+  solNum2_vec <- 1*(solNum1_vec & 1) # recalculate the dummy value
+  
+  # substitute
+  solution_vec[1:varNum] <- solNum1_vec 
+  solution_vec[(varNum+1):varNum2] <- solNum2_vec
+  
+  if(varNum3>varNum2){
+    idxTemp1_vec <- msVar_mat[,1]
+    idxTemp2_vec <- msVar_mat[,2]
+    solNum3_vec <- 1*(solution_vec[idxTemp1_vec] & solution_vec[idxTemp2_vec])
+    solution_vec[(varNum2+1):varNum3] <- solNum3_vec
   }
-  return(result_list)
+  
+  return(solution_vec)
 }
 
+CheckResultVec <- function(result_mat,quantityTotal_vec,callAmount_vec,minUnitValue_mat,haircut_mat,eli_mat){
+  #### CHECK ALLOCATION RESULT ###############
+  # STATUS: Developing
+  #
+  # 1. whether all variables are non-negative
+  idxNeg_vec <- which(result_mat<0)
+  if(length(idxNeg_vec)>=1){
+    result_mat[idxNeg_vec] <-0 # set to 0 first, then check the other two criteria
+  }
+  
+  # 2. whether statisfy the quantity limits
+  quantityUsed_vec <- apply(result_mat,2,sum)
+  quantityLeft_vec <- quantityTotal_vec-quantityUsed_vec
+  idxExcess_vec <- which(quantityUsed_vec>quantityTotal_vec)
+  if(length(idxExcess_vec)>=1){
+    
+    for(i in idxExcess_vec){          # i: the index of the excess quantity asset in assetId_vec
+      currentAlloc_mat <- matrix(c(which(result_mat[,i]>0),result_mat[which(result_mat[,i]>0),i]),nrow=2,byrow=T)
+      if(length(currentAlloc_mat[1,])>1){
+        currentAlloc_mat<-currentAlloc_mat[,order(currentAlloc_mat[2,])]
+      }
+      for(k in 1:length(currentAlloc_mat[1,])){ # k: the kth margin call which asset[i] allocated to
+        j = currentAlloc_mat[1,k]  # j: the index of the the kth margin call in callId_vec
+        # current allocated quantity < excess quanity
+        if(currentAlloc_mat[2,k]< (-quantityLeft_vec[i])){
+          # the amount missing for the margin call j if excluding the asset i
+          newQuantity <- 0
+          otherAmount <- sum(result_mat[j,1+which(result_mat[j,-i]>0)]*minUnitValue_mat[j,1+which(result_mat[j,-i]>0)]*(1-haircut_mat[j,1+which(result_mat[j,-i]>0)]))
+          missingAmount <- callAmount_vec[j]-(otherAmount+newQuantity/(1-haircut_mat[j,i])/minUnitValue_mat[j,i])
+          # missingAmount<0, means even we substract the exceed quantity of the asset, 
+          # the sub-total is still larger than call amount, then, we update asset to the 
+          # least quantity(already 0) which can meet the margin call requirement, no swaps occur
+          if(missingAmount<=0){
+            result_mat[j,i]<- newQuantity
+            
+            quantityUsed_vec <- apply(result_mat,2,sum)
+            quantityLeft_vec <- quantityTotal_vec-quantityUsed_vec
+            break
+          }
+          # first check whether the other previous allocated assets are sufficient,based on the operation efficiency
+          # find the other asset which is sufficient and eligible for margin call j
+          
+          missingQuantity_vec <- ceiling((missingAmount/(1-haircut_mat)/minUnitValue_mat)[j,])
+          idxSuff_vec <- intersect(which(missingQuantity_vec<=quantityLeft_vec),which(eli_mat[j,]==1))
+          
+          # whether there are other assets allocated to call j
+          idxSwapProb_vec <- intersect(which(result_mat[j,]>0),idxSuff_vec)
+          if(length(idxSwapProb_vec)>=1){
+            idxSwapNew <- idxSwapProb_vec[1]
+          }else{
+            idxSwapNew <- idxSuff_vec[1]
+          }
+          swapNewQuantity <- missingQuantity_vec[idxSwapNew]+result_mat[j,idxSwapNew]
+          newAllocation_mat <- matrix(currentAlloc_mat[,-which(currentAlloc_mat[1,]==j)],nrow=2)
+          
+          if(length(which(result_mat[,idxSwapNew]>0))){
+            swapAllocation_mat<- matrix(c(which(result_mat[,idxSwapNew]>0),result_mat[which(result_mat[,idxSwapNew]>0),idxSwapNew]),nrow=2,byrow=T)
+            swapAllocation_mat[2,which(swapAllocation_mat[1,]==j)] <- swapNewQuantity
+          }else{
+            swapAllocation_mat<- matrix(c(idxSwapNew,swapNewQuantity),nrow=2)
+          }
+          # update the result_mat
+          result_mat[j,c(i,idxSwapNew)]<- c(newQuantity,swapNewQuantity)
+          
+          quantityUsed_vec <- apply(result_mat,2,sum)
+          quantityLeft_vec <- quantityTotal_vec-quantityUsed_vec
+        }
+        else{
+          # the amount missing for the margin call j if excluding the asset i
+          # shouldn't exclude the asset i, just reduce to the sufficient amount, and use other assets to fulfil the left call amount
+          newQuantity<- currentAlloc_mat[2,which(currentAlloc_mat[1,]==j)]+quantityLeft_vec[i]
+          
+          # if this asset is the only selection
+          if(callNum==1){
+            otherAmount <- sum(result_mat[,-i][which(result_mat[-i]>0)]*minUnitValue_mat[,-i][which(result_mat[-i]>0)]*
+                                 (1-haircut_mat[,-i][which(result_mat[-i]>0)]))
+          } else{
+            otherAmount <- sum(result_mat[,-i][j,which(result_mat[j,-i]>0)]*minUnitValue_mat[,-i][j,which(result_mat[j,-i]>0)]*
+                                 (1-haircut_mat[,-i][j,which(result_mat[j,-i]>0)]))
+          }
+          missingAmount <- callAmount_vec[j]-(otherAmount+newQuantity*minUnitValue_mat[j,i]*(1-haircut_mat[j,i]))
+          # missingAmount<0, means even we substract the exceed quantity of the asset, 
+          # the sub-total is still larger than call amount, then, we update asset to the 
+          # least quantity which can meet the margin call requirement, no swaps occur
+          if(missingAmount<=0){
+            newQuantity <-  ceiling((callAmount_vec[j]-otherAmount)/minUnitValue_mat[j,i]/(1-haircut_mat[j,i]))
+            result_mat[j,i]<- newQuantity
+            quantityUsed_vec <- apply(result_mat,2,sum)
+            quantityLeft_vec <- quantityTotal_vec-quantityUsed_vec
+            break
+          }
+          
+          # first check whether the other previous allocated assets are sufficient,based on the operation efficiency
+          # find the other asset which is sufficient and eligible for margin call j
+          missingQuantity_vec <- ceiling((missingAmount/(1-haircut_mat)/minUnitValue_mat)[j,])
+          idxSuff_vec <- intersect(which(missingQuantity_vec<=quantityLeft_vec),which(eli_mat[j,]==1))
+          
+          if(length(idxSuff_vec)==0){
+            # sacrifice the fulfilled call amount if the it is still larger than the shreshod
+            if((callAmount_vec[j]-missingAmount)>=callAmount_vec[j]){
+              result_mat[j,i]<- newQuantity
+            }
+            # left quantity of each available asset for this call is not sufficient
+            # need more than one assets to allocate to this call
+            # compare the missing amount and the sum of the left asset left amount
+            # asset.amount.left <- matrix(c(1:resourceNum,quantityLeft_vec*minUnitValue_mat[j,]),nrow=2,byrow=T)
+            
+            # there should be more than one assets available(else will be detected in the pre-check sufficiency part)
+            # order by amount from larger to smaller, make sure the least movements
+            # asset.amount.left <- asset.amount.left[,order(asset.amount.left[2,])]
+            
+            # the index of available assets, excluding the 
+            # idxTemp <- intersect(which(quantityLeft_vec>0),which(eli_mat[j,]==1))
+          } else{
+            # whether there are other assets allocated to call j
+            idxSwapProb_vec <- intersect(which(result_mat[j,]>0),idxSuff_vec)
+            if(length(idxSwapProb_vec)>=1){
+              idxSwapNew <- idxSwapProb_vec[1]
+            } else{
+              idxSwapNew <- idxSuff_vec[1]
+            }
+            swapNewQuantity <- missingQuantity_vec[idxSwapNew]+result_mat[j,idxSwapNew]
+            
+            newAllocation_mat <- currentAlloc_mat
+            newAllocation_mat[,-which(currentAlloc_mat[1,]==j)] <- newQuantity
+            
+            if(length(which(result_mat[,idxSwapNew]>0))){
+              swapAllocation_mat<- matrix(c(which(result_mat[,idxSwapNew]>0),result_mat[which(result_mat[,idxSwapNew]>0),idxSwapNew]),nrow=2,byrow=T)
+              swapAllocation_mat[2,which(swapAllocation_mat[1,]==j)] <- swapNewQuantity
+            }else{
+              swapAllocation_mat<- matrix(c(idxSwapNew,swapNewQuantity),nrow=2)
+            }
+            
+            # update the result_mat
+            result_mat[j,c(i,idxSwapNew)]<- c(newQuantity,swapNewQuantity)
+          }
+          
+          quantityUsed_vec <- apply(result_mat,2,sum)
+          quantityLeft_vec <- quantityTotal_vec-quantityUsed_vec
+          break
+        }
+      } 
+    }
+  }
+  
+  # 3. whether meet all margin call requirements
+  quantityUsed_vec <- apply(result_mat,2,sum)
+  quantityLeft_vec <- quantityTotal_vec-quantityUsed_vec
+  
+  # compare with the call amount, not the custimized amount based on the user preference
+  callFulfilled_vec <- apply(result_mat*minUnitValue_mat*(1-haircut_mat),1,sum)
+  callMissingAmount_vec <- callAmount_vec-callFulfilled_vec
+  idxCallMissing_vec <- which(callMissingAmount_vec>0)
+  if(length(idxCallMissing_vec)>=1){
+    
+    for(i in idxCallMissing_vec){
+      
+      currentAlloc_mat <- matrix(c(which(result_mat[i,]>0),result_mat[i,which(result_mat[i,]>0)]),nrow=2,byrow=T)
+      
+      missingAmount <- callMissingAmount_vec[i]
+      missingQuantity_vec <- ceiling((missingAmount/(1-haircut_mat)/minUnitValue_mat)[i,])
+      idxSuff_vec <- intersect(which(missingQuantity_vec<=quantityLeft_vec),which(eli_mat[i,]==1))
+      if(length(idxSuff_vec)==0){
+        # which means none of the asset itself is enough to to fulfill the left amount of the margin call
+        # This should be a very extreme case, and it's more complicated to develop for this case
+        # so, I will leave here blank, once I'm done the rest part I'll return to check
+        # Also, the exception handling will be a long-run development, and it will be raised once we have exception
+      }
+      
+      # whether there are assets which are sufficient allocated to call i
+      idxCurrentProb_vec <- intersect(idxSuff_vec,currentAlloc_mat[1,])
+      if(length(idxCurrentProb_vec)==0){
+        idxCurrentProb_vec<- idxSuff_vec
+      }
+      idxAddNew <- idxCurrentProb_vec[1]
+      addNewQuantity <- missingQuantity_vec[idxAddNew]+result_mat[i,idxAddNew]
+      result_mat[i,idxAddNew] <- addNewQuantity
+    }
+  }
+  
+  return(result_mat)
+}
+
+ConstructModelObj <- function(callAmount_mat,minUnitValue_mat,haircut_mat,costBasis_mat,eli_mat,callInfo_df,
+                              callId_vec,resource_vec){
+  callNum <- length(callId_vec)
+  resourceNum <- length(resource_vec)
+  #### calculate the cost if only the integral units of asset can be allocated
+  integerCallAmount_mat <- ceiling(callAmount_mat/(1-haircut_mat)/minUnitValue_mat)*minUnitValue_mat
+  
+  cost_mat<-integerCallAmount_mat*costBasis_mat  # cost amount
+  
+  #costBasis_mat <- costBasis_mat/(1-haircut_mat)
+  costBasis_vec <- as.vector(t(costBasis_mat))
+  
+  assetLiquidity_vec <- apply((1-haircut_mat*eli_mat)^2,2,min) # define asset liquidity
+  liquidity_mat <- matrix(rep(assetLiquidity_vec,callNum),nrow=callNum,byrow=TRUE,dimnames=list(callId_vec,resource_vec)) 
+  liquidity_vec <- as.vector(t(liquidity_mat))
+  
+  callCcy <- callInfo_df$currency
+  operation_mat <- matrix(rep(1,resourceNum*callNum),nrow=callNum,byrow=TRUE,dimnames=list(callId_vec,resource_vec)) 
+  assetId_vec <- SplitResource(resource_vec,'asset') #### parallel with resource, not unique
+  for(i in 1:callNum){
+    idxCcy <- which(callCcy[i]==assetId_vec)    # return the index of mc[i] currency cash in the asset list
+    idx1 <- which(eli_mat[i,]!=0)             # return elegible asset idx for mc[i]
+    if(length(idxCcy)==1 && is.element(idxCcy,idx1)){  # if there exist call currency cash in the inventory, and it's available
+      operation_mat[i,idxCcy] <- 0
+    }
+  }
+  operation_vec <- as.vector(t(operation_mat))
+  
+  normCost_mat <- cost_mat
+  for(i in 1:callNum){
+    if(length(unique(cost_mat[i,]))==1){
+      normCost_mat[i,]<-1
+    }else{
+      normCost_mat[i,]<- scale(cost_mat[i,])
+      normCost_mat[i,]<- normCost_mat[i,]+(-min(normCost_mat[i,])*2)
+    }
+  }
+  normCost_vec <- as.vector(t(normCost_mat))
+  
+  normLiquidity_mat <- liquidity_mat
+  for(i in 1:callNum){
+    if(length(unique(liquidity_mat[i,]))==1){
+      normLiquidity_mat[i,]<-1
+    }else{
+      normLiquidity_mat[i,]<- scale(liquidity_mat[i,])
+      normLiquidity_mat[i,]<- normLiquidity_mat[i,]+(-min(normLiquidity_mat[i,])*2)
+    }
+  }
+  normLiquidity_vec <- as.vector(t(normLiquidity_mat))
+  
+  normLiquidity_vec <- as.vector(t(normLiquidity_mat))
+  normOperation_mat <- operation_mat*9+1
+  normOperation_vec <- as.vector(t(normOperation_mat))
+  
+  objParams_list <- list(cost_vec=normCost_vec,cost_mat=normCost_mat,
+                         liquidity_vec=normLiquidity_vec,liquidity_mat=normLiquidity_mat,
+                         operation_vec=normOperation_vec,operation_mat=normOperation_mat)
+  return(objParams_list)
+}
+
+DeriveOptimalAssetsV2 <- function(minUnitQuantity_mat,eli_mat,callAmount_mat,haircut_mat,minUnitValue_mat,
+                                  pref_vec,objParams_list,callId_vec,resource_vec){
+  callNum <- length(callId_vec); resourceNum <- length(resource_vec)
+  normCost_mat <- objParams_list$cost_mat
+  normLiquidity_mat <- objParams_list$liquidity_mat 
+  
+  optimal_mat <- normCost_mat*pref_vec[1]+normLiquidity_mat*pref_vec[2]
+  colnames(optimal_mat) <- resource_vec
+  rownames(optimal_mat)<-callId_vec
+  
+  optimalAsset_mat <- matrix(c(callId_vec,rep('', callNum)),nrow=callNum,ncol=2,dimnames = list(callId_vec,c('callId','resource')))
+  
+  tempMinUnitQuantity_mat <- minUnitQuantity_mat
+  for(i in 1:callNum){
+    idx1 <- which(eli_mat[i,]!=0)  # return elegible asset idx for mc[i]
+    temp_mat <- matrix(c(optimal_mat[i,idx1],idx1),nrow=2,byrow = T) # combine the asset cost and index together
+    # sort the asset per call by cost
+    if(length(temp_mat[1,])==1){       # if there's only one eligible asset, no need to sort.
+      sortOptimal_mat=temp_mat
+    }else{
+      sortOptimal_mat<-temp_mat[,order(temp_mat[1,])] # sort the cost, return the cost and asset idx in matrix
+    }
+    # if there are more than one assets have the same score, we cannot simply select the first one
+    # because this may cause the case that there are 3 assets have the same score for 3 calls
+    # if we just select the first asset, then it's possible this single asset is not sufficient to fulfill 
+    # all these 3 calls, but these three assets can fulfill one of the call respectively
+    
+    # selecting order:
+    # select the one which hasn't been selected to the previous call
+    # unless, they are from the same margin statment (deal with that in OW-379)
+    # Best approach, allocate the most sufficient asset to the largest call amount, deal with that later
+    # better to deal with that now
+    # round to 2 digits
+    idxMinScore_vec <- sortOptimal_mat[2,which(round(sortOptimal_mat[1,],2)==round(min(sortOptimal_mat[1,]),2))]
+    # if idxMinScore_vec contains only one element, don't need to sort
+    if(length(idxMinScore_vec) > 1){
+      optimalResource_vec <- resource_vec[idxMinScore_vec]
+      
+      # temp.largestAmount.asset: the least score assets score and index(>=1)
+      largestAmountResource_vec <- matrix(c(tempMinUnitQuantity_mat[i,idxMinScore_vec]*minUnitValue_mat[i,idxMinScore_vec],idxMinScore_vec),nrow=2,byrow=T)
+      if(length(largestAmountResource_vec[1,])>1){  
+        largestAmountResource_vec <- largestAmountResource_vec[,order(largestAmountResource_vec[1,],decreasing=T)]
+        # substitute in sortOptimal_mat
+        sortOptimal_mat[,1:length(largestAmountResource_vec[1,])]<- largestAmountResource_vec
+        colnames(sortOptimal_mat)[1:length(largestAmountResource_vec[1,])] <- colnames(largestAmountResource_vec)
+      }
+    }
+    optimalAsset_mat[i,2] <- resource_vec[sortOptimal_mat[2,1]]
+    tempMinUnitQuantity <- tempMinUnitQuantity_mat[,sortOptimal_mat[2,1]]
+    tempMinUnitQuantity_mat[,sortOptimal_mat[2,1]]<- tempMinUnitQuantity-callAmount_mat[i,1]/(1-haircut_mat[i,1])/minUnitValue_mat[,sortOptimal_mat[2,1]]
+    #for(m in 1:length(idxMinScore_vec)){
+    #  if(!is.element(temp.optimal.asset[m],optimalAsset_mat[,2])){
+    #    optimalAsset_mat[i,2] <- temp.optimal.asset[m]
+    #    break
+    #  }
+    #}
+    # if all possible assets have been selected as optimal of previous margin calls
+    # then, select the first asset
+    if(optimalAsset_mat[i,2]==''){
+      optimalAsset_mat[i,2] <- optimalResource_vec[1]
+    }
+  }
+  return(optimalAsset_mat)
+}
+
+DeriveOptimalAssetsV1 <- function(minUnitQuantity_mat,eli_mat,callAmount_mat,haircut_mat,minUnitValue_mat,
+                                  pref_vec,objParams_list,callId_vec,resource_vec){
+  callNum <- length(callId_vec); resourceNum <- length(resource_vec)
+  normCost_mat <- objParams_list$cost_mat
+  normLiquidity_mat <- objParams_list$liquidity_mat 
+  normOperation_mat <- objParams_list$operation_mat
+  
+  optimal_mat <- normOperation_mat*pref_vec[3]+normLiquidity_mat*pref_vec[2]+normCost_mat*pref_vec[1]
+  colnames(optimal_mat) <- resource_vec; rownames(optimal_mat)<-callId_vec
+  
+  optimalAsset_mat <- matrix(c(callId_vec,rep('', callNum)),nrow=callNum,ncol=2,dimnames = list(callId_vec,c('callId','assetCustacId')))
+  
+  tempMinUnitQuantity_mat <- minUnitQuantity_mat
+  for(i in 1:callNum){
+    idx1 <- which(eli_mat[i,]!=0)  # return elegible asset idx for mc[i]
+    temp_mat <- matrix(c(optimal_mat[i,idx1],idx1),nrow=2,byrow = T) # combine the asset cost and index together
+    # sort the asset per call by cost
+    if(length(temp_mat[1,])==1){       # if there's only one eligible asset, no need to sort.
+      sortOptimal_mat=temp_mat
+    }else{
+      sortOptimal_mat<-temp_mat[,order(temp_mat[1,])] # sort the cost, return the cost and asset idx in matrix
+    }
+    # if there are more than one assets have the same score, we cannot simply select the first one
+    # because this may cause the case that there are 3 assets have the same score for 3 calls
+    # if we just select the first asset, then it's possible this single asset is not sufficient to fulfill 
+    # all these 3 calls, but these three assets can fulfill one of the call respectively
+    
+    # selecting order:
+    # select the one which hasn't been selected to the previous call
+    # unless, they are from the same margin statment (deal with that in OW-379)
+    # Best approach, allocate the most sufficient asset to the largest call amount, deal with that later
+    # better to deal with that now
+    # round to 2 digits
+    idxMinScore_vec <- sortOptimal_mat[2,which(round(sortOptimal_mat[1,],2)==round(min(sortOptimal_mat[1,]),2))]
+    # if idxMinScore_vec contains only one element, don't need to sort
+    if(length(idxMinScore_vec) > 1){
+      optimalResource_vec <- resource_vec[idxMinScore_vec]
+      
+      # temp.largestAmount.asset: the least score assets score and index(>=1)
+      largestAmountResource_vec <- matrix(c(tempMinUnitQuantity_mat[i,idxMinScore_vec]*minUnitValue_mat[i,idxMinScore_vec],idxMinScore_vec),nrow=2,byrow=T)
+      if(length(largestAmountResource_vec[1,])>1){  
+        largestAmountResource_vec <- largestAmountResource_vec[,order(largestAmountResource_vec[1,],decreasing=T)]
+        # substitute in sortOptimal_mat
+        sortOptimal_mat[,1:length(largestAmountResource_vec[1,])]<- largestAmountResource_vec
+        colnames(sortOptimal_mat)[1:length(largestAmountResource_vec[1,])] <- colnames(largestAmountResource_vec)
+      }
+    }
+    optimalAsset_mat[i,2] <- resource_vec[sortOptimal_mat[2,1]]
+    tempMinUnitQuantity <- tempMinUnitQuantity_mat[,sortOptimal_mat[2,1]]
+    tempMinUnitQuantity_mat[,sortOptimal_mat[2,1]]<- tempMinUnitQuantity-callAmount_mat[i,1]/(1-haircut_mat[i,1])/minUnitValue_mat[,sortOptimal_mat[2,1]]
+    #for(m in 1:length(idxMinScore_vec)){
+    #  if(!is.element(temp.optimal.asset[m],optimalAsset_mat[,2])){
+    #    optimalAsset_mat[i,2] <- temp.optimal.asset[m]
+    #    break
+    #  }
+    #}
+    # if all possible assets have been selected as optimal of previous margin calls
+    # then, select the first asset
+    if(optimalAsset_mat[i,2]==''){
+      optimalAsset_mat[i,2] <- optimalResource_vec[1]
+    }
+  }
+  return(optimalAsset_mat)
+}
+
+ResultList2Df <- function(result_list,callId_vec){
+  result_df <- result_list[[callId_vec[1]]]
+  if(length(callId_vec)>1){
+    for(i in 2:length(callId_vec)){
+      alloc_df <- result_list[[callId_vec[i]]]
+      result_df <- rbind(result_df,alloc_df)
+    }
+  }
+  rownames(result_df) <- 1:length(result_df[,1])
+  return(result_df)
+}

@@ -1021,3 +1021,15 @@ DeriveOptimalAssetsV1 <- function(minUnitQuantity_mat,eli_mat,callAmount_mat,hai
   }
   return(optimalAsset_mat)
 }
+
+ResultList2Df <- function(result_list,callId_vec){
+  result_df <- result_list[[callId_vec[1]]]
+  if(length(callId_vec)>1){
+    for(i in 2:length(callId_vec)){
+      alloc_df <- result_list[[callId_vec[i]]]
+      result_df <- rbind(result_df,alloc_df)
+    }
+  }
+  rownames(result_df) <- 1:length(result_df[,1])
+  return(result_df)
+}
