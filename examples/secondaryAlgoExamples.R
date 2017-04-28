@@ -34,7 +34,7 @@ pref_vec<-c(10,0,0)
 algoVersion <- 2
 #### deselct the asset from all custodian accounts? Currently yes. Location 'loc1'
 dsAssetId <- 'SG76D1000009'
-dsCallId_vec <- c('mcp46','mcp38','mcp50')
+dsCallId_vec <- c('mcp50','mcp46','mcp38','mcp34')
 
 callInfo_df <- callInfoByCallId(callId_vec); callId_vec <- unique(callInfo_df$id)
 availAsset_df <- availAssetByCallIdAndClientId(callId_vec,clientId) # available asset for the margin call
@@ -91,7 +91,7 @@ for(m in 1:length(callId_vec)){
 #### Input Prepare END ##############
 
 #### Call Second Level Algo Start ###
-result <- callSecondAllocation(algoVersion,callId_vec, resource_vec,callInfo_df,availAsset_df,assetInfo_df,
+result <- CallSecondAllocation(algoVersion,callId_vec, resource_vec,callInfo_df,availAsset_df,assetInfo_df,
                      dsAssetId,dsCallId_vec,currentSelection_list,
                      pref_vec,operLimit,operLimitMs)
 result

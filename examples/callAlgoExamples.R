@@ -29,7 +29,7 @@ source("src/callLpSolve.R")
 callId_vec = c("mcp1","mcp38","mcp50")
 callId_vec = c("mcp46","mcp50","mcp47","mcp38","mcp7","mcp34","mcp35")
 clientId = '999';
-pref_vec = c(10,10,0);
+pref_vec = c(10,0,0);
 operLimit<- 2*length(callId_vec)
 
 #### get info
