@@ -651,10 +651,12 @@ AdjustResultVec <- function(solution_vec,varNum,varNum2,varNum3,msVar_mat){
   return(solution_vec)
 }
 
-CheckResultVec <- function(result_mat,quantityTotal_vec,callAmount_vec,minUnitValue_mat,haircut_mat,eli_mat){
+
+CheckResultVec <- function(result_mat,quantityTotal_vec,callId_vec,callAmount_vec,minUnitValue_mat,haircut_mat,eli_mat){
   #### CHECK ALLOCATION RESULT ###############
   # STATUS: Developing
   #
+  callNum <- length(callId_vec)
   # 1. whether all variables are non-negative
   idxNeg_vec <- which(result_mat<0)
   if(length(idxNeg_vec)>=1){
