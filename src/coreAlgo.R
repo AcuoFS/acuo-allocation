@@ -632,7 +632,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     
     #### Solve the Model Start ###############
     #### call lpSolve solver
-    cat('calls to be allocated:',callId_vec)
+
     solverOutput_list <- CallLpSolve(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
                                      lpType_vec=lpType_vec,lpKind_vec=lpKind_vec,lpLowerBound_vec=lpLowerBound_vec,lpUpperBound_vec=lpUpperBound_vec,lpBranchMode_vec=lpBranchMode_vec,
                                      lpGuessBasis_vec=lpGuessBasis_vec, 
@@ -655,7 +655,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     
     
     #### Adjust & Convert the Solver Result Start ######
-    solverSolution_vec <- AdjustResultVec(solverSolution_vec,solverStatus,varNum,varNum2,varNum3,msVar_mat)
+    solverSolution_vec <- AdjustResultVec(solverSolution_vec,varNum,varNum2,varNum3,msVar_mat)
     
     result_mat <- ResultVec2Mat(solverSolution_vec,callId_vec,resource_vec,idxEli_vec,varNum)
     #### Adjust & Convert the Solver Result END ######## 

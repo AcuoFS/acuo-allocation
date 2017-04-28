@@ -621,7 +621,7 @@ UsedQtyFromResultList <- function(result_list,resource_vec,callId_vec){ ## quant
   return(quantityUsed_vec)
 }
 
-AdjustResultVec <- function(solution_vec,solverStatus,varNum,varNum2,varNum3,msVar_mat){
+AdjustResultVec <- function(solution_vec,varNum,varNum2,varNum3,msVar_mat){
   
   # round up the decimal quantity to the nearest integer.
   # if it's larger than 0.5
