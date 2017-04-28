@@ -644,13 +644,6 @@ SecondAllocationAlgoAllMsV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
   for(i in 1:length(dsCallId_vec)){
     dsCallId <- dsCallId_vec[i]
     
-    #### Remove Deselect Asset in The AvailAsset_df For Testing Start ####
-    rmRow_vec <- which(availAssetTotal_df$callId==dsCallId & availAssetTotal_df$assetId==dsAssetId)
-    if(length(rmRow_vec)>=1){
-      availAssetTotal_df <- availAssetTotal_df[-rmRow_vec,]
-    }
-    #### Remove Deselect Asset in The AvailAsset_df For Testing END ######
-    
     #### Remove the Deselected Asset Start
     #### Only If the Asset is in the Selection
     idxTemp <- which(currentSelection_list[[dsCallId]]$Asset==dsAssetId)
@@ -668,6 +661,12 @@ SecondAllocationAlgoAllMsV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
       minUnitTotal_vec <- minUnitTotal_vec[match(assetInfoTotal_df$id,assetTotal_vec)]
       
       availAssetTotal_df <- UpdateQtyInAvailAsset(resourceTotal_vec,quantityTotalUsed_vec,availAssetTotal_df,'minUnit',F,minUnitTotal_vec)
+      
+      #### Remove Deselect Asset in The AvailAsset_df For Testing 
+      rmRow_vec <- which(availAssetTotal_df$callId==dsCallId & availAssetTotal_df$assetId==dsAssetId)
+      if(length(rmRow_vec)>=1){
+        availAssetTotal_df <- availAssetTotal_df[-rmRow_vec,]
+      }
       #### Update the Quantity of Resource END #######
       
       tempResult <- SecondAllocationAlgoV2(callId_vec,callInfo_df,resourceTotal_vec,availAssetTotal_df,assetInfoTotal_df,
