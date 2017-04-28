@@ -281,7 +281,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
     result_mat <- ResultVec2Mat(solverSolution_vec,callId_vec,resource_vec,idxEli_vec,varNum)
     #### Solve the Model END #################
     
-    result_mat <- CheckResultVec(result_mat,callId_vec,quantityTotal_vec,callInfo_df$callAmount,minUnitValue_mat,haircut_mat,eli_mat)
+    result_mat <- CheckResultVec(result_mat,quantityTotal_vec,callId_vec,callInfo_df$callAmount,minUnitValue_mat,haircut_mat,eli_mat)
     #### Update the Results END ############
     
   } # else if END

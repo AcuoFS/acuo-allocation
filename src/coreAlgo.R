@@ -662,7 +662,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     
   } # else if end
 
-  result_mat <- CheckResultVec(result_mat,callId_vec,quantityTotal_vec,callInfo_df$callAmount,minUnitValue_mat,haircut_mat,eli_mat)
+  result_mat <- CheckResultVec(result_mat,quantityTotal_vec,callId_vec,callInfo_df$callAmount,minUnitValue_mat,haircut_mat,eli_mat)
   
   #### Prepare Outputs Start #######################
   #### convert the result_mat to list
