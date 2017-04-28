@@ -147,6 +147,7 @@ ResultMat2List <- function(result_mat,resource_vec,availAsset_df,coreInput_list,
     #######
     # netAmount(in local currency) is surfacing in UI
     #######
+
     selectAsset_df <- data.frame(selectAssetId_vec,selectAssetName_vec,selectAssetNetAmount_vec,selectAssetNetAmountUSD_vec,selectAssetFX_vec,selectAssetHaircut_vec,selectAssetAmount_vec,selectAssetAmountUSD_vec,selectAssetCurrency_vec,
                                  selectAssetQuantity_vec,selectAssetCustodianAccount_vec,selectAssetVenue_vec,selectMarginType_vec,selectMs_vec,selectCall_vec)
     colnames(selectAsset_df)<- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType','marginStatement','marginCall')
@@ -620,7 +621,7 @@ UsedQtyFromResultList <- function(result_list,resource_vec,callId_vec){ ## quant
   return(quantityUsed_vec)
 }
 
-AdjustResultVec <- function(solution_vec,varNum,varNum2,varNum3,msVar_mat){
+AdjustResultVec <- function(solution_vec,solverStatus,varNum,varNum2,varNum3,msVar_mat){
   
   # round up the decimal quantity to the nearest integer.
   # if it's larger than 0.5

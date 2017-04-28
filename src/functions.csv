@@ -44,3 +44,6 @@ UsedQtyFromResultList,Used the quantity from availAsset_df
 AdjustResultVec,Adjust the solution(rounding)
 CheckResultVec,Check whether the solution meets all the requirements
 ConstructModelObj,Construct the objectives of the model
+DeriveOptimalAssetsV2,Determine the optimal asset based on the objective parameters optimizer version 2
+DeriveOptimalAssetsV1,Determine the optimal asset based on the objective parameters optimizer version 1
+ResultList2Df,Convert result list to data frame format
