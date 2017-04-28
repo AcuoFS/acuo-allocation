@@ -210,7 +210,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
       idxTempResource <- which(resource_vec==tempResource)
       result_mat[k,idxTempResource] <- assetSuffQty_mat[k,idxTempResource]
     }
-    status <- 'solved'
+    solverStatus <- 'solved'
     lpsolveRun <- FALSE
     solverObjValue <- -1
     #### Optimal Assets are Sufficient END #############
@@ -390,7 +390,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
                                      epsind=lpEpsind, scaling=lpScale,improve=lpImprove)
     
     #### Solver Outputs
-    status<- solverOutput_list$resultStatus
+    solverStatus<- solverOutput_list$resultStatus
     solverSolution_vec <- solverOutput_list$solverSolution_vec
     solverObjValue <- solverOutput_list$solverObjValue
     
@@ -630,7 +630,7 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
   return(list(msOutput_list=msSelect_list,availAsset_df=availAsset_df,
               varName_vec,varNum,
               callOutput_list=callSelect_list,checkCall_mat=checkCall_mat,
-              status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue))
+              solverStatus=solverStatus,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue))
 }
 
 
@@ -838,7 +838,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
       idxTempResource <- which(resource_vec==tempResource)
       result_mat[k,idxTempResource] <- assetSuffQty_mat[k,idxTempResource]
     }
-    status <- 'solved'
+    solverStatus <- 'solved'
     lpsolveRun <- FALSE
     solverObjValue <- -1
     #### Optimal Assets are Sufficient END #############
@@ -1066,7 +1066,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
                                      epsind=lpEpsind, scaling=lpScale,improve=lpImprove)
     
     #### solver outputs
-    status<- solverOutput_list$resultStatus
+    solverStatus<- solverOutput_list$resultStatus
     solverSolution_vec <- solverOutput_list$solverSolution_vec
     solverObjValue <- solverOutput_list$solverObjValue
     
@@ -1335,7 +1335,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
   
   return(list(msOutput_list=msSelect_list,availAsset_df=availAsset_df,
               callOutput_list=callSelect_list,checkCall_mat=checkCall_mat,
-              status=status,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue))
+              solverStatus=solverStatus,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue))
   
 }
 
