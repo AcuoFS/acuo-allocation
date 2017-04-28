@@ -2,7 +2,7 @@ Function Name,Role
 ,
 Main Function,
 CallAllocation,main function of the first level algo
-callSecondAllocation,main function of the second level algo
+CallSecondAllocation,main function of the second level algo
 ,
 Procedure Function,First Level
 AllocationAlgo,call different version of algo(optimizer)
@@ -13,9 +13,9 @@ CoreAlgoV2,operations as an constraint
 CallLpSolve,call the lpSolve solver to solve the optimization problem
 ,
 Procedure Function,Second Level
-SecondAllocationAlgoV*,
-SecondAllocationAlgoV1,
-SecondAllocationAlgoV2,
+SecondAllocationAlgoAllMsV2,main entrance of version 2 optimizer
+SecondAllocationAlgoV1,substitute from one margin call only version 1
+SecondAllocationAlgoV2,substitute from one margin call only version 2
 ,
 General Functions,Commonly used UDFs for Algo
 OrderCallId,sort the margin call ids in a specific order method
@@ -23,9 +23,9 @@ GroupCallIdByMs,split the margin statements into groups for the algo performance
 AllocationInputData,convert the related information for Algo into standard format
 ResultList2Mat,convert allocation result list to matrix
 ResultMat2List,convert result matrix to allocation result list
-CallList2Var,convert allocation result list to decision variable vector
-CallList2AmountVec,convert allocation result list to amount of resources vector
-VarVec2mat,convert vector to matrix
+ResultList2Vec,convert allocation result list to decision variable vector
+ResultList2AmountVec,convert allocation result list to amount of resources vector
+ResultVec2Mat,convert vector to matrix
 VarInfo,construct the decision variables names. 
 CostFun,compute allocation cost
 LiquidFun,compute allocation reserved liquidity ration
@@ -37,3 +37,10 @@ PasteVarName,"paste ms id, call id, resource id into variable name"
 SplitResource,split the resource into asset id and/or custodian account
 SplitVarName,split the variable name into ms id and/or call id and/or resource id
 renjinFix,fix the dataframe format for java framework
+UpdateQtyInAvailAsset,Update the quantity in availAsset_df by used or left quantity input
+GetQtyFromAvailAsset,Get the quantity from availAsset_df by used or left quantity fromput
+CheckQtyInAvailAsset,Check the quantity in availAsset_df by used or left quantity input
+UsedQtyFromResultList,Used the quantity from availAsset_df
+AdjustResultVec,Adjust the solution(rounding)
+CheckResultVec,Check whether the solution meets all the requirements
+ConstructModelObj,Construct the objectives of the model
