@@ -1,61 +1,93 @@
-callLpSolve <- function(lp.obj,lp.con,lp.dir,lp.rhs,
-                        lp.type=lp.type,lp.kind=lp.kind,lp.bounds.lower=lp.bounds.lower,lp.bounds.upper=lp.bounds.upper,lp.branch.mode=lp.branch.mode,
-                        ...){
+CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
+                        lpType_vec,lpKind_vec,lpLowerBound_vec,lpUpperBound_vec,lpBranchMode_vec,
+                        lpGuessBasis_vec,
+                        presolve,epsd,timeout,bbRule,epsind,
+                        scaling,improve){
+  library(lpSolveAPI)
   # input variables
-  # must have: lp.obj,lp.con,lp.dir,lp.rhs
-  # optional: lp.type,lp.kind,lp.bounds.lower,lp.bounds.upper,lp.branch.mode
+  # must have: lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec
+  # optional: lpType_vec,lpKind_vec,lpLowerBound_vec,lpUpperBound_vec,lpBranchMode_vec
   # optional: ...
   # if optional, then the default parameters will apply
-
+  
   # number of decision variables
-  var.num <- length(lp.con[1,])
-
+  varnum <- length(lpCon_mat[1,])
+  
   # make model
-  lps.model <- make.lp(0,var.num)
-
+  lpModel <- make.lp(0,varnum)  
+  name.lp(lpModel, 'Optimal Allocation')
+  
   # set objective
-  set.objfn(lps.model,lp.obj)
-
+  set.objfn(lpModel,lpObj_vec)                    
+  
   # set constraints
-  for (i in 1:length(lp.con[,1])){
-    add.constraint(lps.model,lp.con[i,],lp.dir[i],lp.rhs[i])
+  for (i in 1:length(lpCon_mat[,1])){    
+    t1 = sum(is.na(lpCon_mat[i,]))
+    t2 = sum(is.na(lpDir_vec[i]))
+    t3 = sum(is.na(lpRhs_vec[i]))
+    if((t1+t2+t3>=1)){
+      print(lpCon_mat[i,])
+      print(lpDir_vec[i])
+      print(lpRhs_vec[i])
+    }
+    
+    add.constraint(lpModel,lpCon_mat[i,],lpDir_vec[i],lpRhs_vec[i])
   }
-
-  if(!missing(lp.kind)){
+  
+  if(!missing(lpKind_vec)){
     # set semi-continuous variables
-    semi.idx <- which(lp.kind=='semi-continuous')
-    set.semicont(lps.model,semi.idx,TRUE)
+    idxSemi_vec <- which(lpKind_vec=='semi-continuous')
+    set.semicont(lpModel,idxSemi_vec,TRUE)        
   }
-
-  if(!missing(lp.type)){
+  
+  if(!missing(lpType_vec)){
     # set integer variables
-    int.idx <- which(lp.type=='integer')
-    set.type(lps.model,int.idx,'integer')
+    idxInt_vec <- which(lpType_vec=='integer')
+    set.type(lpModel,idxInt_vec,'integer')
   }
-
-  if(!(missing(lp.bounds.lower)|| missing(lp.bounds.upper))){
+  
+  if(!(missing(lpLowerBound_vec)|| missing(lpUpperBound_vec))){
     # set variables bounds
-    set.bounds(lps.model,lower=lp.bounds.lower,upper=lp.bounds.upper)
+    set.bounds(lpModel,lower=lpLowerBound_vec,upper=lpUpperBound_vec)
   }
-
-  if(!missing(lp.branch.mode)){
+  
+  if(!missing(lpBranchMode_vec)){
     # set branch mode
-    for(k in 1:length(lp.branch.mode)){
-      set.branch.mode(lps.model,k,lp.branch.mode[k])
+    for(k in 1:length(lpBranchMode_vec)){
+      set.branch.mode(lpModel,k,lpBranchMode_vec[k])
+    }  
+  }
+  
+  # guess basis
+  if(!missing(lpGuessBasis_vec)){
+    if(!all(lpGuessBasis_vec==0)){
+      guess.basis(lpModel,lpGuessBasis_vec)
     }
   }
-
+  
   # set control options
-  lp.control(lps.model,...)
-
+  lp.control(lpModel,presolve=presolve,epsd=epsd,timeout=timeout,bb.rule=bbRule,epsind=epsind,
+             scaling=scaling,improve=improve,verbose='normal')
+  
   # solve the problem
-  result.status <- solve(lps.model)
-
+  resultStatus <- solve(lpModel)  
+  
+  #print('constraint: ')
+  #print(get.constraints(lpModel))
+  
+  
+  # write the model to output file
+  date <- format(Sys.time(), "%d%b%Y")
+  dir <- 'Result/'
+  filename <- paste(dir,'lpModel',date,'.lp',sep='')
+  write.lp(lpModel,filename,'lp')
+  
+  
   # get the variables(minUnitQuantity)
-  lpSolveAPI.solution <- get.variables(lps.model)
-
+  solverSolution_vec <- get.variables(lpModel)
+  
   # get the objective
-  result.objective <- get.objective(lps.model)
-
-  return(list(result.status=result.status,lpSolveAPI.solution=lpSolveAPI.solution,result.objective=result.objective))
+  solverObjValue <- get.objective(lpModel)
+  
+  return(list(resultStatus=resultStatus,solverSolution_vec=solverSolution_vec,solverObjValue=solverObjValue))
 }
