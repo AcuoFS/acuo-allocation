@@ -1,7 +1,8 @@
 CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
                         lpType_vec,lpKind_vec,lpLowerBound_vec,lpUpperBound_vec,lpBranchMode_vec,
                         lpGuessBasis_vec,
-                        ...){
+                        presolve,epsd,timeout,bbRule,epsind,
+                        scaling,improve){
   library(lpSolveAPI)
   # input variables
   # must have: lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec
@@ -65,7 +66,8 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
   }
   
   # set control options
-  lp.control(lpModel,...)
+  lp.control(lpModel,presolve=presolve,epsd=epsd,timeout=timeout,bb.rule=bbRule,epsind=epsind,
+             scaling=scaling,improve=improve,verbose='normal')
   
   # solve the problem
   resultStatus <- solve(lpModel)  
