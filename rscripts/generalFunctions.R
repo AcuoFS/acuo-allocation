@@ -150,6 +150,7 @@ ResultMat2List <- function(result_mat,resource_vec,availAsset_df,coreInput_list,
     selectAsset_df <- data.frame(selectAssetId_vec,selectAssetName_vec,selectAssetNetAmount_vec,selectAssetNetAmountUSD_vec,selectAssetFX_vec,selectAssetHaircut_vec,selectAssetAmount_vec,selectAssetAmountUSD_vec,selectAssetCurrency_vec,
                                  selectAssetQuantity_vec,selectAssetCustodianAccount_vec,selectAssetVenue_vec,selectMarginType_vec,selectMs_vec,selectCall_vec)
     colnames(selectAsset_df)<- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType','marginStatement','marginCall')
+    rownames(selectAsset_df)<- 1:length(selectAsset_df[,1])
     
     callSelect_list[[callId_vec[i]]] <- selectAsset_df
     if(is.null(msSelect_list[[msId_vec[j]]])){
@@ -157,6 +158,7 @@ ResultMat2List <- function(result_mat,resource_vec,availAsset_df,coreInput_list,
     } else{
       tempAsset_df <- msSelect_list[[msId_vec[j]]]
       selectAsset_df <- rbind(selectAsset_df,tempAsset_df)
+      rownames(selectAsset_df)<- 1:length(selectAsset_df[,1])
       msSelect_list[[msId_vec[j]]] <- selectAsset_df
     }
   }
