@@ -655,7 +655,8 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     
     
     #### Adjust & Convert the Solver Result Start ######
-    solverSolution_vec <- AdjustResultVec(solverSolution_vec,varNum,varNum2,varNum3,msVar_mat)
+    solverSolution_vec <- AdjustResultVec(solverSolution_vec,varNum,varNum2,varNum3,msVar_mat,
+                                          callAmount_vec[idxEli_vec],minUnitQuantity_vec[idxEli_vec],minUnitValue_vec[idxEli_vec])
     
     result_mat <- ResultVec2Mat(solverSolution_vec,callId_vec,resource_vec,idxEli_vec,varNum)
     #### Adjust & Convert the Solver Result END ######## 

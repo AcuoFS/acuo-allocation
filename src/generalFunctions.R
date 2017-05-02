@@ -621,13 +621,18 @@ UsedQtyFromResultList <- function(result_list,resource_vec,callId_vec){ ## quant
   return(quantityUsed_vec)
 }
 
-AdjustResultVec <- function(solution_vec,varNum,varNum2,varNum3,msVar_mat){
+AdjustResultVec <- function(solution_vec,varNum,varNum2,varNum3,msVar_mat,
+                            callAmount_vec,minUnitQuantity_vec,minUnitValue_vec){
   
   # round up the decimal quantity to the nearest integer.
   # if it's larger than 0.5
   # if close to 0, then set both real and dummies to 0, and if this action causes the 
   # the insufficiency of the total amount, make it up at the checking module
   # not only update result_mat but also the original solution_vec
+ 
+  # Round the extreme values E to a reasonable number R
+  # extreme definition: ext = min(quantity limit,2*margin call)
+  # reasonable number definition: rea = min(quantity limit, margin call)
   
   solNum1_vec <- solution_vec[1:varNum]
   solNum2_vec <- solution_vec[(varNum+1):varNum2]
@@ -635,6 +640,13 @@ AdjustResultVec <- function(solution_vec,varNum,varNum2,varNum3,msVar_mat){
   # Rounding
   solNum1_vec[which(solNum1_vec >= 0.5)] <- ceiling(solNum1_vec[which(solNum1_vec >= 0.5)])
   solNum1_vec[which(solNum1_vec < 0.5)] <- 0
+  
+  ext <- pmin(minUnitQuantity_vec,2*callAmount_vec/minUnitValue_vec)
+  rea <- pmin(minUnitQuantity_vec,2*callAmount_vec/minUnitValue_vec)
+  extIdx_vec <- which((solNum1_vec>=ext)==TRUE)
+  solNum1_vec[extIdx_vec] <- rea[extIdx_vec]
+  
+  
   
   solNum2_vec <- 1*(solNum1_vec & 1) # recalculate the dummy value
   
