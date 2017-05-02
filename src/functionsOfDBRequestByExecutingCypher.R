@@ -8,7 +8,7 @@ availAssetByCallIdAndClientIdCypherPath <- 'https://raw.githubusercontent.com/Ac
 assetInfoByAssetIdCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/assetInfoByAssetId.cql'
 eliAssetByClientIdCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/eliAssetByClientId.cql'
 resAssetByClientIdCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/resAssetByClientId.cql'
-
+callIdByAgreementIdPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/callIdByAgreementId.cql'
 
 executeCypher <- function(path,...){
   params <- list(...)
@@ -36,4 +36,8 @@ eliAssetByClientId <- function(clientId){
 
 resAssetByClientId <- function(clientId){
   executeCypher(path=resAssetByClientIdCypherPath,clientId=clientId)
+}
+
+callIdByAgreementId <- function(agreementId){
+  executeCypher(path=callIdByAgreementIdPath,agreementId=agreementId)
 }
