@@ -1,5 +1,5 @@
   
-CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit,minMoveValue,initAllocation_list){
+CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit,operLimitMs,minMoveValue,initAllocation_list){
 
   #### Prepare Parameters Start #############################
   pref_vec <- pref_vec/sum(pref_vec[1:2]) # Recalculate the parameters weight setting
@@ -89,7 +89,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
   idxEli_vec <- which(eli_vec==1)  
   #### Construct Variable Names END ########
   
-  if(!is.element(0,ifSelectAssetSuff_vec)){
+  if(1*(!is.element(0,ifSelectAssetSuff_vec))){
     
     # exception
     # USD is optimal for VM in ms1, and xxx Equity is optimal for IM in ms1
