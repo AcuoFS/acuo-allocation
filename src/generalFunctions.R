@@ -664,6 +664,31 @@ AdjustResultVec <- function(solution_vec,varNum,varNum2,varNum3,msVar_mat,
   return(solution_vec)
 }
 
+AllocateByRank <- function(resource_vec,callId,rank_vec,callAmount,quantity_vec,minUnitValue_vec,haircut_vec,operLimit){
+  ## rank_mat(scores assume using purely each asset)
+  ## names(rank_mat)=resources, value: score
+  
+  # process
+  # find the optimal resources within number of (operLimit) which are sufficient for the call
+  solution_vec <- rep(0,length(resource_vec))
+  if(operLimit<2){ # operLimit=1
+    integralSuffQty_vec <- ceiling(callAmount/(1-haircut_vec)/minUnitValue_vec)
+    suffIdx_vec <- which(quantity_vec >= integralSuffQty_vec)
+    if(length(suffIdx_vec)==0){
+      errormsg <- paste('It is not sufficient to allocate',floor(operLimit),'assets for',callId,'!')
+      stop(errormsg)
+    } else{
+      suffResource_vec <- resource_vec[suffIdx_vec]
+      tempIdx <- which.max(rank_vec[suffIdx_vec])
+      optimalResource <- suffResource_vec[tempIdx]
+      optimalIdx <- which(resource_vec==optimalResource)
+      quantity <- integralSuffQty_vec[optimalIdx]
+      solution_vec[optimalIdx] <- quantity
+    }
+  }
+  return(solution_vec)
+}
+
 CheckResultVec <- function(result_mat,quantityTotal_vec,callId_vec,callAmount_vec,minUnitValue_mat,haircut_mat,eli_mat){
   #### CHECK ALLOCATION RESULT ###############
   # STATUS: Developing
@@ -674,6 +699,8 @@ CheckResultVec <- function(result_mat,quantityTotal_vec,callId_vec,callAmount_ve
   if(length(idxNeg_vec)>=1){
     result_mat[idxNeg_vec] <-0 # set to 0 first, then check the other two criteria
   }
+  # whether meet the constraint
+  
   
   # 2. whether statisfy the quantity limits
   quantityUsed_vec <- apply(result_mat,2,sum)

@@ -105,7 +105,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
     callIdGroup_vec <- groupCallId_list[[i]]
     msIdGroup_vec <- unique(callInfo_df$marginStatement[which(callInfo_df$id %in% callIdGroup_vec)])
     operLimitGroup <- operLimit*ratio
-    cat(' group:',i,'\n','callId_vec:',callIdGroup_vec,'\n')
+    #cat(' group:',i,'\n','callId_vec:',callIdGroup_vec,'\n')
     
     callInfoGroup_df <- callInfo_df[match(callIdGroup_vec,callInfo_df$id),]
     availAssetGroup_df <- availAsset_df[which(availAsset_df$callId %in% callIdGroup_vec),]
@@ -144,7 +144,6 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
       #print('availAssetPre_df:'); print(availAssetPre_df)
       
       callOutputPreGroup_list <- res$callOutput_list
-      resultPre_list <- res$resultGroup_list
       checkCallPre_mat <- res$checkCall_mat
       callOutputPre_list[[callId]] <- callOutputPreGroup_list[[callId]]
     }
@@ -153,7 +152,8 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
     # callOutputPre_list
     # availAssetPre_df # don't need, solver will auto deduct the quantity while solving
     # combine into a single list: preAllocation_list
-    
+    #cat('callIdGroup_vec',callIdGroup_vec,'\n')
+    #print(callOutputPre_list)
     initAllocation_list <- callOutputPre_list # currently, store all the cumulated margin calls
     #### Pre-allocate End ########################
     
@@ -278,7 +278,7 @@ PreAllocation <- function(algoVersion,callIdGroup_vec,callInfo_df,availAsset_df,
   lpsolveRun <- resultGroup_list$lpsolveRun
   solverObjValue <- resultGroup_list$solverObjValue
   checkCallGroup_mat <- resultGroup_list$checkCall_mat
-  
+
   # update the availAsset 
   availAssetGroup_df <- resultGroup_list$availAsset_df
   availAsset_df[which(availAsset_df$callId %in% callIdGroup_vec),] <- availAssetGroup_df
@@ -292,7 +292,7 @@ PreAllocation <- function(algoVersion,callIdGroup_vec,callInfo_df,availAsset_df,
     checkCall_mat[which(rownames(checkCall_mat)==callId),2] <- checkCallGroup_mat[which(rownames(checkCallGroup_mat)==callId),2]
   }
   
-  solveOutput_list <- list(resultGroup_list=resultGroup_list,availAssetGroup_df=availAssetGroup_df,checkCall_mat=checkCall_mat,callOutput_list=callOutput_list)
+  solveOutput_list <- list(availAssetGroup_df=availAssetGroup_df,checkCall_mat=checkCall_mat,solverStatus=solverStatus,callOutput_list=callOutput_list)
   return(solveOutput_list)
 }
 

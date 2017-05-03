@@ -600,10 +600,10 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     if(!missing(initAllocation_list)){
       # the initial guess must be a feasible point
       lpGuessBasis_vec<-ResultList2Vec(initAllocation_list,callId_vec,minUnit_vec,varName_vec,varNum3,varNum,idxEli_vec)
-      if(length(lpCon_mat[,1])==518){
+      if(length(lpCon_mat[,1])==341){
         ## constraint pre-check
-        cons <- rep(0,518); 
-        for(i in 1:518){cons[i]=sum(lpCon_mat[i,]* lpGuessBasis_vec);
+        cons <- rep(0,341); 
+        for(i in 1:341){cons[i]=sum(lpCon_mat[i,]* lpGuessBasis_vec);
         }
         l2 <- length(fRhs2_vec)
         l3 <- length(fRhs3_vec)
@@ -645,13 +645,19 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     #### Solve the Model END #################
     
     
-    #### Exception: Solver time out Start ####
+    #### Exception Start ####
     errStatus <- c(2,5,6,7,10,13)
-    if(solverStatus==7){
+    
+    if(solverStatus==7){ # Solver time out
       #### choose the best alternative
       solverSolution_vec <- lpGuessBasis_vec
+    } else if(solverStatus==2 & callNum==1){ # Infeasible model
+      rank_vec <- normCost_mat*pref_vec[1]+normLiquidity_mat*pref_vec[2]
+      callAmount <- callInfo_df$callAmount
+      solverSolution_vec <- AllocateByRank(resource_vec[idxEli_vec],callId,rank_vec,callAmount,minUnitQuantity_vec[idxEli_vec],minUnitValue_vec[idxEli_vec],haircut_vec[idxEli_vec],operLimit)
     }
-    #### Exception: Solver time out END ######
+    
+    #### Exception END ######
     
     
     #### Adjust & Convert the Solver Result Start ######
