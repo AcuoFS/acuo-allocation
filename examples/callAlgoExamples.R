@@ -21,16 +21,16 @@ source("src/callLpSolve.R")
 #### Sources END ###########
 
 #### Input Prepare Start ###########
-#callId_vec = c("mcp50")
-#callId_vec = c("mcp43")
-#callId_vec = c("mcp1","mcp5","mcp7","mcp50")
-#callId_vec = c("mcp1","mcp5","mcp7","mcp38","mcp20","mcp22","mcp15","mcp30","mcp50","mcp51")
-#callId_vec = c("mcp32","mcp33","mcp37","mcp26","mcp39");
-callId_vec = c("mcp1","mcp38","mcp50")
+#callId_vec = c("mcp1","mcp38","mcp50")
 callId_vec = c("mcp46","mcp50","mcp47","mcp38","mcp7","mcp34","mcp35")
+
+#agreementId_vec <- c('a1','a34')
+#callId_vec <- unname(unlist(callIdByAgreementId(agreementId_vec)))
 clientId = '999';
 pref_vec = c(10,0,0);
-operLimit<- 2*length(callId_vec)
+operLimit<- 1*length(callId_vec)
+operLimitMs <- 1
+#operLimit <- 4
 
 #### get info
 callInfo_df <- callInfoByCallId(callId_vec); callInfo_df<- callInfo_df[match(callId_vec,callInfo_df$id),]
@@ -59,15 +59,15 @@ algoVersion <- 2
 
 # scenario 1: Algo Suggestion
 result1 <- CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
-                          callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
+                          callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,operLimitMs)
 
 # scenario 2: Post Settlement Currency
 result2 <- CallAllocation(algoVersion,scenario=2,callId_vec,resource_vec,
-                          callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
+                          callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,operLimitMs)
 
 # scenario 3: post least liquid assets
 result3 <- CallAllocation(algoVersion,scenario=3,callId_vec,resource_vec,
-                          callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
+                          callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,operLimitMs)
 scenarios[['Algo']] <- result1
 scenarios[['SettleCCY']] <- result2
 scenarios[['LeastLiquid']] <- result3

@@ -80,8 +80,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
   checkCall_mat <- matrix(c(callInfo_df$callAmount,rep(0,callNum)),nrow=callNum, dimnames = list(callId_vec,c('callAmount','fulfilledAmount')))
   #### Input Prepare & Output Initialization END #############
 
-  #### If Movement Limit Is 1 Per Margin Statement
-  
+  #### Case When Movement Limit Is 1 Per Margin Statement Start ####
   if(operLimitMs==1){
     for(i in 1:msNum){
       msId <- msId_vec[i]
@@ -154,7 +153,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
     # update the available resource based on the new availAsset_df
     resource_vec <- unique(availAsset_df$assetCustacId)
   }
-  
+  #### Case When Movement Limit Is 1 Per Margin Statement END ######
   
   ############ ITERATE THE GROUP, RUN THE ALGO Start #########################
 
