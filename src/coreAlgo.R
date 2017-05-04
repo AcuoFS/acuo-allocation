@@ -1,23 +1,23 @@
   
-CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit,operLimitMs,minMoveValue,initAllocation_list){
+CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit,operLimitMs,fungible,minMoveValue,initAllocation_list){
 
   #### Prepare Parameters Start #############################
   pref_vec <- pref_vec/sum(pref_vec[1:2]) # Recalculate the parameters weight setting
   callId_vec<-coreInput_list$callId_vec
   resource_vec<-coreInput_list$resource_vec
   
-  msId_vec <- unique(callInfo_df$marginStatement)
-  
   callInfo_df <- renjinFix(coreInput_list$callInfo_df, "callInfo.")
   assetInfo_df <- renjinFix(coreInput_list$assetInfo_df, "assetInfo.")
   availAsset_df <- renjinFix(availAsset_df,"availAsset.")
   
+  msId_vec <- unique(callInfo_df$marginStatement)
   custodianAccount <- coreInput_list$custodianAccount  
   venue <- coreInput_list$venue
   
   callNum <- length(callId_vec)            # total margin call number
   resourceNum <- length(resource_vec)          # total asset number
-  
+  msNum <- length(msId_vec)
+    
   base_mat <- coreInput_list$base_mat
   eli_mat <- coreInput_list$eli_mat; eli_vec <- coreInput_list$eli_vec                    # eligibility matrix & vector
   haircut_mat<-coreInput_list$haircut_mat; haircut_vec <- coreInput_list$haircut_vec      # haircut mat & vec
@@ -144,7 +144,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     # variable kind: semi-continuous, value below 'a' will automately set to 0
     #
     #### MODEL SETUP END ####################################################
-    
+
     #### Build the Optimization Model Start #######
     # objective function
     
@@ -231,6 +231,30 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     fDir8_vec <- c('<=')
     fRhs8_vec <- c(operLimit)
     
+    
+    #### set the movements limit per margin statement if fungible=FALSE
+    # the total limit is not necessary in theory, but it's better keep it until proven
+    if(fungible==FALSE){
+      # will be number of margin statements constraints
+      fCon9_mat <- matrix(0,nrow=msNum,ncol=varNum3)
+      for(i in 1:msNum){
+        msId <- msId_vec[i]
+        idxTemp1_vec <- which(varName_mat[1,(varNum+1):varNum2]==msId)
+        idx1_vec <- varNum+idxTemp1_vec
+        fCon9_mat[i,idx1_vec] <- 1
+        if(varNum3>varNum2){
+          # find the correspond dummy-dummy
+          # check the matched pairs of msVar_mat in idx1_vec
+          matchedRow1_vec <- na.omit(match(idx1_vec,msVar_mat[,1]))
+          matchedRow2_vec <- na.omit(match(idx1_vec,msVar_mat[,2]))
+          matchedRow_vec <- match(matchedRow1_vec,matchedRow2_vec)
+          fCon9_mat[i,varNum2+matchedRow_vec] <- -1
+        }
+      }
+      fDir9_vec <- rep('<=',msNum)
+      fRhs9_vec <- rep(operLimitMs,msNum)
+    }
+    
     #### Build the Optimization Model END ########
     
     #### Solver Inputs Start #####################
@@ -247,18 +271,15 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     
     lpObj_vec <- fObj_vec
     if(varNum3>varNum2){
-      lpCon_mat <- rbind(fCon2_mat,fCon3_mat,fCon4_mat,fCon5_mat,fCon6_mat,fCon7_mat,fCon8_mat)
-      lpDir_vec <- c(fDir2_vec,fDir3_vec,fDir4_vec,fDir5_vec,fDir6_vec,fDir7_vec,fDir8_vec)
-      lpRhs_vec <- c(fRhs2_vec,fRhs3_vec,fRhs4_vec,fRhs5_vec,fRhs6_vec,fRhs7_vec,fRhs8_vec)
+      lpCon_mat <- rbind(fCon2_mat,fCon3_mat,fCon4_mat,fCon5_mat,fCon6_mat,fCon7_mat,fCon8_mat,fCon9_mat)
+      lpDir_vec <- c(fDir2_vec,fDir3_vec,fDir4_vec,fDir5_vec,fDir6_vec,fDir7_vec,fDir8_vec,fDir9_vec)
+      lpRhs_vec <- c(fRhs2_vec,fRhs3_vec,fRhs4_vec,fRhs5_vec,fRhs6_vec,fRhs7_vec,fRhs8_vec,fRhs9_vec)
     } else{
       lpCon_mat <- rbind(fCon2_mat,fCon3_mat,fCon4_mat,fCon5_mat,fCon8_mat)
       lpDir_vec <- c(fDir2_vec,fDir3_vec,fDir4_vec,fDir5_vec,fDir8_vec)
       lpRhs_vec <- c(fRhs2_vec,fRhs3_vec,fRhs4_vec,fRhs5_vec,fRhs8_vec)      
     }
     
-    if(length(lpCon_mat[,1])==518){
-      #stop('Let us debug!')
-    }
     lpKind_vec <- rep('semi-continuous',varNum3)
     lpType_vec <- rep('real',varNum3)
     lpType_vec[which(minUnitValue_vec[idxEli_vec]>=1)] <- 'integer'
@@ -277,7 +298,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     lpUpperBound_vec <- c(minUnitQuantity_vec[idxEli_vec],rep(1,varNum3-varNum))
     lpBranchMode_vec <- c(rep('auto',varNum),rep('auto',varNum3-varNum))
 
-    lpPresolve <- ifelse(callNum<=5,'none','knapsack')
+    lpPresolve <- ifelse(callNum<=10,'none','knapsack')
     lpEpsd <- 1e-9
     lpEpsind <- 1e-9
     lpTimeout <- timeLimit
@@ -292,29 +313,6 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     if(!missing(initAllocation_list)){
       # the initial guess must be a feasible point
       lpGuessBasis_vec<-ResultList2Vec(initAllocation_list,callId_vec,minUnit_vec,varName_vec,varNum3,varNum,idxEli_vec)
-      if(length(lpCon_mat[,1])==341){
-        ## constraint pre-check
-        cons <- rep(0,341); 
-        for(i in 1:341){cons[i]=sum(lpCon_mat[i,]* lpGuessBasis_vec);
-        }
-        l2 <- length(fRhs2_vec)
-        l3 <- length(fRhs3_vec)
-        l4 <- length(fRhs4_vec)
-        l5 <- length(fRhs5_vec)
-        l6 <- length(fRhs6_vec)
-        l7 <- length(fRhs7_vec)
-        l8 <- length(fRhs8_vec)
-        
-        
-        all(cons[1:l2]<=lpRhs_vec[1:l2]); temp <- l2
-        all(cons[(temp+1):(temp+l3)] >= lpRhs_vec[(temp+1):(temp+l3)]); temp<- temp+l3
-        all(cons[(temp+1):(temp+l4)] <= lpRhs_vec[(temp+1):(temp+l4)]); temp<- temp+l4
-        all(cons[(temp+1):(temp+l5)] >= lpRhs_vec[(temp+1):(temp+l5)]); temp<- temp+l5
-        all(cons[(temp+1):(temp+l6)] >= lpRhs_vec[(temp+1):(temp+l6)]); temp<- temp+l6
-        all(cons[(temp+1):(temp+l7)] >= lpRhs_vec[(temp+1):(temp+l7)]); temp<- temp+l7
-        all(cons[(temp+1):(temp+l8)] <= lpRhs_vec[(temp+1):(temp+l8)]); temp<- temp+l8
-      }
-     # stop('Let us debug!')
     }
     
     #guessValue <- sum(fObj_vec*lpGuessBasis_vec)

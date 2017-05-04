@@ -1,6 +1,6 @@
 
 #### Main Function-Interface of Java Start #######
-CallAllocation <- function(algoVersion,scenario,callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,operLimitMs){
+CallAllocation <- function(algoVersion,scenario,callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,operLimitMs,fungible){
   #### Scenario Code Start #########
   # scenario = 1, Algo suggestion
   # scenario = 2, post settlement cash only
@@ -15,7 +15,7 @@ CallAllocation <- function(algoVersion,scenario,callId_vec,resource_vec,callInfo
   #### Scenario: Algo suggestion: #####
   if(scenario==1){
     result <- AllocationAlgo(callId_vec,resource_vec,resource_vec,
-                             callInfo_df,availAsset_df,availAsset_df,assetInfo_df,assetInfo_df,pref_vec,operLimit,operLimitMs,
+                             callInfo_df,availAsset_df,availAsset_df,assetInfo_df,assetInfo_df,pref_vec,operLimit,operLimitMs,fungible,
                              algoVersion,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod)
   } else if(scenario==2){
     
@@ -43,12 +43,12 @@ CallAllocation <- function(algoVersion,scenario,callId_vec,resource_vec,callInfo
     assetInfoCash_df <- assetInfoCash_df[match(assetIdCash_vec,assetInfoCash_df$id),]
     
     result <- AllocationAlgo(callId_vec,resourceCash_vec,resource_vec,
-                             callInfo_df,availAssetCash_df,availAsset_df,assetInfoCash_df,assetInfo_df,pref_vec,operLimit,operLimitMs,
+                             callInfo_df,availAssetCash_df,availAsset_df,assetInfoCash_df,assetInfo_df,pref_vec,operLimit,operLimitMs,fungible,
                              algoVersion,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod)
   } else if(scenario==3){
     pref_vec <- c(0,10,0)
     result <- AllocationAlgo(callId_vec,resource_vec,resource_vec,
-                             callInfo_df,availAsset_df,availAsset_df,assetInfo_df,assetInfo_df,pref_vec,operLimit,operLimitMs,
+                             callInfo_df,availAsset_df,availAsset_df,assetInfo_df,assetInfo_df,pref_vec,operLimit,operLimitMs,fungible,
                              algoVersion,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod)
   } else{
     stop('Please input a valid scenario!')
@@ -59,7 +59,7 @@ CallAllocation <- function(algoVersion,scenario,callId_vec,resource_vec,callInfo
 
 
 #### CONNECT TO THE CORE MODULE OF OPTIMIZATION ####################
-AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,availAsset_df,availAssetOri_df,assetInfo_df,assetInfoOri_df,pref_vec,operLimit,operLimitMs,
+AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,availAsset_df,availAssetOri_df,assetInfo_df,assetInfoOri_df,pref_vec,operLimit,operLimitMs,fungible,
                            algoVersion,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod){
   
   #### Input Prepare & Output Initialization Start ###########
@@ -184,7 +184,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
       msId <- msIdGroup_vec[ms]
       callIdx_vec <- which(callInfoGroup_df$marginStatement==msId)
       callIdOneMs_vec <- callInfoGroup_df$id[callIdx_vec]
-      res <- PreAllocation(algoVersion,callIdOneMs_vec,callInfoPre_df,availAssetPre_df,assetInfoPre_df,pref_vec,operLimitMs,minMoveValue,timeLimit,callOutput_list,checkCall_mat)
+      res <- PreAllocation(algoVersion,callIdOneMs_vec,callInfoPre_df,availAssetPre_df,assetInfoPre_df,pref_vec,operLimitMs,operLimitMs,fungible,minMoveValue,timeLimit,callOutput_list,checkCall_mat)
       availAssetPreGroup_df <- res$availAssetGroup_df # availAssetPreGroup_df: the available asset for current margin call(done in PreAllocate)
       
       
@@ -216,7 +216,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
     if(algoVersion==1){
       resultGroup_list <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue)#,initAllocation_list)
     } else if(algoVersion==2){
-      resultGroup_list <- CoreAlgoV2(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,operLimitGroup,minMoveValue,initAllocation_list)
+      resultGroup_list <- CoreAlgoV2(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,operLimitGroup,operLimitMs,fungible,minMoveValue,initAllocation_list)
     }
     #### Run CoreAlgo END ########################
     
@@ -304,7 +304,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
     solverStatus=solverStatus,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue,resultAnalysis=resultAnalysis))
 }
 
-PreAllocation <- function(algoVersion,callIdGroup_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,minMoveValue,timeLimit,callOutput_list,checkCall_mat){
+PreAllocation <- function(algoVersion,callIdGroup_vec,callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,operLimitMs,fungible,minMoveValue,timeLimit,callOutput_list,checkCall_mat){
   
   msIdGroup_vec <- unique(callInfo_df$marginStatement[which(callInfo_df$id %in% callIdGroup_vec)])
   callInfoGroup_df <- callInfo_df[match(callIdGroup_vec,callInfo_df$id),]
@@ -320,7 +320,7 @@ PreAllocation <- function(algoVersion,callIdGroup_vec,callInfo_df,availAsset_df,
   if(algoVersion==1){
     resultGroup_list <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue)
   } else if(algoVersion==2){
-    resultGroup_list <- CoreAlgoV2(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,operLimit,operLimitMs,minMoveValue)
+    resultGroup_list <- CoreAlgoV2(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,operLimit,operLimitMs,fungible,minMoveValue)
   }
   #msOutputGroup_list <- resultGroup_list$msOutput_list
   callOutputGroup_list <- resultGroup_list$callOutput_list
