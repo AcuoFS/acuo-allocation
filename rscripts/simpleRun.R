@@ -45,7 +45,9 @@ pref_vec <- pref
 #print('callId_vec'); print(callId_vec)
 ## CALL THE ALLOCATION FUNCTION ###########
 algoVersion <- 2
-operLimit<- 2*length(callId_vec)
+operLimitMs <- 2
+operLimit<- operLimitMs*length(unique(callInfo_df$marginStatement))
+fungible <- FALSE
 
 if(length(callId_vec)==0){
   stop('Empty margin call ids!')
@@ -67,7 +69,7 @@ if(length(assetInfo_df)==0){
 }
 
 result <- CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
-                          callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
+                         callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,operLimitMs,fungible)
 result1 <- result
 if(length(result$callOutput)==0){
   print('empty callOutput: ')

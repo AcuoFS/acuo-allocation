@@ -35,8 +35,9 @@ assetId_vec <- unique(SplitResource(resource_vec,'asset'))
 assetInfo_df <- assetInfoByAssetId
 assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
 
-operLimitMs <- 3
+operLimitMs <- 2
 operLimit <- operLimitMs*length(unique(callInfo_df$marginStatement))
+fungible <- FALSE
 #### Input Prepare END ##############
 
 #### Correct Order for One Margin Call Allocation
@@ -68,7 +69,7 @@ for(m in 1:length(callId_vec)){
 #### Call Second Level Algo Start ###
 result <- CallSecondAllocation(algoVersion,callId_vec, resource_vec,callInfo_df,availAsset_df,assetInfo_df,
                                dsAssetId,dsCallId_vec,currentSelection_list,
-                               pref_vec,operLimit,operLimitMs)
+                               pref_vec,operLimit,operLimitMs,fungible)
 print(result)
 
 #### Call Second Level Algo END #####
