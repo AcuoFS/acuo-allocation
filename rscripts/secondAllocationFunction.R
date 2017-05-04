@@ -2,7 +2,7 @@
 #### Main Function Start ############
 CallSecondAllocation <- function(algoVersion,callId_vec, resource_vec,callInfo_df,availAsset_df,assetInfo_df,
                                  dsAssetId,dsCallId_vec, currentSelection_list,
-                                 pref_vec,operLimit,operLimitMs,fingible){
+                                 pref_vec,operLimit,operLimitMs){
   callId_vec <- unlist(callId_vec)
   dsCallId_vec <- unlist(dsCallId_vec)
   callIdTotal_vec <- callId_vec
@@ -26,7 +26,7 @@ CallSecondAllocation <- function(algoVersion,callId_vec, resource_vec,callInfo_d
     if(length(dsCallId_vec)>=1){
       result <- SecondAllocationAlgoAllMsV2(callIdTotal_vec,callInfoTotal_df,resourceTotal_vec,availAssetTotal_df,assetInfoTotal_df,
                                             dsAssetId,dsCallId_vec,currentSelection_list,
-                                            pref_vec,operLimit,operLimitMs,fungible)
+                                            pref_vec,operLimit,operLimitMs)
     } else{
       stop('Please specify which margin calls the asset is removed from!')
     }
@@ -293,7 +293,7 @@ SecondAllocationAlgoV1<- function(callId_vec, resource_vec,callInfo_df,availAsse
 
 SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,availAssetTotal_df,assetInfoTotal_df,
                                   dsAssetId,dsCallId,currentSelection_list,
-                                  pref_vec,operLimit,operLimitMs,fungible){
+                                  pref_vec,operLimit,operLimitMs){
   
   #### Prepare Inputs Start #####
   ## derive the availAsset_df for deselected call
@@ -639,7 +639,7 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
 
 SecondAllocationAlgoAllMsV2<- function(callId_vec,callInfo_df,resourceTotal_vec,availAssetTotal_df,assetInfoTotal_df,
                                        dsAssetId,dsCallId_vec,currentSelection_list,
-                                       pref_vec,operLimit,operLimitMs,fungible){
+                                       pref_vec,operLimit,operLimitMs){
   availAssetTotalOri_df <- availAssetTotal_df
   for(i in 1:length(dsCallId_vec)){
     dsCallId <- dsCallId_vec[i]
@@ -670,7 +670,7 @@ SecondAllocationAlgoAllMsV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
       #### Update the Quantity of Resource END #######
       
       tempResult <- SecondAllocationAlgoV2(callId_vec,callInfo_df,resourceTotal_vec,availAssetTotal_df,assetInfoTotal_df,
-                                           dsAssetId,dsCallId,currentSelection_list,pref_vec,operLimit,operLimitMs,fungible)
+                                           dsAssetId,dsCallId,currentSelection_list,pref_vec,operLimit,operLimitMs)
       currentSelection_list <- tempResult$newSuggestion
       resultAnalysis <- tempResult$resultAnalysis
     }
