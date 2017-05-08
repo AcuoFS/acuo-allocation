@@ -45,7 +45,9 @@ pref_vec <- pref
 #print('callId_vec'); print(callId_vec)
 ## CALL THE ALLOCATION FUNCTION ###########
 algoVersion <- 2
-operLimit<- 2*length(callId_vec)
+operLimitMs <- 2
+operLimit<- operLimitMs*length(unique(callInfo_df$marginStatement))
+fungible <- FALSE
 
 if(length(callId_vec)==0){
   stop('Empty margin call ids!')

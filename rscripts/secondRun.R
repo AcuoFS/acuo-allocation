@@ -3,7 +3,6 @@ options(stringsAsFactors = FALSE)
 #### Input Prepare Start ###########
 callId_vec <- callIds
 pref_vec <- pref
-algoVersion <- 2
 dsAssetId <- assetId
 dsCallId_vec <- dsCallIds
 
@@ -35,8 +34,10 @@ assetId_vec <- unique(SplitResource(resource_vec,'asset'))
 assetInfo_df <- assetInfoByAssetId
 assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
 
-operLimitMs <- 3
-operLimit <- operLimitMs*length(unique(callInfo_df$marginStatement))
+algoVersion <- 2
+operLimitMs <- 2
+operLimit<- operLimitMs*length(unique(callInfo_df$marginStatement))
+fungible <- FALSE
 #### Input Prepare END ##############
 
 #### Correct Order for One Margin Call Allocation
