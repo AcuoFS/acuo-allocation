@@ -122,19 +122,30 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
   }
 
   if(!missing(bbRule)){
-  #  lpModel$setBbRule(bbRule)
+    if(all.equal(sort(bbRule)==sort(c("pseudononint","autoorder","greedy", "dynamic","rcostfixing")))){
+      bbRuleValue <- 25637
+    } else if(all.equal(sort(bbRule)==sort(c("pseudononint", "greedy", "dynamic","rcostfixing")))){
+      bbRuleValue <- 17445
+    }
+    lpModel$setBbRule(bbRuleValue)
   }
 
   if(!missing(scaling)){
-  #  lpModel$setScaling(scaling)
+    if(all.equal(sort(scaling),sort(c("geometric","quadratic","equilibrate", "integers")))){
+      scalingValue <- 204
+    }
+    lpModel$setScaling(scaling)
   }
   
   if(!missing(improve)){
-  #  lpModel$setScaling(improve)
+    if(all.equal(sort(improve),sort(c(c("solution","dualfeas","thetagap"))))){
+      improveValue <- improve
+    }
+    lpModel$setImprove(improve)
   }
   
   if(!missing(negrange)){
-  #  lpModel$setNegrange(negrange)
+    lpModel$setNegrange(negrange)
   }
   
   # solve the problem
