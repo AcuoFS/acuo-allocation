@@ -220,11 +220,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
       #cat('fCon7 num:',length(fDir7_vec),'\n')
     }
     
-    fCon5_list <- MoveConst(varName_vec,varNum,operLimit,operLimitMs,fungible)
-    fCon5_mat <- fCon5_list$fCon5_mat
-    fDir5_vec <- fCon5_list$fDir5_vec
-    fRhs5_vec <- fCon5_list$fRhs5_vec
-    
+
     fCon8_mat <- matrix(0,nrow=1,ncol=varNum3)
     fCon8_mat[1,(varNum+1):varNum2] <- 1
     # wrong
