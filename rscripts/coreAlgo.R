@@ -220,7 +220,6 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
       #cat('fCon7 num:',length(fDir7_vec),'\n')
     }
     
-
     fCon8_mat <- matrix(0,nrow=1,ncol=varNum3)
     fCon8_mat[1,(varNum+1):varNum2] <- 1
     # wrong
@@ -253,6 +252,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
       }
       fDir9_vec <- rep('<=',msNum)
       fRhs9_vec <- rep(operLimitMs,msNum)
+      
     }
     
     #### Build the Optimization Model END ########
@@ -275,9 +275,9 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
       lpDir_vec <- c(fDir2_vec,fDir3_vec,fDir4_vec,fDir5_vec,fDir6_vec,fDir7_vec,fDir8_vec,fDir9_vec)
       lpRhs_vec <- c(fRhs2_vec,fRhs3_vec,fRhs4_vec,fRhs5_vec,fRhs6_vec,fRhs7_vec,fRhs8_vec,fRhs9_vec)
     } else{
-      lpCon_mat <- rbind(fCon2_mat,fCon3_mat,fCon4_mat,fCon5_mat,fCon8_mat)
-      lpDir_vec <- c(fDir2_vec,fDir3_vec,fDir4_vec,fDir5_vec,fDir8_vec)
-      lpRhs_vec <- c(fRhs2_vec,fRhs3_vec,fRhs4_vec,fRhs5_vec,fRhs8_vec)      
+      lpCon_mat <- rbind(fCon2_mat,fCon3_mat,fCon4_mat,fCon5_mat,fCon8_mat,fCon9_mat)
+      lpDir_vec <- c(fDir2_vec,fDir3_vec,fDir4_vec,fDir5_vec,fDir8_vec,fDir9_vec)
+      lpRhs_vec <- c(fRhs2_vec,fRhs3_vec,fRhs4_vec,fRhs5_vec,fRhs8_vec,fRhs9_vec)      
     }
     
     lpKind_vec <- rep('semi-continuous',varNum3)
