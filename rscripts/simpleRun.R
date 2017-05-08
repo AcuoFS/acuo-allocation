@@ -1,5 +1,5 @@
 options(stringsAsFactors = FALSE)
-
+stop('line 2')
 
 callInfo_df <- callInfoByCallId
 callInfo_df$callAmount <- abs(as.numeric(callInfo_df$callAmount)) # make sure the callAmount is non-negative
