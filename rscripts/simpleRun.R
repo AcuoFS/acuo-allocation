@@ -72,7 +72,7 @@ if(length(assetInfo_df)==0){
 
 result <- CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
                           callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,operLimitMs,fungible)
-stop('get result')
+
 result1 <- result
 if(length(result$callOutput)==0){
   stop('empty output!')
