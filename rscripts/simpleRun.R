@@ -66,9 +66,9 @@ if(length(availAsset_df)==0){
 if(length(assetInfo_df)==0){
   stop('Empty assetInfo_df input!')
 }
-params <- c(algoVersion,callId_vec,pref_vec,operLimit,operLimitMs,fungible)
+#params <- c(algoVersion,callId_vec,pref_vec,operLimit,operLimitMs,fungible)
 
-stop(paste('params:',params))
+#stop(paste('params:',params))
 
 result <- CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
                           callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,operLimitMs,fungible)
