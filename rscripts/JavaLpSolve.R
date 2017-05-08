@@ -133,6 +133,10 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
   #  lpModel$setScaling(improve)
   }
   
+  if(!missing(negrange)){
+  #  lpModel$setNegrange(negrange)
+  }
+  
   # solve the problem
   resultStatus <- lpModel$solve()
 
