@@ -1,5 +1,4 @@
 options(stringsAsFactors = FALSE)
-stop('line 2')
 
 callInfo_df <- callInfoByCallId
 callInfo_df$callAmount <- abs(as.numeric(callInfo_df$callAmount)) # make sure the callAmount is non-negative
@@ -71,8 +70,8 @@ params <- c(algoVersion,callId_vec,pref_vec,operLimit,operLimitMs,fungible)
 
 stop(paste('params:',params))
 
-#result <- CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
- #                         callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,operLimitMs,fungible)
+result <- CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
+                          callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,operLimitMs,fungible)
 stop('get result')
 result1 <- result
 if(length(result$callOutput)==0){
