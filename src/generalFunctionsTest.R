@@ -464,7 +464,7 @@ DummyConst <- function(varName_vec,varNum,quantity_vec){
   fCon5_mat[cbind(rowIdx2_vec,colIdx2_vec)] <- -1
   
   fDir5_vec <- rep('>=',varNum2-varNum)
-  fRhs5_vec <- rep(0,varNum2-varNum)
+  fRhs5_vec <- rep(-0.1,varNum2-varNum)
   
   fCon4_mat <- rbind(fCon4_mat,fCon5_mat)
   fDir4_vec <- c(fDir4_vec,fDir5_vec)

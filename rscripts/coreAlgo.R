@@ -300,7 +300,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     
     lpPresolve <- ifelse(callNum<=10,'none','knapsack')
     lpEpsd <- 1e-9
-    lpEpsind <- 1e-9
+    lpEpsint <- 1e-9
     lpTimeout <- timeLimit
     # bbRule <-  c("pseudononint", "restart","autoorder","stronginit", "dynamic","rcostfixing")
     bbRule <- c("pseudononint", "greedy", "dynamic","rcostfixing") # default
@@ -327,7 +327,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
                                      lpType_vec=lpType_vec,lpKind_vec=lpKind_vec,lpLowerBound_vec=lpLowerBound_vec,lpUpperBound_vec=lpUpperBound_vec,lpBranchMode_vec=lpBranchMode_vec,
                                      lpGuessBasis_vec=lpGuessBasis_vec, 
                                      presolve=lpPresolve,epsd=lpEpsd,timeout=lpTimeout,bbRule=bbRule,
-                                     epsint=lpEpsind, scaling=lpScale,improve=lpImprove)
+                                     epsint=lpEpsint, scaling=lpScale,improve=lpImprove)
     #### solver outputs
     solverStatus<- solverOutput_list$resultStatus
     solverSolution_vec <- solverOutput_list$solverSolution_vec
@@ -337,16 +337,13 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
     
     #### Exception Start ####
     errStatus <- c(2,5,6,7,10,13)
-    
-    if(solverStatus==7){ # Solver time out
-      #### choose the best alternative
-      solverSolution_vec <- lpGuessBasis_vec
-    } else if(solverStatus==2){# Infeasible model
+    if(is.element(solverStatus,errStatus)){
       if(callNum==1){
         rank_vec <- normCost_mat*pref_vec[1]+normLiquidity_mat*pref_vec[2]
         callAmount <- callInfo_df$callAmount
         solverSolution_vec <- AllocateByRank(resource_vec[idxEli_vec],callId,rank_vec,callAmount,minUnitQuantity_vec[idxEli_vec],minUnitValue_vec[idxEli_vec],haircut_vec[idxEli_vec],operLimit)
-      } else{
+      } else{ # Solver time out
+        #### choose the best alternative
         solverSolution_vec <- lpGuessBasis_vec
       }
     }
