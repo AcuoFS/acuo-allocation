@@ -24,17 +24,19 @@ source('src/coreAlgo.R')
 source('src/callLpSolve.R')
 source('src/generalFunctions.R')
 source('src/secondAllocationFunction.R')
+source('src/secondAlgo.R')
 #### Sources END ###########
 
 #### Input Prepare Start ###########
 
-callId_vec <- c('mcp50','mcp46','mcp38','mcp34')
+#callId_vec <- c('mcp50','mcp46','mcp38','mcp34')
+callId_vec <- c("41e029b2")
 clientId <- '999'
 pref_vec<-c(10,0,0)
-algoVersion <- 2
 #### deselct the asset from all custodian accounts? Currently yes. Location 'loc1'
-dsAssetId <- 'SG76D1000009'
-dsCallId_vec <- c('mcp50','mcp46','mcp38','mcp34')
+dsAssetId <- 'USD'
+#dsCallId_vec <- c('mcp50','mcp46','mcp38','mcp34')
+dsCallId_vec <- c("41e029b2")
 
 callInfo_df <- callInfoByCallId(callId_vec); callId_vec <- unique(callInfo_df$id)
 availAsset_df <- availAssetByCallIdAndClientId(callId_vec,clientId) # available asset for the margin call
@@ -48,11 +50,14 @@ assetId_vec <- unique(SplitResource(resource_vec,'asset'))
 assetInfo_df <- assetInfoByAssetId(assetId_vec)
 assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
 
-operLimitMs <- 3
+algoVersion <- 2
+operLimitMs <- 2
 operLimit <- operLimitMs*length(unique(callInfo_df$marginStatement))
+fungible <- FALSE
+
 #### Get Current Allocation from Algo for testing purposes Start
 resultpre <- CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
-                         callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit)
+                         callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,operLimitMs,fungible)
 #### Get Current Allocation from Algo for testing purposes END
 
 currentSelection_list <- resultpre$callOutput  
@@ -93,7 +98,7 @@ for(m in 1:length(callId_vec)){
 #### Call Second Level Algo Start ###
 result <- CallSecondAllocation(algoVersion,callId_vec, resource_vec,callInfo_df,availAsset_df,assetInfo_df,
                      dsAssetId,dsCallId_vec,currentSelection_list,
-                     pref_vec,operLimit,operLimitMs)
+                     pref_vec,operLimit,operLimitMs,fungible)
 result
 
 #### Call Second Level Algo END #####
