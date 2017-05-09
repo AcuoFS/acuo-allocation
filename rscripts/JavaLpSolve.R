@@ -18,7 +18,7 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
   lpModel <- LpSolve$makeLp(0L, varNum)
 
 #  if(!missing(verbose)){
-#    lpModel$setVerbose(as.integer(verbose));
+  lpModel$setVerbose(as.integer(4));
 #  }
 
   # set objective
