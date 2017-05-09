@@ -122,23 +122,23 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
   }
 
   if(!missing(bbRule)){
-    if(all.equal(sort(bbRule)==sort(c("pseudononint","autoorder","greedy", "dynamic","rcostfixing")))){
+    if(all.equal(sort(bbRule)==sort(c("pseudononint","autoorder","greedy", "dynamic","rcostfixing")))==TRUE){
       bbRuleValue <- 25637
-    } else if(all.equal(sort(bbRule)==sort(c("pseudononint", "greedy", "dynamic","rcostfixing")))){
+    } else if(all.equal(sort(bbRule)==sort(c("pseudononint", "greedy", "dynamic","rcostfixing")))==TRUE){
       bbRuleValue <- 17445
     }
     lpModel$setBbRule(as.integer(bbRuleValue))
   }
 
   if(!missing(scaling)){
-    if(all.equal(sort(scaling),sort(c("geometric","quadratic","equilibrate", "integers")))){
+    if(all.equal(sort(scaling),sort(c("geometric","quadratic","equilibrate", "integers")))==TRUE){
       scalingValue <- 204
     }
     lpModel$setScaling(as.integer(scaling))
   }
   
   if(!missing(improve)){
-    if(all.equal(sort(improve),sort(c(c("solution","dualfeas","thetagap"))))){
+    if(all.equal(sort(improve),sort(c("solution","dualfeas","thetagap")))==TRUE){
       improveValue <- 7
     }
     lpModel$setImprove(as.integer(improveValue))
