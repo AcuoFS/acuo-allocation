@@ -127,21 +127,21 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
     } else if(all.equal(sort(bbRule)==sort(c("pseudononint", "greedy", "dynamic","rcostfixing")))){
       bbRuleValue <- 17445
     }
-    lpModel$setBbRule(bbRuleValue)
+    lpModel$setBbRule(as.integer(bbRuleValue))
   }
 
   if(!missing(scaling)){
     if(all.equal(sort(scaling),sort(c("geometric","quadratic","equilibrate", "integers")))){
       scalingValue <- 204
     }
-    lpModel$setScaling(scaling)
+    lpModel$setScaling(as.integer(scaling))
   }
   
   if(!missing(improve)){
     if(all.equal(sort(improve),sort(c(c("solution","dualfeas","thetagap"))))){
-      improveValue <- improve
+      improveValue <- 7
     }
-    lpModel$setImprove(improve)
+    lpModel$setImprove(as.integer(improveValue))
   }
   
   if(!missing(negrange)){
