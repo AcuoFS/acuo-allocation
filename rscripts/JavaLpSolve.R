@@ -147,7 +147,15 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
   if(!missing(negrange)){
     lpModel$setNegrange(negrange)
   }
-  stop('line 150')
+  
+  if(!missing(lpGuessBasis_vec)){
+    if(!all(lpGuessBasis_vec==0)){
+      #basis_vec <- rep(0,1+length(lpCon_mat[1,])+length(lpCon_mat[,1]))
+      #lpModel$guessBasis(c(0,lpGuessBasis),basis_vec)
+      #guess.basis(lpModel,lpGuessBasis_vec)
+    }
+  }
+  
   # solve the problem
   resultStatus <- lpModel$solve()
 
