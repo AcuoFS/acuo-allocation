@@ -147,7 +147,7 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
   if(!missing(negrange)){
     lpModel$setNegrange(negrange)
   }
-  
+  stop('line 150')
   # solve the problem
   resultStatus <- lpModel$solve()
 
