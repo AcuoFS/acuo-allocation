@@ -136,7 +136,7 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
     if(all.equal(sort(scaling),sort(c("geometric","quadratic","equilibrate", "integers")))==TRUE){
       scalingValue <- 204
     }
-    lpModel$setScaling(as.integer(scaling))
+    lpModel$setScaling(as.integer(scalingValue))
   }
   
   if(!missing(improve)){
