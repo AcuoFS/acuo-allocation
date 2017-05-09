@@ -118,37 +118,35 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
   }
 
   if(!missing(timeout)){
-    lpModel$setTimeout(timeout)
+    lpModel$setTimeout(as.integer(timeout))
   }
 
   if(!missing(bbRule)){
-    bbRuleValue <- 17445
     if(all.equal(sort(bbRule)==sort(c("pseudononint","autoorder","greedy", "dynamic","rcostfixing")))==TRUE){
       bbRuleValue <- 25637
+      #lpModel$setBbRule(as.integer(bbRuleValue))
     } else if(all.equal(sort(bbRule)==sort(c("pseudononint", "greedy", "dynamic","rcostfixing")))==TRUE){
       bbRuleValue <- 17445
+      #lpModel$setBbRule(as.integer(bbRuleValue))
     }
-    lpModel$setBbRule(as.integer(bbRuleValue))
   }
 
   if(!missing(scaling)){
-    scalingValue <- 204
     if(all.equal(sort(scaling),sort(c("geometric","quadratic","equilibrate", "integers")))==TRUE){
       scalingValue <- 204
+      #lpModel$setScaling(as.integer(scalingValue))
     }
-    lpModel$setScaling(as.integer(scalingValue))
   }
   
   if(!missing(improve)){
-    improveValue <- 7
     if(all.equal(sort(improve),sort(c("solution","dualfeas","thetagap")))==TRUE){
       improveValue <- 7
+      #lpModel$setImprove(as.integer(improveValue))
     }
-    lpModel$setImprove(as.integer(improveValue))
   }
   
   #if(!missing(negrange)){
-    lpModel$setNegrange(as.integer(-1e-4))
+  #  lpModel$setNegrange(as.integer(-1e-4))
   #}
   
   if(!missing(lpGuessBasis_vec)){
