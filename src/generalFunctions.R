@@ -830,7 +830,6 @@ DeriveOptimalAssetsV2 <- function(minUnitQuantity_mat,eli_mat,callAmount_mat,hai
         largestAmountResource_vec <- largestAmountResource_vec[,order(largestAmountResource_vec[1,],decreasing=T)]
         # substitute in sortOptimal_mat
         sortOptimal_mat[,1:length(largestAmountResource_vec[1,])]<- largestAmountResource_vec
-        colnames(sortOptimal_mat)[1:length(largestAmountResource_vec[1,])] <- colnames(largestAmountResource_vec)
       }
     }
     optimalAsset_mat[i,2] <- resource_vec[sortOptimal_mat[2,1]]
