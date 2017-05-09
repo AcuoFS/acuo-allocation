@@ -122,6 +122,7 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
   }
 
   if(!missing(bbRule)){
+    bbRuleValue <- 17445
     if(all.equal(sort(bbRule)==sort(c("pseudononint","autoorder","greedy", "dynamic","rcostfixing")))==TRUE){
       bbRuleValue <- 25637
     } else if(all.equal(sort(bbRule)==sort(c("pseudononint", "greedy", "dynamic","rcostfixing")))==TRUE){
@@ -131,6 +132,7 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
   }
 
   if(!missing(scaling)){
+    scalingValue <- 204
     if(all.equal(sort(scaling),sort(c("geometric","quadratic","equilibrate", "integers")))==TRUE){
       scalingValue <- 204
     }
@@ -138,6 +140,7 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
   }
   
   if(!missing(improve)){
+    improveValue <- 7
     if(all.equal(sort(improve),sort(c("solution","dualfeas","thetagap")))==TRUE){
       improveValue <- 7
     }
