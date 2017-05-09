@@ -147,9 +147,9 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
     lpModel$setImprove(as.integer(improveValue))
   }
   
-  if(!missing(negrange)){
-    lpModel$setNegrange(as.integer(negrange))
-  }
+  #if(!missing(negrange)){
+    lpModel$setNegrange(as.integer(-1e-4))
+  #}
   
   if(!missing(lpGuessBasis_vec)){
     if(!all(lpGuessBasis_vec==0)){
