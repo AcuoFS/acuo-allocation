@@ -26,7 +26,7 @@ CallSecondAllocation <- function(algoVersion,callId_vec, resource_vec,callInfo_d
     if(length(dsCallId_vec)>=1){
       result <- SecondAllocationAlgoAllMsV2(callIdTotal_vec,callInfoTotal_df,resourceTotal_vec,availAssetTotal_df,assetInfoTotal_df,
                                             dsAssetId,dsCallId_vec,currentSelection_list,
-                                            pref_vec,operLimit,operLimitMs)
+                                            pref_vec,operLimit,operLimitMs,fungible)
     } else{
       stop('Please specify which margin calls the asset is removed from!')
     }

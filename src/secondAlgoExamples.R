@@ -20,23 +20,23 @@
 #### Sources Start #########
 source('src/functionsOfDBRequestByExecutingCypher.R')
 source('src/allocationFunction.R')
-source('src/coreAlgo.R')
+source('src/coreAlgoTest.R')
 source('src/callLpSolve.R')
-source('src/generalFunctions.R')
+source('src/generalFunctionsTest.R')
 source('src/secondAllocationFunction.R')
 source('src/secondAlgo.R')
 #### Sources END ###########
 
 #### Input Prepare Start ###########
 
-#callId_vec <- c('mcp50','mcp46','mcp38','mcp34')
+callId_vec <- c('mcp50','mcp46','mcp38','mcp34')
 callId_vec <- c("41e029b2")
 clientId <- '999'
 pref_vec<-c(10,0,0)
 #### deselct the asset from all custodian accounts? Currently yes. Location 'loc1'
-dsAssetId <- 'USD'
+dsAssetId <- 'GBP'
 #dsCallId_vec <- c('mcp50','mcp46','mcp38','mcp34')
-dsCallId_vec <- c("41e029b2")
+dsCallId_vec <- c("mcp50")
 
 callInfo_df <- callInfoByCallId(callId_vec); callId_vec <- unique(callInfo_df$id)
 availAsset_df <- availAssetByCallIdAndClientId(callId_vec,clientId) # available asset for the margin call

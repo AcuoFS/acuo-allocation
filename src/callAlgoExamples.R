@@ -15,13 +15,13 @@
 #### Sources Start #########
 source('src/functionsOfDBRequestByExecutingCypher.R')
 source("src/allocationFunction.R")
-source("src/coreAlgo.R")
-source("src/generalFunctions.R")
+source("src/coreAlgoTest.R")
+source("src/generalFunctionsTest.R")
 source("src/callLpSolve.R")
 #### Sources END ###########
 
 #### Input Prepare Start ###########
-#callId_vec = c("mcp1","mcp38","mcp50")
+callId_vec = c("mcp38","mcp50")
 callId_vec = c("mcp46","mcp50","mcp47","mcp38","mcp7","mcp34","mcp35")
 callId_vec = c("ed07ef6f","41e029b2")
 #agreementId_vec <- c('a1','a34')

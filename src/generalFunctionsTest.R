@@ -178,7 +178,7 @@ AdjustResultVec <- function(solution_vec,varNum,varName_vec,fCon4_mat,
   
   solNum1_vec <- solution_vec[1:varNum]
   solNum2_vec <- solution_vec[(varNum+1):varNum2]
-  print('solNum2_vec:');print(solNum2_vec)
+
   # Rounding
   solNum1_vec[which(solNum1_vec >= 0.5)] <- ceiling(solNum1_vec[which(solNum1_vec >= 0.5)])
   solNum1_vec[which(solNum1_vec < 0.5)] <- 0

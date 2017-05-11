@@ -1,7 +1,7 @@
 
 SecondAllocationAlgoAllMsV2<- function(callId_vec,callInfo_df,resourceTotal_vec,availAssetTotal_df,assetInfoTotal_df,
                                        dsAssetId,dsCallId_vec,currentSelection_list,
-                                       pref_vec,operLimit,operLimitMs){
+                                       pref_vec,operLimit,operLimitMs,fungible){
   availAssetTotalOri_df <- availAssetTotal_df
   for(i in 1:length(dsCallId_vec)){
     dsCallId <- dsCallId_vec[i]
@@ -15,24 +15,15 @@ SecondAllocationAlgoAllMsV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
       #### Update the Quantity of Resource Start #####
       #### restore the quantity of resources
       availAssetTotal_df <- availAssetTotalOri_df
-      quantityTotalUsed_vec <- UsedQtyFromResultList(currentSelection_list,resourceTotal_vec,callId_vec)
-      
+
       #### Get minUnit from assetInfo
       minUnitTotal_vec <- assetInfoTotal_df$minUnit
       assetTotal_vec <- SplitResource(resourceTotal_vec,'asset')
       minUnitTotal_vec <- minUnitTotal_vec[match(assetInfoTotal_df$id,assetTotal_vec)]
       
-      availAssetTotal_df <- UpdateQtyInAvailAsset(resourceTotal_vec,quantityTotalUsed_vec,availAssetTotal_df,'minUnit',F,minUnitTotal_vec)
-      
-      #### Remove Deselect Asset in The AvailAsset_df For Testing 
-      rmRow_vec <- which(availAssetTotal_df$callId==dsCallId & availAssetTotal_df$assetId==dsAssetId)
-      if(length(rmRow_vec)>=1){
-        availAssetTotal_df <- availAssetTotal_df[-rmRow_vec,]
-      }
-      #### Update the Quantity of Resource END #######
-      
       tempResult <- SecondAllocationAlgoV2(callId_vec,callInfo_df,resourceTotal_vec,availAssetTotal_df,assetInfoTotal_df,
-                                           dsAssetId,dsCallId,currentSelection_list,pref_vec,operLimit,operLimitMs)
+                                           dsAssetId,dsCallId,currentSelection_list,pref_vec,operLimit,operLimitMs,fungible)
+  
       currentSelection_list <- tempResult$newSuggestion
       resultAnalysis <- tempResult$resultAnalysis
     }
@@ -48,7 +39,22 @@ SecondAllocationAlgoAllMsV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
 
 SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,availAssetTotal_df,assetInfoTotal_df,
                                   dsAssetId,dsCallId,currentSelection_list,
-                                  pref_vec,operLimit,operLimitMs){
+                                  pref_vec,operLimit,operLimitMs,fungible){
+  availAssetOri_df <- availAssetTotal_df
+  
+  #### Get minUnit from assetInfo
+  minUnitTotal_vec <- assetInfoTotal_df$minUnit
+  assetTotal_vec <- SplitResource(resourceTotal_vec,'asset')
+  minUnitTotal_vec <- minUnitTotal_vec[match(assetInfoTotal_df$id,assetTotal_vec)]
+  quantityTotalUsed_vec <- UsedQtyFromResultList(currentSelection_list,resourceTotal_vec,callId_vec)
+  availAssetTotal_df <- UpdateQtyInAvailAsset(resourceTotal_vec,quantityTotalUsed_vec,availAssetTotal_df,'minUnit',F,minUnitTotal_vec)
+  
+  #### Remove Deselect Asset in The AvailAsset_df For Testing 
+  rmRow_vec <- which(availAssetTotal_df$callId==dsCallId & availAssetTotal_df$assetId==dsAssetId)
+  if(length(rmRow_vec)>=1){
+    availAssetTotal_df <- availAssetTotal_df[-rmRow_vec,]
+  }
+  #### Update the Quantity of Resource END #######
   
   #### Prepare Inputs Start #####
   ## derive the availAsset_df for deselected call
@@ -62,14 +68,15 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
   resourceNum <- length(resource_vec)
   callNum <- length(callId_vec)
   dsCallInfo <- callInfo_df[which(callInfo_df$id==dsCallId),]
-  input_list <- AllocationInputData(dsCallId,resource_vec,dsCallInfo,availAsset_df,assetInfo_df)
   
-  minUnit_vec <- input_list$minUnit_vec
-  quantity_vec <- input_list$minUnitQuantity_vec
-  haircut_vec <- input_list$haircut_vec
-  FXRate_vec <- input_list$FXRate_vec
-  minUnitValue_vec <- input_list$minUnitValue_vec
-  costBasis_vec <- input_list$cost_vec
+  dsCallInput_list <- AllocationInputData(dsCallId,resource_vec,dsCallInfo,availAsset_df,assetInfo_df)
+  
+  minUnit_vec <- dsCallInput_list$minUnit_vec
+  quantity_vec <- dsCallInput_list$minUnitQuantity_vec
+  haircut_vec <- dsCallInput_list$haircut_vec
+  FXRate_vec <- dsCallInput_list$FXRate_vec
+  minUnitValue_vec <- dsCallInput_list$minUnitValue_vec
+  costBasis_vec <- dsCallInput_list$cost_vec
   quantityUsed_vec <- rep(0,resourceNum)
   #### Prepare Inputs Start #####
   
@@ -78,8 +85,14 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
   
   movementsUsed <- OperationFun(currentSelection_list,callInfo_df,'callList')
   movementsLeft <- operLimit- movementsUsed
-  idxTemp1 <- which(names(currentSelection_list)==dsCallId)
-  idxTemp2 <- which(callInfo_df$id==dsCallId)
+  
+  dsMsId <- callInfo_df$marginStatement[which(callInfo_df$id==dsCallId)]
+  allCallInDsMs_vec <- callInfo_df$id[which(callInfo_df$marginStatement==dsMsId)]
+  
+  idxTemp1 <- which(names(currentSelection_list) %in% allCallInDsMs_vec)
+  idxTemp2 <- which(callInfo_df$id %in% allCallInDsMs_vec)
+  
+  
   movementsUsedMs <- OperationFun(currentSelection_list[idxTemp1],callInfo_df[idxTemp2,],'callList')
   movementsLeftMs <- operLimitMs- movementsUsedMs
   #### Calculate the Current Movements END #########
@@ -173,14 +186,14 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
   if(movementsLeft < 0){
     warning('Current number of movements is larger than the limit!')
   } else if(movementsLeft==0){
-    warning('Allocating other assets will create more asset movements than limit!')
+    warning('Allocating other assets may create more asset movements than limit, thus need reallocation of entire margin statement!')
   } else if(movementsLeft==1){
     #### sort the optimal_vec
     ## order the optimal asset by Score
     ## put the sufficient assets in front
     idxSuff_vec <- which(quantityLeft_vec >= lackQuantity_vec)
     if(length(idxSuff_vec)==0){
-      warning('Allocating other assets will create more asset movements than limit!')
+      warning('Allocating other assets may create more asset movements than limit, thus need reallocation of entire margin statement!')
     } else{ # at least one asset is sufficient
       suffResource_vec <- resource_vec[idxSuff_vec]
       insuffResource_vec <- resource_vec[-idxSuff_vec]
@@ -337,7 +350,53 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
   #cat('scenario: ',scenario,'\n')
   #cat('asset: ',i,'  ',resource,'\n')
   
-  currentSelection_list[[dsCallId]]<- newAllocationDsCall_df
+  #### Re-allocation Start #############################
+  #### After allocation, if violate the constraint limit, then reallocate the entire statement.
+  #### call first level algo ####
+  #### only re-allocate the deselect from margin statement
+  #### before re-allocate, update the quantity
+  newSelection_list <- currentSelection_list
+  newSelection_list[[dsCallId]]<- newAllocationDsCall_df
+  
+  idxTemp1 <- which(names(newSelection_list) %in% allCallInDsMs_vec)
+  idxTemp2 <- which(callInfo_df$id %in% allCallInDsMs_vec)
+  movementsUsedMs <- OperationFun(newSelection_list[idxTemp1],callInfo_df[idxTemp2,],'callList')
+  movementsUsedAll <- OperationFun(newSelection_list,callInfo_df,'callList')
+  
+  currentSelectionTemp_list <- newSelection_list
+  for(i in 1:length(allCallInDsMs_vec)){
+    tempCall <- allCallInDsMs_vec[i]
+    currentSelectionTemp_list[[tempCall]] <- currentSelectionTemp_list[[tempCall]][0,]
+  }
+  availAssetMsOri_df <- availAssetOri_df[which(availAssetTotal_df$callId %in% allCallInDsMs_vec),]
+  resourceMs_vec <- unique(availAssetMsOri_df$assetCustacId)
+  assetIdMs_vec <- SplitResource(resourceMs_vec,'asset')
+  assetInfoMs_df <- assetInfoTotal_df[which(assetInfoTotal_df$id %in% assetIdMs_vec),]
+  resourceInfoMs_df <- assetInfoMs_df[match(assetIdMs_vec,assetInfoMs_df$id),]
+  callInfoMs_df <- callInfo_df[which(callInfo_df$id %in% allCallInDsMs_vec),]
+  
+  quantityUsedMs_vec <- UsedQtyFromResultList(currentSelectionTemp_list,resourceMs_vec,callId_vec)
+  availAssetMsOri_df <- UpdateQtyInAvailAsset(resourceMs_vec,quantityUsedMs_vec,availAssetOri_df,qtyType='minUnit',qtyLeft=F,minUnit_vec=resourceInfoMs_df$minUnit)
+  
+  availAssetMs_df <- availAssetOri_df[which(availAssetTotal_df$callId %in% allCallInDsMs_vec),]
+  
+  coreInputMs_list <- AllocationInputData(allCallInDsMs_vec,resourceMs_vec,callInfoMs_df,availAssetMs_df,assetInfoMs_df)
+  
+  if(movementsUsedMs>operLimitMs & fungible==F){
+    newMsResult_list <- CoreAlgoV2(coreInputMs_list,availAssetMs_df,timeLimit=5,pref_vec,operLimitMs,operLimitMs,fungible,minMoveValue=1000)
+  } else if(movementsUsedAll>operLimit & fungible==T){
+    operLimitMsLeft <- operLimit-(movementsUsedAll-movementsUsedMs)
+    if(operLimitMsLeft<=0){
+      stop('Movements for other margin statements exceed the total limits!')
+    }
+    newMsResult_list <- CoreAlgoV2(coreInputMs_list,availAssetMs_df,timeLimit=5,pref_vec,operLimitMsLeft,operLimitMs,fungible,minMoveValue=1000)
+  }
+  #### Re-allocation END ###############################
+  
+  newSelection_list[idxTemp1] <- newMsResult_list$callOutput_list
+  currentSelection_list <-newSelection_list 
+  
+  
   #### Alternative Assets Selection END ######
   
   #### Update Result Analysis Output Start #### OW-560 ###############
