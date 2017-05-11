@@ -452,7 +452,7 @@ DummyConst <- function(varName_vec,varNum,quantity_vec){
   rowIdx2_vec <- 1:(varNum2-varNum)
   
   fCon4_mat[cbind(rowIdx1_vec,colIdx1_vec)] <- 1
-  scaleFactor_vec <- quantity_vec*200
+  scaleFactor_vec <- quantity_vec*2000
   scaleFactor_vec <- scaleFactor_vec[match(newNameDummy_vec,newName_vec)]
   fCon4_mat[cbind(rowIdx2_vec,colIdx2_vec)] <- -scaleFactor_vec
   
