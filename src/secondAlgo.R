@@ -379,6 +379,10 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
   availAssetMsOri_df <- UpdateQtyInAvailAsset(resourceMs_vec,quantityUsedMs_vec,availAssetOri_df,qtyType='minUnit',qtyLeft=F,minUnit_vec=resourceInfoMs_df$minUnit)
   
   availAssetMs_df <- availAssetOri_df[which(availAssetTotal_df$callId %in% allCallInDsMs_vec),]
+  rmRow_vec <- which(availAssetMs_df$callId==dsCallId & availAssetMs_df$assetId==dsAssetId)
+  if(length(rmRow_vec)>=1){
+    availAssetMs_df <- availAssetMs_df[-rmRow_vec,]
+  }
   
   coreInputMs_list <- AllocationInputData(allCallInDsMs_vec,resourceMs_vec,callInfoMs_df,availAssetMs_df,assetInfoMs_df)
   
