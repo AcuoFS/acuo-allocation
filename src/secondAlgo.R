@@ -368,7 +368,7 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
     tempCall <- allCallInDsMs_vec[i]
     currentSelectionTemp_list[[tempCall]] <- currentSelectionTemp_list[[tempCall]][0,]
   }
-  availAssetMsOri_df <- availAssetOri_df[which(availAssetTotal_df$callId %in% allCallInDsMs_vec),]
+  availAssetMsOri_df <- availAssetOri_df[which(availAssetOri_df$callId %in% allCallInDsMs_vec),]
   resourceMs_vec <- unique(availAssetMsOri_df$assetCustacId)
   assetIdMs_vec <- SplitResource(resourceMs_vec,'asset')
   assetInfoMs_df <- assetInfoTotal_df[which(assetInfoTotal_df$id %in% assetIdMs_vec),]
@@ -378,7 +378,7 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
   quantityUsedMs_vec <- UsedQtyFromResultList(currentSelectionTemp_list,resourceMs_vec,callId_vec)
   availAssetMsOri_df <- UpdateQtyInAvailAsset(resourceMs_vec,quantityUsedMs_vec,availAssetOri_df,qtyType='minUnit',qtyLeft=F,minUnit_vec=resourceInfoMs_df$minUnit)
   
-  availAssetMs_df <- availAssetOri_df[which(availAssetTotal_df$callId %in% allCallInDsMs_vec),]
+  availAssetMs_df <- availAssetMsOri_df[which(availAssetMsOri_df$callId %in% allCallInDsMs_vec),]
   rmRow_vec <- which(availAssetMs_df$callId==dsCallId & availAssetMs_df$assetId==dsAssetId)
   if(length(rmRow_vec)>=1){
     availAssetMs_df <- availAssetMs_df[-rmRow_vec,]
@@ -388,16 +388,17 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
   
   if(movementsUsedMs>operLimitMs & fungible==F){
     newMsResult_list <- CoreAlgoV2(coreInputMs_list,availAssetMs_df,timeLimit=5,pref_vec,operLimitMs,operLimitMs,fungible,minMoveValue=1000)
+    newSelection_list[idxTemp1] <- newMsResult_list$callOutput_list
   } else if(movementsUsedAll>operLimit & fungible==T){
     operLimitMsLeft <- operLimit-(movementsUsedAll-movementsUsedMs)
     if(operLimitMsLeft<=0){
       stop('Movements for other margin statements exceed the total limits!')
     }
     newMsResult_list <- CoreAlgoV2(coreInputMs_list,availAssetMs_df,timeLimit=5,pref_vec,operLimitMsLeft,operLimitMs,fungible,minMoveValue=1000)
+    newSelection_list[idxTemp1] <- newMsResult_list$callOutput_list
   }
   #### Re-allocation END ###############################
   
-  newSelection_list[idxTemp1] <- newMsResult_list$callOutput_list
   currentSelection_list <-newSelection_list 
   
   
