@@ -3,6 +3,9 @@ SecondAllocationAlgoAllMsV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
                                        dsAssetId,dsCallId_vec,currentSelection_list,
                                        pref_vec,operLimit,operLimitMs,fungible){
   availAssetTotalOri_df <- availAssetTotal_df
+  
+  
+  ## basic model 
   for(i in 1:length(dsCallId_vec)){
     dsCallId <- dsCallId_vec[i]
     
@@ -29,6 +32,11 @@ SecondAllocationAlgoAllMsV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
     }
     
   }
+  
+  #### advanced model
+  
+  
+  
   #### quantity left
   quantityTotalLeft_vec <- GetQtyFromAvailAsset(resourceTotal_vec,availAssetTotal_df,'minUnit',minUnitTotal_vec)
   
