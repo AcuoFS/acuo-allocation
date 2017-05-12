@@ -10,13 +10,14 @@ assetInfoByAssetIdCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-a
 eliAssetByClientIdCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/eliAssetByClientId.cql'
 resAssetByClientIdCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/resAssetByClientId.cql'
 callIdByAgreementIdPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/callIdByAgreementId.cql'
+callIdByMsIdPath <- 'src/Cypher/callIdByMsId.cql'
 
 executeCypher <- function(path,...){
   params <- list(...)
   query = paste(readLines(path), collapse="\n")
   #graph = startGraph(neo4jUrl)
-  #graph = startGraph(neo4jDevUrl)
-  graph = startGraph(neo4jLocalUrl,username='neo4j',password='neo4j')
+  graph = startGraph(neo4jDevUrl)
+  #graph = startGraph(neo4jLocalUrl,username='neo4j',password='neo4j')
   cypher(graph,query,params)
 }
   
@@ -42,4 +43,8 @@ resAssetByClientId <- function(clientId){
 
 callIdByAgreementId <- function(agreementId){
   executeCypher(path=callIdByAgreementIdPath,agreementId=agreementId)
+}
+
+callIdByMsId <- function(msId){
+  executeCypher(path=callIdByMsIdPath,msId=msId)
 }
