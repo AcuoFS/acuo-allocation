@@ -1104,6 +1104,16 @@ GroupCallIdByMs <- function(callLimit,msLimit,callInfo_df,callId_vec){
   return(groupCallId_list)
 }
 
+ResourceInfo <- function(resource_vec,assetInfo_df,availAsset_df){
+  ## better retrieve from DB
+  assetId_vec <- SplitResource(resource_vec,'asset')
+  resourceInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
+  names(resourceInfo_df)[1] <- "assetId"
+  resourceInfo_df <- cbind(id=resource_vec,resourceInfo_df)
+  
+}
+
+
 AllocationInputData <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df){
   
   ### new identifer ####
