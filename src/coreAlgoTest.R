@@ -268,7 +268,7 @@ CoreAlgoV2 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,operLimit
       #### choose the best alternative
       solverSolution_vec <- lpGuessBasis_vec
     } else if(solverStatus==2 & callNum==1){ # Infeasible model
-      rank_vec <- normCost_mat*pref_vec[1]+normLiquidity_mat*pref_vec[2]
+      rank_vec <- objParams_list$cost_mat*pref_vec[1]+objParams_list$liquidity_mat*pref_vec[2]
       callAmount <- callInfo_df$callAmount
       solverSolution_vec <- AllocateByRank(resource_vec[idxEli_vec],callId,rank_vec,callAmount,minUnitQuantity_vec[idxEli_vec],minUnitValue_vec[idxEli_vec],haircut_vec[idxEli_vec],operLimit)
     }
