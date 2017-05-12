@@ -217,9 +217,11 @@ CheckResultVec <- function(result_mat,quantityTotal_vec,callId_vec,callAmount_ve
     
     for(i in idxExcess_vec){          # i: the index of the excess quantity asset in assetId_vec
       currentAlloc_mat <- matrix(c(which(result_mat[,i]>0),result_mat[which(result_mat[,i]>0),i]),nrow=2,byrow=T)
-      if(length(currentAlloc_mat[1,])>1){
+      if(length(currentAlloc_mat[1,])==0){
+        stop('Current margin call has no asset allocated!')
+      } else if(length(currentAlloc_mat[1,])>1){
         currentAlloc_mat<-currentAlloc_mat[,order(currentAlloc_mat[2,])]
-      }
+      } 
       for(k in 1:length(currentAlloc_mat[1,])){ # k: the kth margin call which asset[i] allocated to
         j = currentAlloc_mat[1,k]  # j: the index of the the kth margin call in callId_vec
         # current allocated quantity < excess quanity

@@ -15,8 +15,8 @@
 #### Sources Start #########
 source('src/functionsOfDBRequestByExecutingCypher.R')
 source("src/allocationFunction.R")
-source("src/coreAlgoTest.R")
-source("src/generalFunctionsTest.R")
+source("src/coreAlgo.R")
+source("src/generalFunctions.R")
 source("src/callLpSolve.R")
 #### Sources END ###########
 
@@ -28,12 +28,17 @@ callId_vec = unlist(callIdByMsId(msId_vec))
 #agreementId_vec <- c('a1','a34')
 #callId_vec <- unname(unlist(callIdByAgreementId(agreementId_vec)))
 clientId = '999';
-pref_vec = c(10,10);
+pref_vec = c(5.4,3.5);
 
 #### get info
 callInfo_df <- callInfoByCallId(callId_vec); callInfo_df<- callInfo_df[match(callId_vec,callInfo_df$id),]
 availAsset_df <- availAssetByCallIdAndClientId(callId_vec,clientId) # available asset for the margin call
 availAsset_df <- availAsset_df[order(availAsset_df$callId),]
+
+### add USD amount hard code
+availAsset_df$quantity[which(availAsset_df$assetId=='USD')] <- 1e10
+availAsset_df$quantity[which(availAsset_df$quantity<0)] <- 0
+###
 
 #### added lines for testing purposes 
 # availAsset_df$quantity <- availAsset_df$quantity/4 # change tempQuantity_vec for testing

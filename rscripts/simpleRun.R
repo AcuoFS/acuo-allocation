@@ -9,6 +9,7 @@ availAsset_df <- availAsset_df[order(availAsset_df$callId),]
 
 ### add USD amount hard code
 availAsset_df$quantity[which(availAsset_df$assetId=='USD')] <- 1e10
+availAsset_df$quantity[which(availAsset_df$quantity<0)] <- 0
 ###
 
 ###### 3 lines added fot testing purposes, comment them after tests ##################

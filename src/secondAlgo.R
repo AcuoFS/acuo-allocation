@@ -47,7 +47,7 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
   assetTotal_vec <- SplitResource(resourceTotal_vec,'asset')
   minUnitTotal_vec <- minUnitTotal_vec[match(assetInfoTotal_df$id,assetTotal_vec)]
   quantityTotalUsed_vec <- UsedQtyFromResultList(currentSelection_list,resourceTotal_vec,callId_vec)
-  availAssetTotal_df <- UpdateQtyInAvailAsset(resourceTotal_vec,quantityTotalUsed_vec,availAssetTotal_df,'minUnit',F,minUnitTotal_vec)
+  availAssetTotal_df <- UpdateQtyInAvailAsset(resourceTotal_vec,quantityTotalUsed_vec,availAssetTotal_df,'unit',F)
   
   #### Remove Deselect Asset in The AvailAsset_df For Testing 
   rmRow_vec <- which(availAssetTotal_df$callId==dsCallId & availAssetTotal_df$assetId==dsAssetId)
@@ -376,7 +376,7 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,avail
   callInfoMs_df <- callInfo_df[which(callInfo_df$id %in% allCallInDsMs_vec),]
   
   quantityUsedMs_vec <- UsedQtyFromResultList(currentSelectionTemp_list,resourceMs_vec,callId_vec)
-  availAssetMsOri_df <- UpdateQtyInAvailAsset(resourceMs_vec,quantityUsedMs_vec,availAssetOri_df,qtyType='minUnit',qtyLeft=F,minUnit_vec=resourceInfoMs_df$minUnit)
+  availAssetMsOri_df <- UpdateQtyInAvailAsset(resourceMs_vec,quantityUsedMs_vec,availAssetOri_df,qtyType='unit',qtyLeft=F)
   
   availAssetMs_df <- availAssetMsOri_df[which(availAssetMsOri_df$callId %in% allCallInDsMs_vec),]
   rmRow_vec <- which(availAssetMs_df$callId==dsCallId & availAssetMs_df$assetId==dsAssetId)
