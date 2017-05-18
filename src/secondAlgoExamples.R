@@ -52,6 +52,7 @@ assetInfo_df <- assetInfoByAssetId(assetId_vec)
 assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
 
 resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
+availAsset_df <- AvailAsset(availAsset_df)
 
 algoVersion <- 2
 operLimitMs <- 2

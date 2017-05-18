@@ -58,6 +58,7 @@ availAsset_df$quantity[which(availAsset_df$quantity<0)] <- 0
 
 assetCustacId_vec <- PasteResource(availAsset_df$assetId,availAsset_df$CustodianAccount)
 availAsset_df$assetCustacId <- assetCustacId_vec
+
 resource_vec <- unique(assetCustacId_vec)
 
 assetId_vec <- unique(SplitResource(resource_vec,'asset'))
@@ -65,6 +66,7 @@ assetInfo_df <- assetInfoByAssetId(assetId_vec)
 assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
 
 resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
+availAsset_df <- AvailAsset(availAsset_df)
 
 #### Input Prepare END #############
 
