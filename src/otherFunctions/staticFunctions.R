@@ -55,3 +55,10 @@ renjinFix <- function(frame, name) {
   colnames(d) <- gsub(name, "", colnames(d));
   return(d);
 }
+
+BaseMat0 <- function(callId_vec,resource_vec){
+  resourceNum <- length(resource_vec)
+  callNum <- length(callId_vec)
+  base_mat <- matrix(0,nrow=callNum,ncol=resourceNum, dimnames = list(callId_vec,resource_vec))
+  return(base_mat)
+}

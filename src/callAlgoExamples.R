@@ -14,11 +14,21 @@
 
 #### Sources Start #########
 source('src/functionsOfDBRequestByExecutingCypher.R')
-source("src/allocationFunction.R")
+
+source("src/allocationFunctionTest.R")
 source("src/coreAlgoTest.R")
 source("src/generalFunctionsTest.R")
-source("src/otherFunctions/.")
 source("src/callLpSolve.R")
+
+source("src/otherFunctions/infoFunctions.R")
+source("src/otherFunctions/analysisFunctions.R")
+source("src/otherFunctions/checkFunctions.R")
+source("src/otherFunctions/convertFunctions.R")
+source("src/otherFunctions/modelFunctions.R")
+source("src/otherFunctions/qtyFunctions.R")
+source("src/otherFunctions/improveFunctions.R")
+source("src/otherFunctions/modelFunctions.R")
+
 #### Sources END ###########
 
 #### Input Prepare Start ###########
@@ -29,15 +39,14 @@ callId_vec = unlist(callIdByMsId(msId_vec))
 #agreementId_vec <- c('a1','a34')
 #callId_vec <- unname(unlist(callIdByAgreementId(agreementId_vec)))
 clientId = '999';
-pref_vec = c(5.4,3.5);
+pref_vec = c(10,0);
 
 #### get info
 callInfo_df <- callInfoByCallId(callId_vec); callInfo_df<- callInfo_df[match(callId_vec,callInfo_df$id),]
 availAsset_df <- availAssetByCallIdAndClientId(callId_vec,clientId) # available asset for the margin call
 availAsset_df <- availAsset_df[order(availAsset_df$callId),]
 
-### add USD amount hard code
-availAsset_df$quantity[which(availAsset_df$assetId=='USD')] <- 1e10
+### avoid negative amount
 availAsset_df$quantity[which(availAsset_df$quantity<0)] <- 0
 ###
 
@@ -54,6 +63,9 @@ resource_vec <- unique(assetCustacId_vec)
 assetId_vec <- unique(SplitResource(resource_vec,'asset'))
 assetInfo_df <- assetInfoByAssetId(assetId_vec)
 assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
+
+resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
+
 #### Input Prepare END #############
 
 
@@ -65,16 +77,17 @@ operLimit<- operLimitMs*length(unique(callInfo_df$marginStatement))
 fungible <- FALSE
 
 # scenario 1: Algo Suggestion
+
 result1 <- CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
-                          callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,operLimitMs,fungible)
+                          callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs,fungible)
 
 # scenario 2: Post Settlement Currency
 result2 <- CallAllocation(algoVersion,scenario=2,callId_vec,resource_vec,
-                          callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,operLimitMs,fungible)
+                          callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs,fungible)
 
 # scenario 3: post least liquid assets
 result3 <- CallAllocation(algoVersion,scenario=3,callId_vec,resource_vec,
-                          callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,operLimitMs,fungible)
+                          callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs,fungible)
 scenarios[['Algo']] <- result1
 scenarios[['SettleCCY']] <- result2
 scenarios[['LeastLiquid']] <- result3

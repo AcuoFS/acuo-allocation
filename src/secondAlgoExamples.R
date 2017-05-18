@@ -19,12 +19,14 @@
 
 #### Sources Start #########
 source('src/functionsOfDBRequestByExecutingCypher.R')
-source('src/allocationFunction.R')
-source('src/coreAlgoTest.R')
 source('src/callLpSolve.R')
-source('src/generalFunctionsTest.R')
+
+source('src/allocationFunction.R')
+source('src/coreAlgo.R')
+source('src/generalFunctions.R')
 source('src/secondAllocationFunction.R')
 source('src/secondAlgo.R')
+
 #### Sources END ###########
 
 #### Input Prepare Start ###########
@@ -48,6 +50,8 @@ resource_vec <- unique(assetCustacId_vec)
 assetId_vec <- unique(SplitResource(resource_vec,'asset'))
 assetInfo_df <- assetInfoByAssetId(assetId_vec)
 assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
+
+resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
 
 algoVersion <- 2
 operLimitMs <- 2
@@ -95,9 +99,7 @@ for(m in 1:length(callId_vec)){
 #### Input Prepare END ##############
 
 #### Call Second Level Algo Start ###
-result <- CallSecondAllocation(algoVersion,callId_vec, resource_vec,callInfo_df,availAsset_df,assetInfo_df,
-                     dsAssetId,dsCallId_vec,currentSelection_list,
-                     pref_vec,operLimit,operLimitMs,fungible)
-result
-
+result <- CallSecondAllocation(algoVersion,callId_vec, resource_vec,callInfo_df,availAsset_df,resource_df,
+                               dsAssetId,dsCallId_vec,currentSelection_list,
+                               pref_vec,operLimit,operLimitMs,fungible)
 #### Call Second Level Algo END #####

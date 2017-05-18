@@ -1,0 +1,32 @@
+    #### MODEL SETUP Start ##################################################
+    # decision variables: x, qunatity used of each asset for each margin call
+    #                 quantity or minUnitQuantity
+    # 
+    # objective function: fObj_vec, minimize  x*value*cost
+    # 
+    # constraints: A*x (direction) b
+    # A-- constraint matrix: f.con;
+    # b-- constraint value: f.rhs;
+    # direction -- constraint direction: f.dir.
+    #
+    # Constraints are specified below:
+    # 0. quantity used of an asset should be a non-negative value
+    #    quantity used >= 0
+    # 1. quantity limit of each asset for one margin call (callNum*resourceNum)
+    #    quantity used <= quantity limit; (quantity or minUnitQuantity)
+    # 2. quantity limit of each asset for all margin calls(resourceNum)
+    #    total quantity used <= total quantity (for an asset) (quantity or minUnitQuantity)
+    # 3. margin call requirement (callNum)
+    #    total net amount of assets for one margin call >= call amount
+    # 4.& 5. movements
+    #    Similating the dummy of each x
+    # 6.& 7. in same margin statement
+    #   
+    # 8. constraint on the asset movements(operLimit)
+    #
+    # variable bounds: a < x < x_quantity
+    #    specified by constraint 0 and 1. 
+    # variable kind: semi-continuous, value below 'a' will automately set to 0
+    #
+    #### MODEL SETUP END ####################################################
+    

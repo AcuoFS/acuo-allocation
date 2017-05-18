@@ -90,7 +90,7 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
   costBasis_mat <- availInfo_list$cost_mat  
   costBasis_vec <- as.vector(t(costBasis_mat))[idxEli_vec]
   
-  
+
   #### Prepare Inputs Start #####
   
   #### Calculate the Current Movements Start #########
@@ -319,7 +319,7 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
         newAmount <- newAmountUSD*lineResource_df$FXRate
         newNetAmountUSD <- newAmountUSD*(1-haircut_vec[i])
         newNetAmount <- newNetAmountUSD*lineResource_df$FXRate
-        
+
         newAsset_df <- data.frame(lineResource_df$assetId,lineResource_df$assetName,newNetAmount,newNetAmountUSD,lineResource_df$FXRate,haircut_vec[i],newAmount,newAmountUSD,
                                   lineResource_df$currency,newQuantity,lineResource_df$custodianAccount,lineResource_df$venue,lineCallInfo_df$marginType,deselectMs,dsCallId)
         newAllocationDsCall_df[length(newAllocationDsCall_df[,1])+1,]<- newAsset_df
@@ -434,7 +434,7 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
   varName_vec <- varInfo_list$varName_vec; 
   varNum <- varInfo_list$varNum
   
-  
+
   
   #### Cost
   unitValueTotal_mat<- matrix(rep(resourceTotal_df$unitValue/resourceTotal_df$FXRate, callNum),nrow=callNum,byrow=T)
@@ -445,10 +445,10 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
   
   minUnitValueTotal_mat <- unitValueTotal_mat*minUnitTotal_mat;
   minUnitValueTotal_vec <- as.vector(t(minUnitValueTotal_mat))[idxEli_vec]
-  
+
   
   #### allocation presented in minUnitQuatity matrix
-  
+
   varAmount_vec <- ResultList2AmountVec(currentSelection_list,callId_vec,varName_vec[1:varNum])
   
   dailyCost <- CostFun(varAmount_vec,cost_vec)

@@ -42,7 +42,7 @@ MarginConst <- function(varName_vec,varNum,minUnitValue_vec,haircut_vec,callId_v
   return(fCon3_list)
 }
 
-DummyConst <- function(varName_vec,varNum,quantity_vec){
+DummyConst <- function(varName_vec,varNum,quantity_vec,callAmount_vec,minUnitValue_vec){
   
   varNum2 <- length(varName_vec)
   newName_mat <- SplitVarName(varName_vec[1:varNum],'all')
@@ -57,7 +57,7 @@ DummyConst <- function(varName_vec,varNum,quantity_vec){
   rowIdx2_vec <- 1:(varNum2-varNum)
   
   fCon4_mat[cbind(rowIdx1_vec,colIdx1_vec)] <- 1
-  scaleFactor_vec <- quantity_vec*2000
+  scaleFactor_vec <- pmin(quantity_vec,callAmount_vec/minUnitValue_vec)*20
   scaleFactor_vec <- scaleFactor_vec[match(newNameDummy_vec,newName_vec)]
   fCon4_mat[cbind(rowIdx2_vec,colIdx2_vec)] <- -scaleFactor_vec
   
@@ -113,6 +113,7 @@ MoveConst <- function(varName_vec,varNum,operLimit,operLimitMs,fungible){
   fCon5_list <- list(fCon5_mat=fCon5_mat,fDir5_vec=fDir5_vec,fRhs5_vec=fRhs5_vec)
   return(fCon5_list)
 }
+
 AllocateByRank <- function(resource_vec,callId,rank_vec,callAmount,quantity_vec,minUnitValue_vec,haircut_vec,operLimit){
   ## rank_mat(scores assume using purely each asset)
   ## names(rank_mat)=resources, value: score

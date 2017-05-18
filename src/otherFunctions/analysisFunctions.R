@@ -1,6 +1,6 @@
 
-LiquidFun <- function(quantity_vec,quantityTotal_vec,liquidity_vec,minUnitValue_vec){
-  numerator <- sum(quantity_vec*liquidity_vec*minUnitValue_vec)
+LiquidFun <- function(quantityLeft_vec,quantityTotal_vec,liquidity_vec,minUnitValue_vec){
+  numerator <- sum(quantityLeft_vec*liquidity_vec*minUnitValue_vec)
   denominator <- sum(quantityTotal_vec*liquidity_vec*minUnitValue_vec)
   ratio <- numerator/denominator
   return(ratio)
