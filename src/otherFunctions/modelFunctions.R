@@ -79,6 +79,44 @@ DummyConst <- function(varName_vec,varNum,quantity_vec,callAmount_vec,minUnitVal
   return(fCon4_list)
 }
 
+DummyConstInherit <- function(allocated_vec,varName_vec,varNum,quantity_vec,callAmount_vec,minUnitValue_vec){
+  
+  varNum2 <- length(varName_vec)
+  newName_mat <- SplitVarName(varName_vec[1:varNum],'all')
+  newName_vec <- PasteVarName(newName_mat[1,],rep('dummy',varNum),newName_mat[3,])
+  newNameDummy_vec <- varName_vec[(varNum+1):varNum2]
+  
+  fCon4_mat <- matrix(0,nrow=(varNum2-varNum),ncol=varNum2)
+  
+  colIdx1_vec <- 1:varNum
+  rowIdx1_vec <- match(newName_vec,newNameDummy_vec)
+  colIdx2_vec <- (varNum+1):varNum2
+  rowIdx2_vec <- 1:(varNum2-varNum)
+  
+  fCon4_mat[cbind(rowIdx1_vec,colIdx1_vec)] <- 1
+  scaleFactor_vec <- pmin(quantity_vec,callAmount_vec/minUnitValue_vec)*20
+  scaleFactor_vec <- scaleFactor_vec[match(newNameDummy_vec,newName_vec)]
+  fCon4_mat[cbind(rowIdx2_vec,colIdx2_vec)] <- -scaleFactor_vec
+  
+  fDir4_vec <- rep('<=',varNum2-varNum)
+  fDir4_vec[which(allocated_vec==1)] <- '>='  ## new added 18 May
+  fRhs4_vec <- rep(0,varNum2-varNum)
+  
+  fCon5_mat <- matrix(0,nrow=varNum2-varNum,ncol=varNum2)
+  fCon5_mat[cbind(rowIdx1_vec,colIdx1_vec)] <- 1
+  fCon5_mat[cbind(rowIdx2_vec,colIdx2_vec)] <- -1
+  
+  fDir5_vec <- rep('>=',varNum2-varNum)
+  fRhs5_vec <- rep(-0.1,varNum2-varNum)
+  
+  fCon4_mat <- rbind(fCon4_mat,fCon5_mat)
+  fDir4_vec <- c(fDir4_vec,fDir5_vec)
+  fRhs4_vec <- c(fRhs4_vec,fRhs5_vec)
+  
+  fCon4_list <- list(fCon4_mat=fCon4_mat,fDir4_vec=fDir4_vec,fRhs4_vec=fRhs4_vec)
+  return(fCon4_list)
+}
+
 MoveConst <- function(varName_vec,varNum,operLimit,operLimitMs,fungible){
   varNum2 <- length(varName_vec)
   msIdDul_vec <- SplitVarName(varName_vec[(varNum+1):varNum2],'ms')
@@ -109,6 +147,42 @@ MoveConst <- function(varName_vec,varNum,operLimit,operLimitMs,fungible){
     fDir5_vec <- c(fDir5_vec,fDir6_vec)
     fRhs5_vec <- c(fRhs5_vec,fRhs6_vec)
   }
+  
+  fCon5_list <- list(fCon5_mat=fCon5_mat,fDir5_vec=fDir5_vec,fRhs5_vec=fRhs5_vec)
+  return(fCon5_list)
+}
+
+MoveConstInherit <- function(allocated_vec,varName_vec,varNum,operLimit,operLimitMs_vec,fungible){
+  varNum2 <- length(varName_vec)
+  msIdDul_vec <- SplitVarName(varName_vec[(varNum+1):varNum2],'ms')
+  msId_vec <- unique(msIdDul_vec)
+  msNum <- length(msId_vec)
+  
+  fCon5_mat <- matrix(0,nrow=1,ncol=varNum2)
+  fCon5_mat[1,(varNum+1):varNum2] <- 1
+  
+  fDir5_vec <- c('<=')
+  fRhs5_vec <- c(operLimit)
+  
+  #### set the movements limit per margin statement if fungible=FALSE
+  # the total limit is not necessary in theory, but it's better keep it until proven
+  if(fungible==FALSE){
+    # will be number of margin statements constraints
+    fCon6_mat <- matrix(0,nrow=msNum,ncol=varNum2)
+    
+    colIdx_vec <- (varNum+1):varNum2
+    rowIdx_vec <- match(msIdDul_vec,msId_vec)
+    
+    fCon6_mat[cbind(rowIdx_vec,colIdx_vec)] <- 1
+    
+    fDir6_vec <- rep('<=',msNum)
+    fRhs6_vec <- operLimitMs_vec
+    
+    fCon5_mat <- rbind(fCon5_mat,fCon6_mat)
+    fDir5_vec <- c(fDir5_vec,fDir6_vec)
+    fRhs5_vec <- c(fRhs5_vec,fRhs6_vec)
+  }
+  fCon5_mat[,which(allocated_vec==1)] <- 0
   
   fCon5_list <- list(fCon5_mat=fCon5_mat,fDir5_vec=fDir5_vec,fRhs5_vec=fRhs5_vec)
   return(fCon5_list)
@@ -350,13 +424,19 @@ VarInfo <- function(eli_vec,callInfo_df,resource_vec,callId_vec){
   }
   varNameOri_vec <- t(fullNameOri_mat)[idxEli_vec]
   newNameOri_vec <- t(newNameOri_mat)[idxEli_vec]
-  newNameDummy_vec <- unique(newNameOri_vec)
+  
+  # remove duplicated variables constructed by same asset in one statement for different calls
+  newNameDummy_vec <- unique(newNameOri_vec) 
+  
+  # use the dummies to construct the indicator
+  # same number means same asset for same statement: 1,2,3,4,1,2,4,5,...
+  pos_vec <- match(newNameOri_vec,newNameDummy_vec)
   
   varName_vec <- c(varNameOri_vec,newNameDummy_vec)
   
   varNum <- length(varNameOri_vec)
   varNum2 <- length(varName_vec)
   
-  var_list <- list(varName_vec=varName_vec,varNum=varNum,varNum2=varNum2)
+  var_list <- list(varName_vec=varName_vec,varNum=varNum,varNum2=varNum2,pos_vec=pos_vec)
   return(var_list)
 }

@@ -27,6 +27,15 @@ source('src/generalFunctions.R')
 source('src/secondAllocationFunction.R')
 source('src/secondAlgo.R')
 
+source("src/otherFunctions/infoFunctions.R")
+source("src/otherFunctions/analysisFunctions.R")
+source("src/otherFunctions/checkFunctions.R")
+source("src/otherFunctions/convertFunctions.R")
+source("src/otherFunctions/modelFunctions.R")
+source("src/otherFunctions/qtyFunctions.R")
+source("src/otherFunctions/improveFunctions.R")
+source("src/otherFunctions/modelFunctions.R")
+
 #### Sources END ###########
 
 #### Input Prepare Start ###########
@@ -37,7 +46,7 @@ clientId <- '999'
 pref_vec<-c(10,0,0)
 #### deselct the asset from all custodian accounts? Currently yes. Location 'loc1'
 dsAssetId <- 'GBP'
-dsCallId_vec <- c('mcp50','mcp46','mcp38','mcp34','mcp7')
+dsCallId_vec <- c('mcp50','mcp38','mcp34','mcp7',"mcp35")
 
 callInfo_df <- callInfoByCallId(callId_vec); callId_vec <- unique(callInfo_df$id)
 availAsset_df <- availAssetByCallIdAndClientId(callId_vec,clientId) # available asset for the margin call
@@ -55,34 +64,47 @@ resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
 availAsset_df <- AvailAsset(availAsset_df)
 
 algoVersion <- 2
-operLimitMs <- 2
-operLimit <- operLimitMs*length(unique(callInfo_df$marginStatement))
+msNum <- length(unique(callInfo_df$marginStatement))
+operLimitMs_vec <- rep(2,msNum)
+operLimit<- sum(operLimitMs_vec)
 fungible <- FALSE
 
 #### Get Current Allocation from Algo for testing purposes Start
 resultpre <- CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
-                         callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,operLimitMs,fungible)
+                            callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs_vec,fungible,
+                            ifNewAlloc=T,list())
 #### Get Current Allocation from Algo for testing purposes END
 
 currentSelection_list <- resultpre$callOutput  
 
-outputColnames <- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType','marginStatement','marginCall')
+outputColnames <- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType','marginStatement','marginCall',
+                    'CostFactor','Cost')
 
-#### Remove Some Columns for Testing Start ####
+#### Remove Some Columns for Testing Start #####
 for(m in 1:length(callId_vec)){
   #### remove columns to resemble the java input
   ## remove 'NetAmount(USD)' and 'Amount(USD)'
   callId <- callId_vec[m]
   temp_df <- currentSelection_list[[callId]] 
-  rmIdx_vec <- which(names(temp_df) %in% c('NetAmount(USD)','Amount(USD)'))
+  resourceTemp_vec <- PasteResource(temp_df$Asset,temp_df$CustodianAccount)
+  rmIdx_vec <- which(names(temp_df) %in% c('NetAmount(USD)','Amount(USD)','CostFactor','Cost'))
   temp_df <- temp_df[,-rmIdx_vec]
   currentSelection_list[[callId]] <- temp_df
   
   #### add the missing columns 'NetAmount(USD)' and 'Amount(USD)'
   NetAmountUSD_vec <- temp_df$NetAmount/temp_df$FXRate
   AmountUSD_vec <- temp_df$Amount/temp_df$FXRate
+  
+  # cost: match resource & call, sum the cost
+  idxTemp_vec <- which(availAsset_df$callId==callId & availAsset_df$assetCustacId %in% resourceTemp_vec)
+  CostFactorOri_vec <- availAsset_df$internalCost+availAsset_df$externalCost+availAsset_df$opptCost-(availAsset_df$interestRate+availAsset_df$yield)
+  CostFactor_vec <- CostFactorOri_vec[idxTemp_vec]
+  Cost_vec <- CostFactor_vec*AmountUSD_vec
+  
   temp_df$`NetAmount(USD)` <- NetAmountUSD_vec
   temp_df$`Amount(USD)` <- AmountUSD_vec
+  temp_df$CostFactor <- CostFactor_vec
+  temp_df$Cost <- Cost_vec
   currentSelection_list[[callId]] <- temp_df
   
   #### sort the columns into the dedault order defined in R
@@ -94,13 +116,13 @@ for(m in 1:length(callId_vec)){
   rownames(temp_df) <- 1:length(temp_df[,1])
   currentSelection_list[[callId]] <- temp_df
 }
-#### Remove Some Columns for Testing END ######
+#### Remove Some Columns for Testing END #######
 
 
-#### Input Prepare END ##############
+#### Input Prepare END ################
 
-#### Call Second Level Algo Start ###
+#### Call Second Level Algo Start #####
 result <- CallSecondAllocation(algoVersion,callId_vec, resource_vec,callInfo_df,availAsset_df,resource_df,
                                dsAssetId,dsCallId_vec,currentSelection_list,
                                pref_vec,operLimit,operLimitMs,fungible)
-#### Call Second Level Algo END #####
+#### Call Second Level Algo END #######

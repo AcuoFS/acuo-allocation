@@ -1,7 +1,7 @@
 
 CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
-                       timeLimit,pref_vec,operLimit,operLimitMs,fungible,
-                       minMoveValue,initAllocation_list){
+                       timeLimit,pref_vec,operLimit,operLimitMs_vec,fungible,
+                       minMoveValue,ifNewAlloc,initAllocation_list,allocated_list){
   
   #### Prepare Parameters Start #############################
   pref_vec <- pref_vec/sum(pref_vec[1:2]) # Recalculate the parameters weight setting
@@ -88,9 +88,9 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
   varInfo_list <- VarInfo(eli_vec,callInfo_df,resource_vec,callId_vec)
   
   varName_vec <- varInfo_list$varName_vec
-  varName_mat <- SplitVarName(varName_vec)
   varNum <- varInfo_list$varNum
   varNum2 <- varInfo_list$varNum2
+  pos_vec <- varInfo_list$pos_vec
   #### Construct Variable Names END ########
   
   if(1*(!is.element(0,ifSelectAssetSuff_vec))){
@@ -122,8 +122,16 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
     #### CONSTRAINTS
     fCon2_list <- QtyConst(varName_vec,varNum,resource_vec,resource_df$qtyMin)
     fCon3_list <- MarginConst(varName_vec,varNum,minUnitValue_vec,haircut_vec,callInfo_df$id,callInfo_df$callAmount)
-    fCon4_list <- DummyConst(varName_vec,varNum,quantity_vec,callAmount_vec,minUnitValue_vec)
-    fCon5_list <- MoveConst(varName_vec,varNum,operLimit,operLimitMs,fungible)
+    if(ifNewAlloc){
+      fCon4_list <- DummyConst(varName_vec,varNum,quantity_vec,callAmount_vec,minUnitValue_vec)
+      fCon5_list <- MoveConst(varName_vec,varNum,operLimit,operLimitMs_vec,fungible)
+    } else{
+      allocated_vec <- ResultList2Vec(allocated_list,callId_vec,minUnit_vec,varName_vec,varNum,pos_vec)
+      allocatedDummy_vec <- allocated_vec[(varNum+1):varNum2]
+      fCon4_list <- DummyConstInherit(allocatedDummy_vec,varName_vec,varNum,quantity_vec,callAmount_vec,minUnitValue_vec)
+      fCon5_list <- MoveConstInherit(allocatedDummy_vec,varName_vec,varNum,operLimit,operLimitMs_vec,fungible)
+    }
+    
     #### Build the Optimization Model END ########
     
     #### Solver Inputs Start #####################
@@ -148,9 +156,11 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
     lpType_vec[which(minUnitValue_vec>=1)] <- 'integer'
     lpType_vec[(varNum+1):varNum2] <- 'integer'
     lpLowerBound_vec <- c(minMoveQty_vec,rep(0,varNum2-varNum))
+    
+    varNameResource_vec <- SplitVarName(varName_vec,'resource') # resource in varName
     for(k in 1:resourceNum){
       resourceTemp <- resource_vec[k]
-      idxTemp_vec <- which(varName_mat[3,]==resourceTemp)
+      idxTemp_vec <- which(varNameResource_vec==resourceTemp)
       lowerSumTemp <- sum(lpLowerBound_vec[idxTemp_vec])
       if(lowerSumTemp > resource_df$qtyMin[k]){
         lpLowerBound_vec[idxTemp_vec] <- 0
@@ -174,7 +184,7 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
     lpGuessBasis_vec <- rep(0,varNum2)
     if(!missing(initAllocation_list)){
       # the initial guess must be a feasible point
-      lpGuessBasis_vec<-ResultList2Vec(initAllocation_list,callId_vec,minUnit_vec,varName_vec,varNum,fCon4_list$fCon4_mat)
+      lpGuessBasis_vec<-ResultList2Vec(initAllocation_list,callId_vec,minUnit_vec,varName_vec,varNum,pos_vec)
     }
     #### Solver Inputs END ###################
     
@@ -221,7 +231,7 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
   #### Prepare Outputs Start #######################
   #### convert the result_mat to list
   
-  result_list <- ResultMat2List(result_mat,callId_vec,resource_vec,callInfo_df,haircut_mat,resource_df,
+  result_list <- ResultMat2List(result_mat,callId_vec,resource_vec,callInfo_df,haircut_mat,costBasis_mat,resource_df,
                                 callSelect_list,msSelect_list)
   
   callSelect_list <- result_list$callSelect_list

@@ -74,22 +74,26 @@ availAsset_df <- AvailAsset(availAsset_df)
 #### Scenario Analysis Output Start #####################
 scenarios <- list()
 algoVersion <- 2
-operLimitMs <- 2
-operLimit<- operLimitMs*length(unique(callInfo_df$marginStatement))
+msNum <- length(unique(callInfo_df$marginStatement))
+operLimitMs_vec <- rep(2,msNum)
+operLimit<- sum(operLimitMs_vec)
 fungible <- FALSE
 
 # scenario 1: Algo Suggestion
 
 result1 <- CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
-                          callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs,fungible)
+                          callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs_vec,fungible,
+                          ifNewAlloc=T,list())
 
 # scenario 2: Post Settlement Currency
 result2 <- CallAllocation(algoVersion,scenario=2,callId_vec,resource_vec,
-                          callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs,fungible)
+                          callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs_vec,fungible,
+                          ifNewAlloc=T,list())
 
 # scenario 3: post least liquid assets
 result3 <- CallAllocation(algoVersion,scenario=3,callId_vec,resource_vec,
-                          callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs,fungible)
+                          callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs_vec,fungible,
+                          ifNewAlloc=T,list())
 scenarios[['Algo']] <- result1
 scenarios[['SettleCCY']] <- result2
 scenarios[['LeastLiquid']] <- result3
