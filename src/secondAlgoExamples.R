@@ -25,7 +25,7 @@ source('src/allocationFunction.R')
 source('src/coreAlgo.R')
 source('src/generalFunctions.R')
 source('src/secondAllocationFunction.R')
-source('src/secondAlgo.R')
+source('src/secondAlgoTest.R')
 
 source("src/otherFunctions/infoFunctions.R")
 source("src/otherFunctions/analysisFunctions.R")
@@ -40,10 +40,10 @@ source("src/otherFunctions/modelFunctions.R")
 
 #### Input Prepare Start ###########
 
-callId_vec <- c('mcp50','mcp46','mcp38','mcp34')
-callId_vec <- c("41e029b2")
+callId_vec = c("mcp46","mcp50","mcp47","mcp38","mcp7","mcp34","mcp35")
+#callId_vec <- c("41e029b2")
 clientId <- '999'
-pref_vec<-c(10,0,0)
+pref_vec<-c(10,0)
 #### deselct the asset from all custodian accounts? Currently yes. Location 'loc1'
 dsAssetId <- 'GBP'
 dsCallId_vec <- c('mcp50','mcp38','mcp34','mcp7',"mcp35")
@@ -73,7 +73,7 @@ fungible <- FALSE
 resultpre <- CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
                             callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs_vec,fungible,
                             ifNewAlloc=T,list())
-#### Get Current Allocation from Algo for testing purposes END
+ #### Get Current Allocation from Algo for testing purposes END
 
 currentSelection_list <- resultpre$callOutput  
 
@@ -124,5 +124,5 @@ for(m in 1:length(callId_vec)){
 #### Call Second Level Algo Start #####
 result <- CallSecondAllocation(algoVersion,callId_vec, resource_vec,callInfo_df,availAsset_df,resource_df,
                                dsAssetId,dsCallId_vec,currentSelection_list,
-                               pref_vec,operLimit,operLimitMs,fungible)
+                               pref_vec,operLimit,operLimitMs_vec,fungible)
 #### Call Second Level Algo END #######

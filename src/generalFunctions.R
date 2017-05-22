@@ -1192,7 +1192,7 @@ CheckQtyInAvailAsset <- function(availAsset_df){
   return(1)
 }
 
-UsedQtyFromResultList <- function(result_list,resource_vec,callId_vec){ ## quantity in result_list mostly are minUnitQuantity
+UsedQtyFromResultList <- function(result_list,resource_vec,callId_vec){
   #### minUnitQuantity of resources used for allocation
   quantityUsed_vec <- rep(0,length(resource_vec))
   callNum <- length(callId_vec)

@@ -1,7 +1,7 @@
 
 SecondAllocationAlgoAllMsV2<- function(callId_vec,callInfo_df,resourceTotal_vec,availAssetTotal_df,resourceTotal_df,
                                        dsAssetId,dsCallId_vec,currentSelection_list,
-                                       pref_vec,operLimit,operLimitMs,fungible){
+                                       pref_vec,operLimit,operLimitMs_vec,fungible){
   if(0){
     #### basic model Start #######
     for(i in 1:length(dsCallId_vec)){
@@ -19,7 +19,7 @@ SecondAllocationAlgoAllMsV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
         
         #### Get minUnit from assetInfo
         tempResult <- SecondAllocationAlgoV2(callId_vec,callInfo_df,resourceTotal_vec,availAssetTotal_df,resourceTotal_df,
-                                             dsAssetId,dsCallId,currentSelection_list,pref_vec,operLimit,operLimitMs,fungible)
+                                             dsAssetId,dsCallId,currentSelection_list,pref_vec,operLimit,operLimitMs_vec,fungible)
         
         currentSelection_list <- tempResult$newSuggestion
         resultAnalysis <- tempResult$resultAnalysis
@@ -87,7 +87,7 @@ SecondAllocationAlgoAllMsV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
       msId <- msDsId_vec[i]
       CallInThisMs_vec <- callInfoDs_df$id[which(callInfoDs_df$marginStatement==msId)]
       idxCall_vec <- match(CallInThisMs_vec,names(currentSelectionDs_list))
-      movementsMsLeft_vec[i] <- operLimitMs- OperationFun(currentSelectionDs_list[idxCall_vec],callInfoDs_df,'callList')
+      movementsMsLeft_vec[i] <- operLimitMs_vec[i]- OperationFun(currentSelectionDs_list[idxCall_vec],callInfoDs_df,'callList')
     }
   }
   
@@ -129,7 +129,7 @@ SecondAllocationAlgoAllMsV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
   
   ## 7. Result analysis
   
-  availInfo_list <- AssetByCallInfo(callId_vec,resource_vec,availAsset_df)
+  availInfo_list <- AssetByCallInfo(callId_vec,resource_vec,availAssetTotal_df)
   
   eli_mat <- availInfo_list$eli_mat; 
   eli_vec <-  as.vector(t(eli_mat)) 
@@ -157,7 +157,7 @@ SecondAllocationAlgoAllMsV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
   liquidity_vec <- apply((1-availInfo_list$haircut_mat)^2,2,min)
   
   qtyUsed <- UsedQtyFromResultList(currentSelection_list,resource_vec,callId_vec)
-  qtyLeft <- resource_df$qtyMin - qtyUsed
+  qtyLeft <- resource_df$qtyMin - qtyUsed/resource_df$minUnit
   
   reservedLiquidityRatio <- LiquidFun(qtyLeft,resource_df$qtyMin,liquidity_vec,resource_df$minUnitValue/resource_df$FXRate)
   

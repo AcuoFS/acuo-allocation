@@ -34,7 +34,7 @@ source("src/otherFunctions/modelFunctions.R")
 #### Input Prepare Start ###########
 callId_vec = c("mcp38","mcp50")
 callId_vec = c("mcp46","mcp50","mcp47","mcp38","mcp7","mcp34","mcp35")
-msId_vec = c("dc480ea2","5ea252df","26328f67","d2fb01e6","11133f47","7dcb5eca","4dd73d6d","d1868fc9","14a8662d","3e23925b")
+#msId_vec = c("dc480ea2","5ea252df","26328f67","d2fb01e6","11133f47","7dcb5eca","4dd73d6d","d1868fc9","14a8662d","3e23925b")
 callId_vec = unlist(callIdByMsId(msId_vec))
 #agreementId_vec <- c('a1','a34')
 #callId_vec <- unname(unlist(callIdByAgreementId(agreementId_vec)))
