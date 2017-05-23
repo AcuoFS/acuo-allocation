@@ -6,7 +6,7 @@ pref_vec <- pref
 dsAssetId <- assetId
 dsCallId_vec <- dsCallIds
 
-print("selections");print(typeof(selections)); print(length(selections))
+print("selections")
 print(selections)
 
 selectedCallId_vec <- unique(selections$marginCall)
@@ -34,29 +34,48 @@ assetId_vec <- unique(SplitResource(resource_vec,'asset'))
 assetInfo_df <- assetInfoByAssetId
 assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
 
+resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
+availAsset_df <- AvailAsset(availAsset_df)
+
 algoVersion <- 2
-operLimitMs <- 2
-operLimit<- operLimitMs*length(unique(callInfo_df$marginStatement))
+msNum <- length(unique(callInfo_df$marginStatement))
+operLimitMs_vec <- rep(2,msNum)
+operLimit<- sum(operLimitMs_vec)
 fungible <- FALSE
 #### Input Prepare END ##############
 
 #### Correct Order for One Margin Call Allocation
-outputColnames <- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType','marginStatement','marginCall')
+outputColnames <- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType','marginStatement','marginCall',
+                    'CostFactor','Cost')
 
 #### Fill in the Missing Columns from Java Start ####
 for(m in 1:length(callId_vec)){
-  
+  #### remove columns to resemble the java input
+  ## remove 'NetAmount(USD)' and 'Amount(USD)'
   callId <- callId_vec[m]
   temp_df <- currentSelection_list[[callId]] 
+  resourceTemp_vec <- PasteResource(temp_df$Asset,temp_df$CustodianAccount)
+  
   #### add the missing columns 'NetAmount(USD)' and 'Amount(USD)'
   NetAmountUSD_vec <- temp_df$NetAmount/temp_df$FXRate
   AmountUSD_vec <- temp_df$Amount/temp_df$FXRate
+  
+  # cost: match resource & call, sum the cost
+  idxTemp_vec <- which(availAsset_df$callId==callId & availAsset_df$assetCustacId %in% resourceTemp_vec)
+  CostFactorOri_vec <- availAsset_df$internalCost+availAsset_df$externalCost+availAsset_df$opptCost-(availAsset_df$interestRate+availAsset_df$yield)
+  CostFactor_vec <- CostFactorOri_vec[idxTemp_vec]
+  Cost_vec <- CostFactor_vec*AmountUSD_vec
+  
   temp_df$`NetAmount(USD)` <- NetAmountUSD_vec
   temp_df$`Amount(USD)` <- AmountUSD_vec
+  temp_df$CostFactor <- CostFactor_vec
+  temp_df$Cost <- Cost_vec
+  currentSelection_list[[callId]] <- temp_df
   
   #### sort the columns into the dedault order defined in R
   newOrder_vec <- match(outputColnames,names(temp_df))
   temp_df <- temp_df[,newOrder_vec]
+  currentSelection_list[[callId]] <- temp_df
   
   #### delete rownames
   rownames(temp_df) <- 1:length(temp_df[,1])
@@ -67,9 +86,11 @@ for(m in 1:length(callId_vec)){
 
 
 #### Call Second Level Algo Start ###
-result <- CallSecondAllocation(algoVersion,callId_vec, resource_vec,callInfo_df,availAsset_df,assetInfo_df,
+result <- CallSecondAllocation(algoVersion,callId_vec, resource_vec,callInfo_df,availAsset_df,resource_df,
                                dsAssetId,dsCallId_vec,currentSelection_list,
-                               pref_vec,operLimit,operLimitMs)
-print(result)
+                               pref_vec,operLimit,operLimitMs_vec,fungible)
+print('new suggestions(present in DF format)')
+print(ResultList2Df(result$callOutput,callId_vec))
 
+result <- result
 #### Call Second Level Algo END #####

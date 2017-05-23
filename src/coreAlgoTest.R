@@ -77,7 +77,7 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
     resource <- selectUniqueAsset_vec[i]
     idxCall_vec <- which(optimalAsset_mat[,2]==resource) 
     idxResource <- which(resource_vec==resource)
-      
+    
     ifSelectAssetSuff_vec[i] <- 1*(sum(assetSuffQty_mat[idxCall_vec,idxResource]) < resource_df$qtyMin[idxResource])
   }
   #### Calculate the Optimal Asset Sufficiency END ##########
@@ -115,7 +115,7 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
     #### OBJECTIVE FUNCTION
     liquidityObj_vec <-  c(minUnitValue_vec*objParams_list$liquidity_vec[idxEli_vec],rep(0,varNum2-varNum))
     costObj_vec <-  c(minUnitValue_vec*objParams_list$cost_vec[idxEli_vec],rep(0,varNum2-varNum))
-
+    
     fObj_vec <- liquidityObj_vec*pref_vec[2]+costObj_vec*pref_vec[1]
     names(fObj_vec) <- varName_vec
     
@@ -166,14 +166,14 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
         lpLowerBound_vec[idxTemp_vec] <- 0
       }
     }
-
+    
     lpUpperBound_vec <- c(quantity_vec,rep(1,varNum2-varNum))
     lpBranchMode_vec <- c(rep('auto',varNum),rep('auto',varNum2-varNum))
     
     #### Control options
     lpPresolve <- ifelse(callNum<=10,'none','knapsack')
     lpEpsd <- 1e-9
-    lpEpsind <- 1e-9
+    lpEpsint <- 1e-9
     lpTimeout <- timeLimit
     bbRule <-  c("pseudononint","autoorder","greedy", "dynamic","rcostfixing")
     #bbRule <- c("pseudononint", "greedy", "dynamic","rcostfixing") # default
@@ -194,7 +194,7 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
                                      lpType_vec=lpType_vec,lpKind_vec=lpKind_vec,lpLowerBound_vec=lpLowerBound_vec,lpUpperBound_vec=lpUpperBound_vec,lpBranchMode_vec=lpBranchMode_vec,
                                      lpGuessBasis_vec=lpGuessBasis_vec, 
                                      presolve=lpPresolve,epsd=lpEpsd,timeout=lpTimeout,bbRule=bbRule,
-                                     epsint=lpEpsind, scaling=lpScale,improve=lpImprove)
+                                     epsint=lpEpsint, scaling=lpScale,improve=lpImprove)
     #### solver outputs
     solverStatus<- solverOutput_list$resultStatus
     solverSolution_vec <- solverOutput_list$solverSolution_vec

@@ -42,7 +42,7 @@ CallAllocation <- function(algoVersion,scenario,callId_vec,resource_vec,callInfo
     availAssetCash_df <- availAssetCash_df[idxKeep_vec,]
     resourceCash_vec <- unique(availAssetCash_df$assetCustacId)
     resourceCash_df <- resource_df[match(resourceCash_vec,resource_df$id),]
-
+    
     result <- AllocationAlgo(callId_vec,resourceCash_vec,resource_vec,
                              callInfo_df,availAssetCash_df,availAsset_df,resourceCash_df,resource_df,
                              pref_vec,operLimit,operLimitMs_vec,fungible,
@@ -195,13 +195,13 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
     availInfoGroup_list <- AssetByCallInfo(callIdGroup_vec,resourceGroup_vec,availAssetGroup_df)
     
     if(ifNewAlloc){
+      allocatedGroup_list <- list()
+    } else{
       idxTemp_vec <- match(callIdGroup_vec,names(allocated_list))
       allocatedGroup_list <- allocated_list[idxTemp_vec]
-    } else{
-      allocatedGroup_list <- list()
     }
     #### Pre-allocate Start ######################
- 
+    
     resultPre <- PreAllocation(algoVersion,callIdGroup_vec,callInfoGroup_df,availAssetGroup_df,resourceGroup_df,
                                pref_vec,operLimitGroupMs_vec,operLimitGroupMs_vec,fungible,minMoveValue,timeLimit,
                                ifNewAlloc,allocatedGroup_list)
@@ -276,7 +276,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
   qtyLeft <- resourceOri_df$qtyMin
   idx_vec <- match(resource_df$id,resourceOri_df$id)
   qtyLeft[idx_vec] <- resource_df$qtyMin
-
+  
   reservedLiquidityRatio <- LiquidFun(qtyLeft,resourceOri_df$qtyMin,liquidity_vec,resourceOri_df$minUnitValue/resourceOri_df$FXRate)
   
   resultAnalysis <- list(dailyCost=dailyCost,monthlyCost=monthlyCost,movements=movements,reservedLiquidityRatio=reservedLiquidityRatio)

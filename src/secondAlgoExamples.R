@@ -42,11 +42,13 @@ source("src/otherFunctions/modelFunctions.R")
 
 callId_vec = c("mcp46","mcp50","mcp47","mcp38","mcp7","mcp34","mcp35")
 #callId_vec <- c("41e029b2")
+callId_vec <- c('mcp1','mcp31','mcp43')
 clientId <- '999'
-pref_vec<-c(10,0)
+pref_vec<-c(1,10)
 #### deselct the asset from all custodian accounts? Currently yes. Location 'loc1'
 dsAssetId <- 'GBP'
 dsCallId_vec <- c('mcp50','mcp38','mcp34','mcp7',"mcp35")
+dsCallId_vec <- c('mcp31')
 
 callInfo_df <- callInfoByCallId(callId_vec); callId_vec <- unique(callInfo_df$id)
 availAsset_df <- availAssetByCallIdAndClientId(callId_vec,clientId) # available asset for the margin call
@@ -73,14 +75,14 @@ fungible <- FALSE
 resultpre <- CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
                             callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs_vec,fungible,
                             ifNewAlloc=T,list())
- #### Get Current Allocation from Algo for testing purposes END
+#### Get Current Allocation from Algo for testing purposes END
 
 currentSelection_list <- resultpre$callOutput  
 
 outputColnames <- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType','marginStatement','marginCall',
                     'CostFactor','Cost')
 
-#### Remove Some Columns for Testing Start #####
+#### Add the Missing Columns Start #####
 for(m in 1:length(callId_vec)){
   #### remove columns to resemble the java input
   ## remove 'NetAmount(USD)' and 'Amount(USD)'
@@ -116,7 +118,7 @@ for(m in 1:length(callId_vec)){
   rownames(temp_df) <- 1:length(temp_df[,1])
   currentSelection_list[[callId]] <- temp_df
 }
-#### Remove Some Columns for Testing END #######
+#### Remove Add the Missing Columns END #######
 
 
 #### Input Prepare END ################

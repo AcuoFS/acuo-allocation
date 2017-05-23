@@ -195,10 +195,10 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
     availInfoGroup_list <- AssetByCallInfo(callIdGroup_vec,resourceGroup_vec,availAssetGroup_df)
     
     if(ifNewAlloc){
+      allocatedGroup_list <- list()
+    } else{
       idxTemp_vec <- match(callIdGroup_vec,names(allocated_list))
       allocatedGroup_list <- allocated_list[idxTemp_vec]
-    } else{
-      allocatedGroup_list <- list()
     }
     #### Pre-allocate Start ######################
     

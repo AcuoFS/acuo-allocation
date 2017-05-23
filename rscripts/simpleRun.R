@@ -8,7 +8,6 @@ availAsset_df <- availAssetByCallIdAndClientId
 availAsset_df <- availAsset_df[order(availAsset_df$callId),]
 
 ### add USD amount hard code
-availAsset_df$quantity[which(availAsset_df$assetId=='USD')] <- 1e10
 availAsset_df$quantity[which(availAsset_df$quantity<0)] <- 0
 ###
 
@@ -27,6 +26,9 @@ resource_vec <- unique(assetCustacId_vec)
 assetId_vec <- unique(availAsset_df$assetId)
 assetInfo_df <- assetInfoByAssetId
 assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
+
+resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
+availAsset_df <- AvailAsset(availAsset_df)
 
 ###### Manually add FXRate and venue for DEMO purposes ########
 # FX rate: value = 1 USD can change how much foreign currency
@@ -49,8 +51,9 @@ pref_vec <- pref
 #print('callId_vec'); print(callId_vec)
 ## CALL THE ALLOCATION FUNCTION ###########
 algoVersion <- 2
-operLimitMs <- 2
-operLimit<- operLimitMs*length(unique(callInfo_df$marginStatement))
+msNum <- length(unique(callInfo_df$marginStatement))
+operLimitMs_vec <- rep(2,msNum)
+operLimit<- sum(operLimitMs_vec)
 fungible <- FALSE
 
 if(length(callId_vec)==0){
@@ -74,9 +77,12 @@ if(length(assetInfo_df)==0){
 #params <- c(algoVersion,callId_vec,pref_vec,operLimit,operLimitMs,fungible)
 
 #stop(paste('params:',params))
-
+callId_vec <- unlist(callId_vec)
 result <- CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
-                          callInfo_df,availAsset_df,assetInfo_df,pref_vec,operLimit,operLimitMs,fungible)
+                          callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs_vec,fungible,
+                          ifNewAlloc=T,list())
+result_df <- ResultList2Df(result$callOutput,callId_vec)
+print(result_df)
 
 result1 <- result
 if(length(result$callOutput)==0){
@@ -91,5 +97,6 @@ if(length(result$callOutput)==0){
 }
 
 result <- result1
-print(result)
+
+
 

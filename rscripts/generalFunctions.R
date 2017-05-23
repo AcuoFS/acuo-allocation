@@ -1,159 +1,85 @@
 
-ResultMat2List <- function(result_mat,resource_vec,availAsset_df,coreInput_list,callSelect_list,msSelect_list){
-  
-  venue <- coreInput_list$venue
-  custodianAccount <- coreInput_list$custodianAccount
-  assetInfo_df <- coreInput_list$assetInfo_df
-  callInfo_df <- coreInput_list$callInfo_df
-  unitValue_mat <- coreInput_list$unitValue_mat
-  minUnit_mat <- coreInput_list$minUnit_mat
-  haircut_mat <- coreInput_list$haircut_mat
-  msId_vec <- unique(callInfo_df$marginStatement)
-  callId_vec <- coreInput_list$callId_vec
-  callNum <- length(callId_vec)
-  assetId_vec <- SplitResource(resource_vec,'asset') #### parallel with resource, not unique
-  
-  for(i in 1:callNum){                          # store the result into select list
-    # j, corresponding index of margin statement
-    # j <- which(msId_vec==callInfo_df$marginStatement[which(callInfo_df$id==callId_vec[i])])
-    j <- which(msId_vec==callInfo_df$marginStatement[i])
+LiquidFun <- function(quantityLeft_vec,quantityTotal_vec,liquidity_vec,minUnitValue_vec){
+  numerator <- sum(quantityLeft_vec*liquidity_vec*minUnitValue_vec)
+  denominator <- sum(quantityTotal_vec*liquidity_vec*minUnitValue_vec)
+  ratio <- numerator/denominator
+  return(ratio)
+}
+
+CostFun <- function(amount_vec,cost_vec){
+  cost <- sum(amount_vec*cost_vec)
+  return(cost)
+}
+
+OperationFun <- function(result,callInfo_df,method){
+  movements <- 0
+  if(method=='matrix'){
+    result_mat <- result
+    resultDummy_mat <- 1*(result_mat&1)
+    msDul_vec <- callInfo_df$marginStatement
+    msId_vec <- unique(msDul_vec)
     
-    idxSelectResource_vec <- which(result_mat[i,]!=0)
-    
-    selectResource_vec <- resource_vec[idxSelectResource_vec]
-    selectAssetId_vec <- assetId_vec[idxSelectResource_vec]
-    idxSelectAsset_vec <- rep(0,length(idxSelectResource_vec))
-    for(m in 1:length(idxSelectResource_vec)){
-      idxSelectAsset_vec[m] <- which(assetInfo_df$id==selectAssetId_vec[m])[1]
-    }
-    selectAssetCustodianAccount_vec <- custodianAccount[idxSelectResource_vec]
-    selectAssetVenue_vec <- venue[idxSelectResource_vec]
-    selectAssetName_vec <- assetInfo_df$name[idxSelectAsset_vec]
-    selectAssetHaircut_vec <- haircut_mat[i,idxSelectResource_vec]
-    selectAssetCurrency_vec <- assetInfo_df$currency[idxSelectAsset_vec]
-    selectAssetMinUnitQuantity_vec <- result_mat[i,idxSelectResource_vec]
-    selectAssetQuantity_vec <- result_mat[i,idxSelectResource_vec]*minUnit_mat[i,idxSelectResource_vec]
-    selectMarginType_vec <- rep(callInfo_df$marginType[i],length(idxSelectResource_vec))
-    selectMs_vec <- rep(callInfo_df$marginStatement[i],length(idxSelectResource_vec))
-    selectCall_vec <- rep(callId_vec[i],length(idxSelectResource_vec))
-    
-    #### UPDATE THE ASSET QUANTITY ########
-    for(k in 1:length(selectAssetId_vec)){
-      tempResource <- selectResource_vec[k]
-      tempAvailQuantity_vec <- availAsset_df$quantity[which(availAsset_df$assetCustacId==tempResource)]
-      #tempQuantity_vec <- availAsset_df$totalQuantity[which(availAsset_df$assetCustacId==tempResource)]
-      availAsset_df$quantity[which(availAsset_df$assetCustacId==tempResource)]<- tempAvailQuantity_vec-selectAssetQuantity_vec[k]
-      #availAsset_df$totalQuantity[which(availAsset_df$assetCustacId==tempResource)]<- tempQuantity_vec-selectAssetQuantity_vec[k]
-    }
-    #### END ##############################
-    
-    selectAssetUnitValue_vec <- unitValue_mat[i,idxSelectResource_vec]
-    selectAssetAmountUSD_vec <- round(selectAssetQuantity_vec*selectAssetUnitValue_vec,2)
-    selectAssetNetAmountUSD_vec <- selectAssetAmountUSD_vec*(1-haircut_mat[i,idxSelectResource_vec])
-    selectAssetFX_vec <- assetInfo_df$FXRate[idxSelectAsset_vec]
-    selectAssetAmount_vec <- selectAssetAmountUSD_vec*selectAssetFX_vec
-    selectAssetNetAmount_vec <- selectAssetNetAmountUSD_vec*selectAssetFX_vec
-    #######
-    # netAmount(in local currency) is surfacing in UI
-    #######
-    
-    selectAsset_df <- data.frame(selectAssetId_vec,selectAssetName_vec,selectAssetNetAmount_vec,selectAssetNetAmountUSD_vec,selectAssetFX_vec,selectAssetHaircut_vec,selectAssetAmount_vec,selectAssetAmountUSD_vec,selectAssetCurrency_vec,
-                                 selectAssetQuantity_vec,selectAssetCustodianAccount_vec,selectAssetVenue_vec,selectMarginType_vec,selectMs_vec,selectCall_vec)
-    colnames(selectAsset_df)<- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType','marginStatement','marginCall')
-    rownames(selectAsset_df)<- 1:length(selectAsset_df[,1])
-    
-    callSelect_list[[callId_vec[i]]] <- selectAsset_df
-    if(is.null(msSelect_list[[msId_vec[j]]])){
-      msSelect_list[[msId_vec[j]]] <- selectAsset_df
+    if(length(result_mat[1,])==1){
+      for(m in 1:length(msId_vec)){
+        idxTemp_vec <- which(msDul_vec==msId_vec[m])
+        if(length(idxTemp_vec)==1){
+          movements <- movements+sum(resultDummy_mat[idxTemp_vec])
+        } else{
+          movements <- movements+max(resultDummy_mat[idxTemp_vec])
+        }
+      }
     } else{
-      tempAsset_df <- msSelect_list[[msId_vec[j]]]
-      selectAsset_df <- rbind(selectAsset_df,tempAsset_df)
-      rownames(selectAsset_df)<- 1:length(selectAsset_df[,1])
-      msSelect_list[[msId_vec[j]]] <- selectAsset_df
+      for(m in 1:length(msId_vec)){
+        idxTemp_vec <- which(msDul_vec==msId_vec[m])
+        if(length(idxTemp_vec)==1){
+          movements <- movements+sum(resultDummy_mat[idxTemp_vec,])
+        } else{
+          movements <- movements+sum(apply(resultDummy_mat[idxTemp_vec,],2,max))
+        }
+      }
     }
-  }
-  
-  result_list <- list(callSelect_list=callSelect_list,  msSelect_list=msSelect_list,
-                      availAsset_df=availAsset_df)
-  return(result_list)
-}
-
-ResultVec2Mat <- function(solution_vec,callId_vec,resource_vec,idxEli_vec,varNum){
-  callNum <- length(callId_vec); resourceNum <- length(resource_vec)
-  result_mat <- matrix(0,nrow=callNum,ncol=resourceNum,dimnames=list(callId_vec,resource_vec))
-  result_mat <- t(result_mat)
-  result_mat[idxEli_vec]<-solution_vec[1:varNum]
-  result_mat <- t(result_mat)
-  return(result_mat)
-}
-
-ResultList2Mat <- function(callOutput_list,callId_vec,resource_vec,minUnit_mat){
-  callNum <- length(callId_vec)
-  resourceNum <- length(resource_vec)
-  
-  result_mat <- matrix(0,nrow=callNum,ncol=resourceNum,dimnames=list(callId_vec,resource_vec))
-  
-  for(m in 1:callNum){
-    callId <- callId_vec[m]
-    callAlloc_df <- callOutput_list[[callId]]
-    
-    # the 'Quantity'= decision variable * minUnit
-    # find the corresponding decision variable index from the varName
-    resourceTemp_vec <- PasteResource(callAlloc_df$Asset,callAlloc_df$CustodianAccount)
-    #varNameTemp_vec <- PasteVarName(callAlloc_df$marginStatement,callAlloc_df$marginCall,resourceTemp_vec)
-    
-    idxTemp_vec <- match(resourceTemp_vec,resource_vec)
-    
-    quantityTemp_vec <- callAlloc_df$Quantity
-    minUnitQuantityTemp_vec <- quantityTemp_vec/minUnit_mat[m,idxTemp_vec]
-    
-    result_mat[m,idxTemp_vec] <- minUnitQuantityTemp_vec
-  }
-  return(result_mat)
-}
-
-ResultList2Vec <- function(callOutput_list,callId_vec,minUnit_vec,varName_vec,varNum3,varNum,idxEli_vec){
-  #varnum <- length(varName_vec)
-  result_vec <- rep(0,varNum3)
-  callNum <- length(callId_vec)
-  
-  for(m in 1:callNum){
-    callId <- callId_vec[m]
-    callAlloc_df <- callOutput_list[[callId]]
-    
-    # the 'Quantity'= decision variable * minUnit
-    # find the corresponding decision variable index from the varName
-    resourceTemp_vec <- PasteResource(callAlloc_df$Asset,callAlloc_df$CustodianAccount)
-    varNameTemp_vec <- PasteVarName(callAlloc_df$marginStatement,callAlloc_df$marginCall,resourceTemp_vec)
-    
-    minUnitEli_vec <- minUnit_vec[idxEli_vec]
-    
-    for(k in 1:length(resourceTemp_vec)){
-      idxVarTemp <- which(varName_vec==varNameTemp_vec[k])
-      quantityTemp <- callAlloc_df$Quantity[k]
+  } else if(method=='msList'){
+    msOutput_list <- result
+    msId_vec <- unique(callInfo_df$marginStatement)
+    msNum <- length(msId_vec)
+    for(i in 1:msNum){
+      msId <- msId_vec[i]
+      msAlloc_df <- msOutput_list[[msId]]
+      resources <- unique(PasteResource(msAlloc_df$Asset,msAlloc_df$CustodianAccout))
+      movements <- movements + length(resources)
+    }
+  } else if(method=='callList'){
+    callOutput_list <- result
+    callId_vec <- callInfo_df$id
+    msId_vec <- unique(callInfo_df$marginStatement)
+    callNum <- length(callId_vec)
+    msNum <- length(msId_vec)
+    for(i in 1:msNum){
+      msId <- msId_vec[i]
+      callIds <- callInfo_df$id[which(callInfo_df$marginStatement==msId)]
       
-      result_vec[idxVarTemp] <- quantityTemp/minUnitEli_vec[idxVarTemp]
-      result_vec[idxVarTemp+varNum] <- 1
+      callId <- callIds[1]
+      msAlloc_df <- callOutput_list[[callId]]
+      if(length(callIds>1)){
+        # inside one margin statement
+        for(m in 2:length(callIds)){
+          callId <- callIds[m]
+          callAlloc_df <- callOutput_list[[callId]]
+          msAlloc_df <- rbind(callAlloc_df,msAlloc_df)
+        }
+      }
+      resources <- unique(PasteResource(msAlloc_df$Asset,msAlloc_df$CustodianAccout))
+      movements <- movements + length(resources)
     }
-    # if inside one margin statement, two margin calls are using the same asset, 
-    # then assign 1 to (varNum3-varNum2)
+    
+  } else{
+    stop('Please input a valid method!')
   }
-  return(result_vec)
+  
+  return(movements)
 }
 
-ResultDf2List <- function(result_df,callId_vec){
-  callNum <- length(callId_vec)
-  result_list <- list()
-  for(i in 1:callNum){
-    callId <- callId_vec[i]
-    idx_vec <- which(result_df$marginCall==callId)
-    call_df <- result_df[idx_vec,]
-    result_list[[callId]] <- call_df
-  }
-  return(result_list)
-}
-
-AdjustResultVec <- function(solution_vec,varNum,varNum2,varNum3,msVar_mat,
+AdjustResultVec <- function(solution_vec,varNum,varName_vec,fCon4_mat,
                             callAmount_vec,minUnitQuantity_vec,minUnitValue_vec){
   
   # round up the decimal quantity to the nearest integer.
@@ -165,6 +91,8 @@ AdjustResultVec <- function(solution_vec,varNum,varNum2,varNum3,msVar_mat,
   # Round the extreme values E to a reasonable number R
   # extreme definition: ext = min(quantity limit,2*margin call)
   # reasonable number definition: rea = min(quantity limit, margin call)
+  
+  varNum2 <- length(varName_vec)
   
   solNum1_vec <- solution_vec[1:varNum]
   solNum2_vec <- solution_vec[(varNum+1):varNum2]
@@ -179,19 +107,21 @@ AdjustResultVec <- function(solution_vec,varNum,varNum2,varNum3,msVar_mat,
   solNum1_vec[extIdx_vec] <- rea[extIdx_vec]
   
   
+  ## update
+  temp <- varNum2-varNum
+  solNum1_mat <- matrix(rep(solNum1_vec,temp),ncol=varNum,byrow=T)
+  solNum2_mat <- solNum1_mat*fCon4_mat[1:temp,1:varNum]
+  if(temp>1){
+    temp_vec <- apply(solNum2_mat,1,sum)
+  } else{
+    temp_vec <- sum(solNum2_mat) # by row
+  }
   
-  solNum2_vec <- 1*(solNum1_vec & 1) # recalculate the dummy value
+  solNum2_vec <- 1*(temp_vec & 1) # recalculate the dummy value
   
   # substitute
   solution_vec[1:varNum] <- solNum1_vec 
   solution_vec[(varNum+1):varNum2] <- solNum2_vec
-  
-  if(varNum3>varNum2){
-    idxTemp1_vec <- msVar_mat[,1]
-    idxTemp2_vec <- msVar_mat[,2]
-    solNum3_vec <- 1*(solution_vec[idxTemp1_vec] & solution_vec[idxTemp2_vec])
-    solution_vec[(varNum2+1):varNum3] <- solNum3_vec
-  }
   
   return(solution_vec)
 }
@@ -217,11 +147,9 @@ CheckResultVec <- function(result_mat,quantityTotal_vec,callId_vec,callAmount_ve
     
     for(i in idxExcess_vec){          # i: the index of the excess quantity asset in assetId_vec
       currentAlloc_mat <- matrix(c(which(result_mat[,i]>0),result_mat[which(result_mat[,i]>0),i]),nrow=2,byrow=T)
-      if(length(currentAlloc_mat[1,])==0){
-        stop('Current margin call has no asset allocated!')
-      } else if(length(currentAlloc_mat[1,])>1){
+      if(length(currentAlloc_mat[1,])>1){
         currentAlloc_mat<-currentAlloc_mat[,order(currentAlloc_mat[2,])]
-      } 
+      }
       for(k in 1:length(currentAlloc_mat[1,])){ # k: the kth margin call which asset[i] allocated to
         j = currentAlloc_mat[1,k]  # j: the index of the the kth margin call in callId_vec
         # current allocated quantity < excess quanity
@@ -383,101 +311,187 @@ CheckResultVec <- function(result_mat,quantityTotal_vec,callId_vec,callAmount_ve
   
   return(result_mat)
 }
+ResultMat2List <- function(result_mat,callId_vec,resource_vec,callInfo_df,haircut_mat,cost_mat,resourceInfo_df,
+                           callSelect_list,msSelect_list){
+  
+  callNum <- length(callId_vec)
+  
+  #### construct the result
+  for(i in 1:callNum){      
+    # resource and result_mat columns have the same order 
+    # the allocated indexes: 
+    idx_vec <- which(result_mat[i,]!=0) 
+    if(length(idx_vec)==0){
+      errormsg <- paste("There's no asset allocated to margin call",callId_vec[i])
+      stop(errormsg)
+    }
+    #### Get the information of the allocation Start ####
+    selectResource_vec <- resource_vec[idx_vec]
+    selectAssetId_vec <- resourceInfo_df$assetId[idx_vec]
+    selectAssetCustodianAccount_vec <- resourceInfo_df$custodianAccount[idx_vec]
+    selectAssetVenue_vec <- resourceInfo_df$venue[idx_vec]
+    selectAssetName_vec <- resourceInfo_df$assetName[idx_vec]
+    selectAssetHaircut_vec <- haircut_mat[i,idx_vec]
+    selectAssetCostFactor_vec <- cost_mat[i,idx_vec]
+    selectAssetCurrency_vec <- resourceInfo_df$currency[idx_vec]
+    selectAssetMinUnitQuantity_vec <- result_mat[i,idx_vec]
+    selectAssetQuantity_vec <- result_mat[i,idx_vec]*resourceInfo_df$minUnit[idx_vec]
+    selectMarginType_vec <- rep(callInfo_df$marginType[i],length(idx_vec))
+    selectMs_vec <- rep(callInfo_df$marginStatement[i],length(idx_vec))
+    selectCall_vec <- rep(callId_vec[i],length(idx_vec))
+    
+    selectAssetFX_vec <- resourceInfo_df$FXRate[idx_vec]
+    selectAssetUnitValue_vec <- resourceInfo_df$unitValue[idx_vec]/selectAssetFX_vec
+    
+    selectAssetAmountUSD_vec <- round(selectAssetQuantity_vec*selectAssetUnitValue_vec,2)
+    selectAssetNetAmountUSD_vec <- selectAssetAmountUSD_vec*(1-haircut_mat[i,idx_vec])
+    
+    selectAssetCost_vec <- selectAssetCostFactor_vec*selectAssetAmountUSD_vec
+    
+    selectAssetAmount_vec <- selectAssetAmountUSD_vec*selectAssetFX_vec
+    selectAssetNetAmount_vec <- selectAssetNetAmountUSD_vec*selectAssetFX_vec
+    #### Get the information of the allocation END ######
+    
+    #### UPDATE THE ASSET QUANTITY START ########
+    resourceInfo_df$quantity[idx_vec] <- resourceInfo_df$quantity[idx_vec]-selectAssetQuantity_vec
+    
+    #### UPDATE THE ASSET QUANTITY END ##########
+    
+    #### Construct alloc_df Start #############
+    alloc_df <- data.frame(selectAssetId_vec,selectAssetName_vec,selectAssetNetAmount_vec,selectAssetNetAmountUSD_vec,selectAssetFX_vec,selectAssetHaircut_vec,selectAssetAmount_vec,selectAssetAmountUSD_vec,selectAssetCurrency_vec,
+                           selectAssetQuantity_vec,selectAssetCustodianAccount_vec,selectAssetVenue_vec,selectMarginType_vec,selectMs_vec,selectCall_vec,selectAssetCostFactor_vec,selectAssetCost_vec)
+    colnames(alloc_df)<- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType','marginStatement','marginCall',
+                           'CostFactor','Cost')
+    rownames(alloc_df)<- 1:length(alloc_df[,1])
+    #### Construct alloc_df END ###############
+    
+    #### Update callSelect_list Start ####
+    callSelect_list[[callId_vec[i]]] <- alloc_df
+    #### Update callSelect_list END ######
+    
+    #### Update msSelect_list Start ######
+    msId <- callInfo_df$marginStatement[i]
+    if(is.null(msSelect_list[[msId]])){
+      msSelect_list[[msId]] <- alloc_df
+    } else{
+      tempAlloc_df <- msSelect_list[[msId]]
+      alloc_df <- rbind(alloc_df,tempAlloc_df)
+      rownames(alloc_df)<- 1:length(alloc_df[,1])
+      msSelect_list[[msId]] <- alloc_df
+    }
+    #### Update msSelect_list END ########
+  }
+  result_list <- list(callSelect_list=callSelect_list,msSelect_list=msSelect_list)
+  return(result_list)
+}
 
-VarInfo <- function(eli_vec,callInfo_df,resource_vec,callId_vec){
+ResultVec2Mat <- function(solution_vec,callId_vec,resource_vec,idxEli_vec,varNum){
+  callNum <- length(callId_vec); resourceNum <- length(resource_vec)
+  result_mat <- matrix(0,nrow=callNum,ncol=resourceNum,dimnames=list(callId_vec,resource_vec))
+  result_mat <- t(result_mat)
+  result_mat[idxEli_vec]<-solution_vec[1:varNum]
+  result_mat <- t(result_mat)
+  return(result_mat)
+}
+
+ResultList2Mat <- function(callOutput_list,callId_vec,resource_vec,minUnit_mat){
   callNum <- length(callId_vec)
   resourceNum <- length(resource_vec)
   
-  # matrix store the index number, by row
-  idx_mat <- matrix(1:(callNum*resourceNum),nrow=callNum,byrow = TRUE,dimnames = list(callId_vec,resource_vec))
-  # matrix store the variable name("msId_mcId_assetCustId"), by row
-  fullNameOri_mat <-  matrix('',nrow=callNum,ncol=resourceNum,byrow = TRUE,dimnames = list(callId_vec,resource_vec))
-  for(i in 1:callNum){
-    msId <- callInfo_df$marginStatement[i]
-    fullNameOri_mat[i,]<-paste(msId,callId_vec[i],resource_vec,sep='_')
+  result_mat <- matrix(0,nrow=callNum,ncol=resourceNum,dimnames=list(callId_vec,resource_vec))
+  
+  for(m in 1:callNum){
+    callId <- callId_vec[m]
+    callAlloc_df <- callOutput_list[[callId]]
+    
+    # the 'Quantity'= decision variable * minUnit
+    # find the corresponding decision variable index from the varName
+    resourceTemp_vec <- PasteResource(callAlloc_df$Asset,callAlloc_df$CustodianAccount)
+    #varNameTemp_vec <- PasteVarName(callAlloc_df$marginStatement,callAlloc_df$marginCall,resourceTemp_vec)
+    
+    idxTemp_vec <- match(resourceTemp_vec,resource_vec)
+    
+    quantityTemp_vec <- callAlloc_df$Quantity
+    minUnitQuantityTemp_vec <- quantityTemp_vec/minUnit_mat[m,idxTemp_vec]
+    
+    result_mat[m,idxTemp_vec] <- minUnitQuantityTemp_vec
   }
-  fullNameDummy_mat <- fullNameOri_mat
-  fullNameDummy_mat[] <- paste(fullNameOri_mat,'dummy',sep='-')
+  return(result_mat)
+}
+
+ResultList2Vec <- function(callOutput_list,callId_vec,minUnit_vec,varName_vec,varNum,pos_vec){
+  varNum2 <- length(varName_vec)
+  result1_vec <- rep(0,varNum)
+  callNum <- length(callId_vec)
   
-  fullNameAll_mat <- rbind(fullNameOri_mat,fullNameDummy_mat)
-  
-  splitName_mat <- matrix(unlist(strsplit(t(fullNameAll_mat),'_')),ncol=3,byrow=TRUE)
-  splitName_mat <- cbind(splitName_mat,1:(2*length(idx_mat)))
-  colnames(splitName_mat) <- c('msId','callId','assetCustId','index'); rownames(splitName_mat)<- 1:(2*length(idx_mat))
-  
-  ## filter the eligible/available asset variables
-  idxEli_vec <- which(eli_vec==1)  
-  ## variable numbers
-  varNum <- length(idxEli_vec)    # variable numbers
-  varNum2 <- varNum*2
-  
-  varName_vec <- c(t(fullNameOri_mat)[idxEli_vec],t(fullNameDummy_mat)[idxEli_vec])
-  varSplitName_mat <- rbind(splitName_mat[idxEli_vec,],splitName_mat[length(idx_mat)+idxEli_vec,])
-  
-  # update the variable index
-  varSplitName_mat[,4]<-1:varNum2
-  varDummy_mat <- varSplitName_mat[(varNum+1):varNum2,]
-  
-  ### Margin Statement ###
-  marginTypeNum <- 2
-  msVarNum <- 0
-  msVar_mat <- matrix(0,nrow=ceiling(varNum/2),ncol=3,dimnames=list(1:ceiling(varNum/2),c("index_1","index_2","index")))
-  
-  msId_vec <- unique(callInfo_df$marginStatement)
-  for(i in 1:length(msId_vec)){
-    tempCallId_vec <- which(callInfo_df$marginStatement==msId_vec[i])
-    tempLength <- length(tempCallId_vec)
-    if(tempLength==2){
-      idxTemp <- which(varDummy_mat[,1]==msId_vec[i])
-      temp_df <- as.data.frame(table(varDummy_mat[which(varDummy_mat[,1]==msId_vec[i]),3]))
-      
-      # When IM and VM in the same margin statement have the same available asset
-      # the frequency = 2 (assume only one IM and one VM in one margin statement)
-      
-      idxTempRep_vec <- which(temp_df[,2]==2)
-      if(length(idxTempRep_vec)>=1){ # at least one asset is eligible for both IM and VM
-        
-        tempResource_vec <- as.character(temp_df[idxTempRep_vec,1])
-        
-        temp_mat <- varDummy_mat[idxTemp,]
-        temp2_mat <- temp_mat[which(!is.na(match(temp_mat[,3],tempResource_vec))),]
-        
-        tempRes_df <- aggregate(index~msId+assetCustId,data=temp2_mat,PasteFun1)
-        tempPair_vec <- tempRes_df[,3]
-        idxTempNew_vec <- msVarNum+1:length(tempPair_vec)
-        msVarNum <- msVarNum + length(tempPair_vec)
-        msVar_mat[idxTempNew_vec,c(1,2)] <- as.numeric(t(data.frame((strsplit(tempPair_vec,'_')))))
-        msVar_mat[idxTempNew_vec,3] <- idxTempNew_vec+varNum2
-      }
+  for(m in 1:callNum){
+    callId <- callId_vec[m]
+    callAlloc_df <- callOutput_list[[callId]]
+    
+    # find the corresponding decision variable index from the varName
+    resourceTemp_vec <- PasteResource(callAlloc_df$Asset,callAlloc_df$CustodianAccount)
+    varNameTemp_vec <- PasteVarName(callAlloc_df$marginStatement,callAlloc_df$marginCall,resourceTemp_vec)
+    
+    for(k in 1:length(resourceTemp_vec)){
+      idxVarTemp <- which(varName_vec==varNameTemp_vec[k])
+      quantityTemp <- callAlloc_df$Quantity[k]
+      # the 'Quantity'= decision variable * minUnit
+      result1_vec[idxVarTemp] <- quantityTemp/minUnit_vec[idxVarTemp]
     }
   }
-  # update msVar_mat
-  if(msVarNum==0){
-    msVar_mat <- msVar_mat[-c(1:length(msVar_mat[,1])),]
+  # derive the decision variables (varNum+1 ~ varNum2)
+  var1_df <- data.frame(real=result1_vec,pos=pos_vec)
+  var2_df <- aggregate(real~pos,data=var1_df,sum)
+  result2_vec <- ((var2_df$real) & 1)*1
+  
+  result_vec <- c(result1_vec,result2_vec)
+  
+  return(result_vec)
+}
+
+ResultList2DummyVec <- function(callOutput_list,callId_vec,varName_vec,varNum){
+  varNum2 <- length(varName_vec)
+  result_vec <- rep(0,varNum2)
+  callNum <- length(callId_vec)
+  
+  for(m in 1:callNum){
+    callId <- callId_vec[m]
+    callAlloc_df <- callOutput_list[[callId]]
+    
+    # find the corresponding decision variable index from the varName
+    resourceTemp_vec <- PasteResource(callAlloc_df$Asset,callAlloc_df$CustodianAccount)
+    varNameTemp_vec <- PasteVarName(callAlloc_df$marginStatement,callAlloc_df$marginCall,resourceTemp_vec)
+    
+    for(k in 1:length(resourceTemp_vec)){
+      idxVarTemp <- which(varName_vec==varNameTemp_vec[k])
+      result_vec[idxVarTemp] <- 1
+    }
+  }
+  temp <- varNum2-varNum
+  result1_mat <- matrix(rep(result_vec[1:varNum],temp),ncol=varNum,byrow=T)
+  result2_mat <- result1_mat*fCon4_mat[1:temp,1:varNum]
+  
+  if(temp>1){
+    temp_vec <- apply(result2_mat,1,sum)
   } else{
-    msVar_mat <- msVar_mat[1:msVarNum,]
-    msVar_mat <- matrix(as.numeric(msVar_mat),ncol=3)
+    temp_vec <- sum(result2_mat) # by row
   }
   
-  ## add new auxiliary variables, two margin calls coming from one margin statement
-  varNum3 <- varNum2+msVarNum
-  msVarName_mat <- varSplitName_mat[msVar_mat[,1],]
-  if(is.vector(msVarName_mat)){
-    msVarName_mat[2] <- msVarName_mat[1]
-    msVarName_mat[4] <- msVar_mat[3]
-    
-    msVarName_vec <- PasteFun2(msVarName_mat[1:3]) 
-  } else{
-    msVarName_mat[,2] <- msVarName_mat[,1]
-    msVarName_mat[,4] <- msVar_mat[,3]
-    
-    msVarName_vec <- apply(msVarName_mat[,1:3],1,PasteFun2)
+  result_vec[(varNum+1):varNum2] <- 1*(temp_vec & 1) # recalculate the dummy value
+  
+  return(result_vec)
+}
+
+ResultDf2List <- function(result_df,callId_vec){
+  callNum <- length(callId_vec)
+  result_list <- list()
+  for(i in 1:callNum){
+    callId <- callId_vec[i]
+    idx_vec <- which(result_df$marginCall==callId)
+    call_df <- result_df[idx_vec,]
+    result_list[[callId]] <- call_df
   }
-  
-  varName_vec <- c(varName_vec,msVarName_vec)
-  
-  var_list <- list(varName_vec=varName_vec,varNum=varNum,varNum2=varNum2,varNum3=varNum3,msVar_mat=msVar_mat)
-  return(var_list)
+  return(result_list)
 }
 
 ResultList2AmountVec <- function(callOutput_list,callId_vec,varName_vec){
@@ -521,193 +535,383 @@ VarVec2mat <- function(var_vec,varName_vec,callId_vec,resource_vec){
   return(var_mat)
 }
 
-LiquidFun <- function(quantity_vec,quantityTotal_vec,liquidity_vec,minUnitValue_vec){
-  numerator <- sum(quantity_vec*liquidity_vec*minUnitValue_vec)
-  denominator <- sum(quantityTotal_vec*liquidity_vec*minUnitValue_vec)
-  ratio <- numerator/denominator
-  return(ratio)
+ResultList2Df <- function(result_list,callId_vec){
+  result_df <- result_list[[callId_vec[1]]]
+  if(length(callId_vec)>1){
+    for(i in 2:length(callId_vec)){
+      alloc_df <- result_list[[callId_vec[i]]]
+      result_df <- rbind(result_df,alloc_df)
+    }
+  }
+  rownames(result_df) <- 1:length(result_df[,1])
+  return(result_df)
 }
 
-CostFun <- function(amount_vec,cost_vec){
-  cost <- sum(amount_vec*cost_vec)
-  return(cost)
-}
-
-OperationFun <- function(result,callInfo_df,method){
-  movements <- 0
-  if(method=='matrix'){
-    result_mat <- result
-    resultDummy_mat <- 1*(result_mat&1)
-    msDul_vec <- callInfo_df$marginStatement
-    msId_vec <- unique(msDul_vec)
+OrderCallId <- function(callOrderMethod,callInfo_df){
+  ## method 0: Keep original
+  ## method 1: By margin call amount, decreasing
+  ## method 2: By margin type, VM then IM; sub order by call amount
+  ## method 3: By total call amount in margin statement, decreasing
+  
+  if(callOrderMethod==0){ # keep original
+    callInfo_df <- callInfo_df
+  }else if(callOrderMethod==1){ # by call amount, decreasing
+    callInfo_df <- callInfo_df[order(callInfo_df$callAmount,decreasing=T),]
+  }else if(callOrderMethod==2){ # by margin type(VM first) and call amount, decreasing
+    callInfoVM <- callInfo_df[which(toupper(callInfo_df$marginType)=='VARIATION'),]
+    callInfoVM <- callInfoVM[order(callInfoVM$callAmount,decreasing=T),]
     
-    if(length(result_mat[1,])==1){
-      for(m in 1:length(msId_vec)){
-        idxTemp_vec <- which(msDul_vec==msId_vec[m])
-        if(length(idxTemp_vec)==1){
-          movements <- movements+sum(resultDummy_mat[idxTemp_vec])
-        } else{
-          movements <- movements+max(resultDummy_mat[idxTemp_vec])
-        }
-      }
-    } else{
-      for(m in 1:length(msId_vec)){
-        idxTemp_vec <- which(msDul_vec==msId_vec[m])
-        if(length(idxTemp_vec)==1){
-          movements <- movements+sum(resultDummy_mat[idxTemp_vec,])
-        } else{
-          movements <- movements+sum(apply(resultDummy_mat[idxTemp_vec,],2,max))
-        }
-      }
-    }
-  } else if(method=='msList'){
-    msOutput_list <- result
-    msId_vec <- unique(callInfo_df$marginStatement)
-    msNum <- length(msId_vec)
-    for(i in 1:msNum){
-      msId <- msId_vec[i]
-      msAlloc_df <- msOutput_list[[msId]]
-      resources <- unique(PasteResource(msAlloc_df$Asset,msAlloc_df$CustodianAccout))
-      movements <- movements + length(resources)
-    }
-  } else if(method=='callList'){
-    callOutput_list <- result
-    callId_vec <- callInfo_df$id
-    msId_vec <- unique(callInfo_df$marginStatement)
-    callNum <- length(callId_vec)
-    msNum <- length(msId_vec)
-    for(i in 1:msNum){
-      msId <- msId_vec[i]
-      callIds <- callInfo_df$id[which(callInfo_df$marginStatement==msId)]
+    callInfoIM <- callInfo_df[which(toupper(callInfo_df$marginType)=='INITIAL'),]
+    callInfoIM <- callInfoIM[order(callInfoIM$callAmount,decreasing=T),]
+    callInfo_df <- rbind(callInfoVM,callInfoIM)
+  }else if(callOrderMethod==3){ # by margin statement, call amount in margin statement, decreasing
+    msAggrCall_df <- aggregate(callAmount~marginStatement,data=callInfo_df,sum)
+    msAggrCall_df <- msAggrCall_df[order(msAggrCall_df$callAmount,decreasing=T),]
+    tempMs_vec <- msAggrCall_df$marginStatement
+    newCallInfo_df <- callInfo_df
+    idxCurrent <- 0
+    for(i in 1:length(tempMs_vec)){
+      idxTemp_vec <- which(tempMs_vec[i]==callInfo_df$marginStatement)
+      tempCallInfo_df <- callInfo_df[idxTemp_vec,]
+      tempCallInfo_df <- tempCallInfo_df[order(tempCallInfo_df$callAmount,decreasing=F),]
+      idxNewTemp_vec <- idxCurrent+1:length(idxTemp_vec)
+      newCallInfo_df[idxNewTemp_vec,] <- tempCallInfo_df
       
-      callId <- callIds[1]
-      msAlloc_df <- callOutput_list[[callId]]
-      if(length(callIds>1)){
-        # inside one margin statement
-        for(m in 2:length(callIds)){
-          callId <- callIds[m]
-          callAlloc_df <- callOutput_list[[callId]]
-          msAlloc_df <- rbind(callAlloc_df,msAlloc_df)
-        }
-      }
-      resources <- unique(PasteResource(msAlloc_df$Asset,msAlloc_df$CustodianAccout))
-      movements <- movements + length(resources)
+      idxCurrent <- idxCurrent+length(idxTemp_vec)
+    }
+    callInfo_df<- newCallInfo_df
+  }
+  return(callInfo_df)
+}
+
+SplitCallId <- function(vmLimit,imLimit,callLimit,msLimit,callInfo_df,callId_vec){
+  
+  groupCallId_list <- list()
+  # if the total call numbers is equal or less than limitTotal, only one group
+  if(length(callInfo_df[,1])<=limitTotal){
+    groupCallId_list[[1]] <- callId_vec
+  } else{
+    # index of VM and IM in the call list
+    
+    idxVm_vec <- which(toupper(callInfo_df$marginType)=='VARIATION')
+    idxIm_vec <- which(toupper(callInfo_df$marginType)=='INITIAL')
+    # number of VM and IM groups 
+    groupVmNum <- ceiling(length(idxVm_vec)/limitVm) 
+    groupImNum <- ceiling(length(idxIm_vec)/limitIm)
+    
+    # make the group list, VM and IM in the same list
+    index <- 0
+    if(groupVmNum==1){
+      index <- index+1
+      groupCallId_list[[index]] <- callId_vec[idxVm_vec]
+    } else if(groupVmNum > 1){
+      for(i in 1:(groupVmNum-1)){
+        index <- index+1
+        groupCallId_list[[index]] <- callId_vec[idxVm_vec[(i-1)*limitVm+(1:limitVm)]]
+      } 
+      index <- index+1
+      groupCallId_list[[index]] <- callId_vec[tail(idxVm_vec,length(idxVm_vec)-(groupVmNum-1)*limitVm)]
     }
     
-  } else{
-    stop('Please input a valid method!')
+    if(groupImNum==1){
+      index <- index+1
+      groupCallId_list[[index]] <- callId_vec[idxIm_vec]
+    } else if(groupImNum > 1){
+      for(i in 1:(groupImNum-1)){
+        index <- index+1
+        groupCallId_list[[index]] <- callId_vec[idxIm_vec[(i-1)*limitIm+(1:limitIm)]]
+      } 
+      index <- index+1
+      groupCallId_list[[index]] <- callId_vec[tail(idxIm_vec,length(idxIm_vec)-(groupImNum-1)*limitIm)]
+    }
   }
+  return(groupCallId_list)
+}
+
+GroupCallIdByMs <- function(callLimit,msLimit,callInfo_df,callId_vec){
   
-  return(movements)
+  groupCallId_list <- list()
+  # if the total call numbers is equal or less than limitTotal, only one group
+  if(length(callInfo_df[,1])<=callLimit){
+    groupCallId_list[[1]] <- callId_vec
+  } else if(length(unique(callInfo_df$marginStatement))<=msLimit){
+    groupCallId_list[[1]] <- callId_vec
+  } else{
+    groupMsId_list <- list()
+    callMs_vec <- callInfo_df$marginStatement
+    ms_vec <- unique(callMs_vec)
+    msGroupNum <- ceiling(length(ms_vec)/msLimit)
+    
+    for(i in 1:(msGroupNum-1)){
+      tempCurrent <- msLimit*(i-1)
+      tempMs_vec <- ms_vec[(tempCurrent+1):(tempCurrent+msLimit)]
+      tempCall_vec <- callInfo_df$id[which((callInfo_df$marginStatement) %in% tempMs_vec)]
+      groupMsId_list[[i]]<- tempMs_vec
+      groupCallId_list[[i]]<- tempCall_vec
+    }
+    tempCurrent <- msLimit*(msGroupNum-1)
+    tempMs_vec <- na.omit(ms_vec[(tempCurrent+1):(tempCurrent+msLimit)])
+    tempCall_vec <- callInfo_df$id[which((callInfo_df$marginStatement) %in% tempMs_vec)]
+    groupMsId_list[[msGroupNum]]<- tempMs_vec
+    groupCallId_list[[msGroupNum]]<- tempCall_vec
+  }
+  return(groupCallId_list)
 }
 
-UpdateQtyInAvailAsset <- function(resource_vec,quantity_vec,availAsset_df,qtyType,qtyLeft,minUnit_vec){
-  ## quantity_vec: real quantity of corresponding resource
-  if(qtyLeft){
-    if(qtyType=='minUnit'){
-      for(i in 1:length(resource_vec)){
-        resource <- resource_vec[i]
-        quantity <- quantity_vec[i]
-        minUnit <- minUnit_vec[i]
-        idx_vec <- which(availAsset_df$assetCustacId==resource)
-        if(length(idx_vec)!=0){
-          availAsset_df$quantity[idx_vec] <- quantity*minUnit
-        }
-      }
-    } else{
-      for(i in 1:length(resource_vec)){
-        resource <- resource_vec[i]
-        quantity <- quantity_vec[i]
-        idx_vec <- which(availAsset_df$assetCustacId==resource)
-        if(length(idx_vec)!=0){
-          availAsset_df$quantity[idx_vec] <- quantity
-        }
-      }
-    }
-  } else{
-    if(qtyType=='minUnit'){
-      for(i in 1:length(resource_vec)){
-        resource <- resource_vec[i]
-        quantity <- quantity_vec[i]
-        minUnit <- minUnit_vec[i]
-        idx_vec <- which(availAsset_df$assetCustacId==resource)
-        if(length(idx_vec)!=0){
-          availAsset_df$quantity[idx_vec] <- availAsset_df$quantity[idx_vec]-quantity*minUnit
-        }
-      }
-    } else{
-      for(i in 1:length(resource_vec)){
-        resource <- resource_vec[i]
-        quantity <- quantity_vec[i]
-        idx_vec <- which(availAsset_df$assetCustacId==resource)
-        if(length(idx_vec)!=0){
-          availAsset_df$quantity[idx_vec] <- availAsset_df$quantity[idx_vec]-quantity
-        }
-      }
-    }
-  }
+
+ResourceInfo <- function(resource_vec,assetInfo_df,availAsset_df){
+  ## better retrieve from DB
+  ## keep useful columns from assetInfo
+  ## asset id, name, currency, unitValue, minUnit, minUnitValue, FXRate
+  assetId_vec <- SplitResource(resource_vec,'asset')
+  custodianAccount_vec <- SplitResource(resource_vec,'custodianAccount')
+  idx1_vec <- match(c('id', 'name', 'unitValue', 'minUnit', 'minUnitValue','currency', 'FXRate'),names(assetInfo_df))
+  resource_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),idx1_vec]
   
-  return(availAsset_df)
+  ## add resource id, custodianAccount id, quantity, minQty, qtyRes
+  resource_df <- cbind(id=resource_vec,resource_df,custodianAccount_vec)
+  idx2_vec <- match(resource_vec, availAsset_df$assetCustacId)
+  venue_vec <- availAsset_df$venue[idx2_vec] 
+  qtyOri_vec <- availAsset_df$quantity[idx2_vec]
+  qtyMin_vec <- floor(qtyOri_vec/resource_df$minUnit) # interal minUnit quantity
+  qtyRes_vec <- qtyOri_vec - qtyMin_vec*resource_df$minUnit # quantity left after integral minQty
+  
+  resource_df <- cbind(resource_df[,1:3],qtyOri_vec,qtyMin_vec,qtyRes_vec,resource_df[,4:9],venue_vec)
+  
+  names(resource_df) <- c('id','assetId','assetName','qtyOri','qtyMin','qtyRes','unitValue', 'minUnit','minUnitValue','currency','FXRate',
+                          'custodianAccount','venue')
+  
+  return(resource_df)
 }
 
-GetQtyFromAvailAsset <- function(resource_vec,availAsset_df,qtyType,minUnit_vec){ ## unit/minUnit quantity
-  quantity_vec <- rep(0,length(resource_vec))
-  if(qtyType=='minUnit'){
-    for(i in 1:length(resource_vec)){
-      resource <- resource_vec[i]
-      minUnit <- minUnit_vec[i]
-      idx_vec <- which(availAsset_df$assetCustacId==resource)
-      if(length(idx_vec)==0){
-        quantity_vec[i] <- 0
-      } else{
-        quantity_vec[i] <- min(availAsset_df$quantity[idx_vec]/minUnit)
-      }
-    }
-  } else{
-    for(i in 1:length(resource_vec)){
-      resource <- resource_vec[i]
-      idx_vec <- which(availAsset_df$assetCustacId==resource)
-      if(length(idx_vec)==0){
-        quantity_vec[i] <- 0
-      } else{
-        quantity_vec[i] <- min(availAsset_df$quantity[idx_vec])
-      }
-    }
-  }
-  return(quantity_vec)
+AvailAsset <- function(availAsset_df){
+  ## keep useful columns
+  ## "callId","assetCustacId","internalCost", "opptCost", "yield", "haircut","FXHaircut","externalCost","interestRate"
+  idx_vec <- match(c("callId","assetCustacId","internalCost", "opptCost", "yield", "haircut","FXHaircut","externalCost","interestRate"),names(availAsset_df))
+  new_df <- availAsset_df[,idx_vec]
+  
+  return(new_df)
 }
 
-CheckQtyInAvailAsset <- function(availAsset_df){
-  resource_vec <- unique(availAsset_df$assetCustacId)
-  for(i in 1:length(resource_vec)){
-    resource <- resource_vec[i]
-    idx_vec <- which(availAsset_df$assetCustacId==resource)
-    minQty <- min(availAsset_df$quantity[idx_vec])
-    if(!all(availAsset_df$quantity[idx_vec]==minQty)){
-      errormsg <- paste('Quantities in availAsset_df are not consistent for asset',resource,'!')
-      stop(errormsg)
-    }
-  }
-  return(1)
-}
-
-UsedQtyFromResultList <- function(result_list,resource_vec,callId_vec){ ## quantity in result_list mostly are raw quantity
-  #### minUnitQuantity of resources used for allocation
-  quantityUsed_vec <- rep(0,length(resource_vec))
-  callNum <- length(callId_vec)
+AssetByCallInfo <- function(callId_vec,resource_vec,availAsset_df){
+  
   resourceNum <- length(resource_vec)
+  callNum <- length(callId_vec)
+  availAsset_df <- availAsset_df[order(availAsset_df$callId),] # order the availAsset_df by callId_vec
   
-  for(i in 1:callNum){
-    callId <- callId_vec[i]
-    alloc_df <- result_list[[callId]]
-    resourceTemp_vec <- PasteResource(alloc_df$Asset,alloc_df$CustodianAccount)
-    idxInRes_vec <- na.omit(match(resourceTemp_vec,resource_vec))
-    if(length(idxInRes_vec)!=0){
-      idxInAlloc <- match(resource_vec[idxInRes_vec],resourceTemp_vec)
-      quantityUsed_vec[idxInRes_vec] <- quantityUsed_vec[idxInRes_vec]+alloc_df$Quantity[idxInAlloc]
-    }
+  base_mat <- matrix(0,nrow=callNum,ncol=resourceNum, dimnames = list(callId_vec,resource_vec))
+  eli_mat <- base_mat
+  haircut_mat <- base_mat
+  cost_mat <- base_mat
+  
+  # fill in matrixes with the data from availAsset_df
+  idxTempCallId_vec <- match(availAsset_df$callId,callId_vec)
+  idxTempResource_vec <- match(availAsset_df$assetCustacId,resource_vec)
+  
+  eli_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- 1
+  haircut_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- availAsset_df$haircut+availAsset_df$FXHaircut
+  cost_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- availAsset_df$internalCost+availAsset_df$externalCost+availAsset_df$opptCost-(availAsset_df$interestRate+availAsset_df$yield)
+  
+  # convert the matrix format data to vector format
+  # thinking of keeping only eligible parts
+  eli_vec <- as.vector(t(eli_mat))
+  haircut_vec <- as.vector(t(haircut_mat))
+  cost_vec <- as.vector(t(cost_mat))
+  
+  output_list <- list(base_mat=base_mat,eli_mat=eli_mat,haircut_mat=haircut_mat,cost_mat=cost_mat)
+  return (output_list)
+}
+
+
+
+
+QtyConst <- function(varName_vec,varNum,resource_vec,quantityTotal_vec){
+  
+  resourceDul_vec <- SplitVarName(varName_vec,'resource')[1:varNum]
+  resourceNum <- length(resource_vec)
+  varNum2 <- length(varName_vec)
+  
+  
+  fCon2_mat <- matrix(0,nrow=resourceNum,ncol=varNum2)
+  
+  colIdx_vec <- 1:varNum
+  rowIdx_vec <- match(resourceDul_vec,resource_vec)
+  
+  fCon2_mat[cbind(rowIdx_vec,colIdx_vec)] <- 1
+  
+  fDir2_vec <- rep('<=',resourceNum)
+  fRhs2_vec <- quantityTotal_vec
+  
+  fCon2_list <- list(fCon2_mat=fCon2_mat,fDir2_vec=fDir2_vec,fRhs2_vec=fRhs2_vec)
+  
+  return(fCon2_list)
+}
+
+MarginConst <- function(varName_vec,varNum,minUnitValue_vec,haircut_vec,callId_vec,callAmount_vec){
+  
+  callIdDul_vec <- SplitVarName(varName_vec,'call')[1:varNum]
+  
+  callNum <- length(callId_vec)
+  varNum2 <- length(varName_vec)
+  
+  fCon3_mat <- matrix(0,nrow=callNum,ncol=varNum2)
+  
+  colIdx_vec <- 1:varNum
+  rowIdx_vec <- match(callIdDul_vec,callId_vec)
+  
+  fCon3_mat[cbind(rowIdx_vec,colIdx_vec)] <- minUnitValue_vec*(1-haircut_vec)
+  
+  fDir3_vec <- rep('>=',callNum)
+  fRhs3_vec <- callAmount_vec
+  
+  fCon3_list <- list(fCon3_mat=fCon3_mat,fDir3_vec=fDir3_vec,fRhs3_vec=fRhs3_vec)
+  return(fCon3_list)
+}
+
+DummyConst <- function(varName_vec,varNum,quantity_vec,callAmount_vec,minUnitValue_vec){
+  
+  varNum2 <- length(varName_vec)
+  newName_mat <- SplitVarName(varName_vec[1:varNum],'all')
+  newName_vec <- PasteVarName(newName_mat[1,],rep('dummy',varNum),newName_mat[3,])
+  newNameDummy_vec <- varName_vec[(varNum+1):varNum2]
+  
+  fCon4_mat <- matrix(0,nrow=(varNum2-varNum),ncol=varNum2)
+  
+  colIdx1_vec <- 1:varNum
+  rowIdx1_vec <- match(newName_vec,newNameDummy_vec)
+  colIdx2_vec <- (varNum+1):varNum2
+  rowIdx2_vec <- 1:(varNum2-varNum)
+  
+  fCon4_mat[cbind(rowIdx1_vec,colIdx1_vec)] <- 1
+  scaleFactor_vec <- pmin(quantity_vec,callAmount_vec/minUnitValue_vec)*20
+  scaleFactor_vec <- scaleFactor_vec[match(newNameDummy_vec,newName_vec)]
+  fCon4_mat[cbind(rowIdx2_vec,colIdx2_vec)] <- -scaleFactor_vec
+  
+  fDir4_vec <- rep('<=',varNum2-varNum)
+  fRhs4_vec <- rep(0,varNum2-varNum)
+  
+  fCon5_mat <- matrix(0,nrow=varNum2-varNum,ncol=varNum2)
+  fCon5_mat[cbind(rowIdx1_vec,colIdx1_vec)] <- 1
+  fCon5_mat[cbind(rowIdx2_vec,colIdx2_vec)] <- -1
+  
+  fDir5_vec <- rep('>=',varNum2-varNum)
+  fRhs5_vec <- rep(-0.1,varNum2-varNum)
+  
+  fCon4_mat <- rbind(fCon4_mat,fCon5_mat)
+  fDir4_vec <- c(fDir4_vec,fDir5_vec)
+  fRhs4_vec <- c(fRhs4_vec,fRhs5_vec)
+  
+  fCon4_list <- list(fCon4_mat=fCon4_mat,fDir4_vec=fDir4_vec,fRhs4_vec=fRhs4_vec)
+  return(fCon4_list)
+}
+
+DummyConstInherit <- function(allocated_vec,varName_vec,varNum,quantity_vec,callAmount_vec,minUnitValue_vec){
+  
+  varNum2 <- length(varName_vec)
+  newName_mat <- SplitVarName(varName_vec[1:varNum],'all')
+  newName_vec <- PasteVarName(newName_mat[1,],rep('dummy',varNum),newName_mat[3,])
+  newNameDummy_vec <- varName_vec[(varNum+1):varNum2]
+  
+  fCon4_mat <- matrix(0,nrow=(varNum2-varNum),ncol=varNum2)
+  
+  colIdx1_vec <- 1:varNum
+  rowIdx1_vec <- match(newName_vec,newNameDummy_vec)
+  colIdx2_vec <- (varNum+1):varNum2
+  rowIdx2_vec <- 1:(varNum2-varNum)
+  
+  fCon4_mat[cbind(rowIdx1_vec,colIdx1_vec)] <- 1
+  scaleFactor_vec <- pmin(quantity_vec,callAmount_vec/minUnitValue_vec)*20
+  scaleFactor_vec <- scaleFactor_vec[match(newNameDummy_vec,newName_vec)]
+  fCon4_mat[cbind(rowIdx2_vec,colIdx2_vec)] <- -scaleFactor_vec
+  
+  fDir4_vec <- rep('<=',varNum2-varNum)
+  fDir4_vec[which(allocated_vec==1)] <- '>='  ## new added 18 May
+  fRhs4_vec <- rep(0,varNum2-varNum)
+  
+  fCon5_mat <- matrix(0,nrow=varNum2-varNum,ncol=varNum2)
+  fCon5_mat[cbind(rowIdx1_vec,colIdx1_vec)] <- 1
+  fCon5_mat[cbind(rowIdx2_vec,colIdx2_vec)] <- -1
+  
+  fDir5_vec <- rep('>=',varNum2-varNum)
+  fRhs5_vec <- rep(-0.1,varNum2-varNum)
+  
+  fCon4_mat <- rbind(fCon4_mat,fCon5_mat)
+  fDir4_vec <- c(fDir4_vec,fDir5_vec)
+  fRhs4_vec <- c(fRhs4_vec,fRhs5_vec)
+  
+  fCon4_list <- list(fCon4_mat=fCon4_mat,fDir4_vec=fDir4_vec,fRhs4_vec=fRhs4_vec)
+  return(fCon4_list)
+}
+
+MoveConst <- function(varName_vec,varNum,operLimit,operLimitMs,fungible){
+  varNum2 <- length(varName_vec)
+  msIdDul_vec <- SplitVarName(varName_vec[(varNum+1):varNum2],'ms')
+  msId_vec <- unique(msIdDul_vec)
+  msNum <- length(msId_vec)
+  
+  fCon5_mat <- matrix(0,nrow=1,ncol=varNum2)
+  fCon5_mat[1,(varNum+1):varNum2] <- 1
+  
+  fDir5_vec <- c('<=')
+  fRhs5_vec <- c(operLimit)
+  
+  #### set the movements limit per margin statement if fungible=FALSE
+  # the total limit is not necessary in theory, but it's better keep it until proven
+  if(fungible==FALSE){
+    # will be number of margin statements constraints
+    fCon6_mat <- matrix(0,nrow=msNum,ncol=varNum2)
+    
+    colIdx_vec <- (varNum+1):varNum2
+    rowIdx_vec <- match(msIdDul_vec,msId_vec)
+    
+    fCon6_mat[cbind(rowIdx_vec,colIdx_vec)] <- 1
+    
+    fDir6_vec <- rep('<=',msNum)
+    fRhs6_vec <- rep(operLimitMs,msNum)
+    
+    fCon5_mat <- rbind(fCon5_mat,fCon6_mat)
+    fDir5_vec <- c(fDir5_vec,fDir6_vec)
+    fRhs5_vec <- c(fRhs5_vec,fRhs6_vec)
   }
-  return(quantityUsed_vec)
+  
+  fCon5_list <- list(fCon5_mat=fCon5_mat,fDir5_vec=fDir5_vec,fRhs5_vec=fRhs5_vec)
+  return(fCon5_list)
+}
+
+MoveConstInherit <- function(allocated_vec,varName_vec,varNum,operLimit,operLimitMs_vec,fungible){
+  varNum2 <- length(varName_vec)
+  msIdDul_vec <- SplitVarName(varName_vec[(varNum+1):varNum2],'ms')
+  msId_vec <- unique(msIdDul_vec)
+  msNum <- length(msId_vec)
+  
+  fCon5_mat <- matrix(0,nrow=1,ncol=varNum2)
+  fCon5_mat[1,(varNum+1):varNum2] <- 1
+  
+  fDir5_vec <- c('<=')
+  fRhs5_vec <- c(operLimit)
+  
+  #### set the movements limit per margin statement if fungible=FALSE
+  # the total limit is not necessary in theory, but it's better keep it until proven
+  if(fungible==FALSE){
+    # will be number of margin statements constraints
+    fCon6_mat <- matrix(0,nrow=msNum,ncol=varNum2)
+    
+    colIdx_vec <- (varNum+1):varNum2
+    rowIdx_vec <- match(msIdDul_vec,msId_vec)
+    
+    fCon6_mat[cbind(rowIdx_vec,colIdx_vec)] <- 1
+    
+    fDir6_vec <- rep('<=',msNum)
+    fRhs6_vec <- operLimitMs_vec
+    
+    fCon5_mat <- rbind(fCon5_mat,fCon6_mat)
+    fDir5_vec <- c(fDir5_vec,fDir6_vec)
+    fRhs5_vec <- c(fRhs5_vec,fRhs6_vec)
+  }
+  fCon5_mat[,which(allocated_vec==1)] <- 0
+  
+  fCon5_list <- list(fCon5_mat=fCon5_mat,fDir5_vec=fDir5_vec,fRhs5_vec=fRhs5_vec)
+  return(fCon5_list)
 }
 
 AllocateByRank <- function(resource_vec,callId,rank_vec,callAmount,quantity_vec,minUnitValue_vec,haircut_vec,operLimit){
@@ -839,6 +1043,7 @@ DeriveOptimalAssetsV2 <- function(minUnitQuantity_mat,eli_mat,callAmount_mat,hai
         largestAmountResource_vec <- largestAmountResource_vec[,order(largestAmountResource_vec[1,],decreasing=T)]
         # substitute in sortOptimal_mat
         sortOptimal_mat[,1:length(largestAmountResource_vec[1,])]<- largestAmountResource_vec
+        colnames(sortOptimal_mat)[1:length(largestAmountResource_vec[1,])] <- colnames(largestAmountResource_vec)
       }
     }
     optimalAsset_mat[i,2] <- resource_vec[sortOptimal_mat[2,1]]
@@ -924,220 +1129,91 @@ DeriveOptimalAssetsV1 <- function(minUnitQuantity_mat,eli_mat,callAmount_mat,hai
   return(optimalAsset_mat)
 }
 
-ResultList2Df <- function(result_list,callId_vec){
-  result_df <- result_list[[callId_vec[1]]]
-  if(length(callId_vec)>1){
-    for(i in 2:length(callId_vec)){
-      alloc_df <- result_list[[callId_vec[i]]]
-      result_df <- rbind(result_df,alloc_df)
-    }
-  }
-  rownames(result_df) <- 1:length(result_df[,1])
-  return(result_df)
-}
-
-
-OrderCallId <- function(callOrderMethod,callInfo_df){
-  ## method 0: Keep original
-  ## method 1: By margin call amount, decreasing
-  ## method 2: By margin type, VM then IM; sub order by call amount
-  ## method 3: By total call amount in margin statement, decreasing
-  
-  if(callOrderMethod==0){ # keep original
-    callInfo_df <- callInfo_df
-  }else if(callOrderMethod==1){ # by call amount, decreasing
-    callInfo_df <- callInfo_df[order(callInfo_df$callAmount,decreasing=T),]
-  }else if(callOrderMethod==2){ # by margin type(VM first) and call amount, decreasing
-    callInfoVM <- callInfo_df[which(toupper(callInfo_df$marginType)=='VARIATION'),]
-    callInfoVM <- callInfoVM[order(callInfoVM$callAmount,decreasing=T),]
-    
-    callInfoIM <- callInfo_df[which(toupper(callInfo_df$marginType)=='INITIAL'),]
-    callInfoIM <- callInfoIM[order(callInfoIM$callAmount,decreasing=T),]
-    callInfo_df <- rbind(callInfoVM,callInfoIM)
-  }else if(callOrderMethod==3){ # by margin statement, call amount in margin statement, decreasing
-    msAggrCall_df <- aggregate(callAmount~marginStatement,data=callInfo_df,sum)
-    msAggrCall_df <- msAggrCall_df[order(msAggrCall_df$callAmount,decreasing=T),]
-    tempMs_vec <- msAggrCall_df$marginStatement
-    newCallInfo_df <- callInfo_df
-    idxCurrent <- 0
-    for(i in 1:length(tempMs_vec)){
-      idxTemp_vec <- which(tempMs_vec[i]==callInfo_df$marginStatement)
-      tempCallInfo_df <- callInfo_df[idxTemp_vec,]
-      tempCallInfo_df <- tempCallInfo_df[order(tempCallInfo_df$callAmount,decreasing=F),]
-      idxNewTemp_vec <- idxCurrent+1:length(idxTemp_vec)
-      newCallInfo_df[idxNewTemp_vec,] <- tempCallInfo_df
-      
-      idxCurrent <- idxCurrent+length(idxTemp_vec)
-    }
-    callInfo_df<- newCallInfo_df
-  }
-  return(callInfo_df)
-}
-
-SplitCallId <- function(vmLimit,imLimit,callLimit,msLimit,callInfo_df,callId_vec){
-  
-  groupCallId_list <- list()
-  # if the total call numbers is equal or less than limitTotal, only one group
-  if(length(callInfo_df[,1])<=limitTotal){
-    groupCallId_list[[1]] <- callId_vec
-  } else{
-    # index of VM and IM in the call list
-    
-    idxVm_vec <- which(toupper(callInfo_df$marginType)=='VARIATION')
-    idxIm_vec <- which(toupper(callInfo_df$marginType)=='INITIAL')
-    # number of VM and IM groups 
-    groupVmNum <- ceiling(length(idxVm_vec)/limitVm) 
-    groupImNum <- ceiling(length(idxIm_vec)/limitIm)
-    
-    # make the group list, VM and IM in the same list
-    index <- 0
-    if(groupVmNum==1){
-      index <- index+1
-      groupCallId_list[[index]] <- callId_vec[idxVm_vec]
-    } else if(groupVmNum > 1){
-      for(i in 1:(groupVmNum-1)){
-        index <- index+1
-        groupCallId_list[[index]] <- callId_vec[idxVm_vec[(i-1)*limitVm+(1:limitVm)]]
-      } 
-      index <- index+1
-      groupCallId_list[[index]] <- callId_vec[tail(idxVm_vec,length(idxVm_vec)-(groupVmNum-1)*limitVm)]
-    }
-    
-    if(groupImNum==1){
-      index <- index+1
-      groupCallId_list[[index]] <- callId_vec[idxIm_vec]
-    } else if(groupImNum > 1){
-      for(i in 1:(groupImNum-1)){
-        index <- index+1
-        groupCallId_list[[index]] <- callId_vec[idxIm_vec[(i-1)*limitIm+(1:limitIm)]]
-      } 
-      index <- index+1
-      groupCallId_list[[index]] <- callId_vec[tail(idxIm_vec,length(idxIm_vec)-(groupImNum-1)*limitIm)]
-    }
-  }
-  return(groupCallId_list)
-}
-
-GroupCallIdByMs <- function(callLimit,msLimit,callInfo_df,callId_vec){
-  
-  groupCallId_list <- list()
-  # if the total call numbers is equal or less than limitTotal, only one group
-  if(length(callInfo_df[,1])<=callLimit){
-    groupCallId_list[[1]] <- callId_vec
-  } else if(length(unique(callInfo_df$marginStatement))<=msLimit){
-    groupCallId_list[[1]] <- callId_vec
-  } else{
-    groupMsId_list <- list()
-    callMs_vec <- callInfo_df$marginStatement
-    ms_vec <- unique(callMs_vec)
-    msGroupNum <- ceiling(length(ms_vec)/msLimit)
-    
-    for(i in 1:(msGroupNum-1)){
-      tempCurrent <- msLimit*(i-1)
-      tempMs_vec <- ms_vec[(tempCurrent+1):(tempCurrent+msLimit)]
-      tempCall_vec <- callInfo_df$id[which((callInfo_df$marginStatement) %in% tempMs_vec)]
-      groupMsId_list[[i]]<- tempMs_vec
-      groupCallId_list[[i]]<- tempCall_vec
-    }
-    tempCurrent <- msLimit*(msGroupNum-1)
-    tempMs_vec <- na.omit(ms_vec[(tempCurrent+1):(tempCurrent+msLimit)])
-    tempCall_vec <- callInfo_df$id[which((callInfo_df$marginStatement) %in% tempMs_vec)]
-    groupMsId_list[[msGroupNum]]<- tempMs_vec
-    groupCallId_list[[msGroupNum]]<- tempCall_vec
-  }
-  return(groupCallId_list)
-}
-
-AllocationInputData <- function(callId_vec,resource_vec,callInfo_df,availAsset_df,assetInfo_df){
-  
-  ### new identifer ####
-  resourceNum <- length(resource_vec)
+VarInfo <- function(eli_vec,callInfo_df,resource_vec,callId_vec){
   callNum <- length(callId_vec)
-  callInfo_df$currency[which(is.na(callInfo_df$currency))] <- 'ZZZ' 
-  availAsset_df <- availAsset_df[order(availAsset_df$callId),] # order the availAsset_df by callId_vec
-  custodianAccount <- matrix(unlist(strsplit(resource_vec,'-')),nrow=2)[2,]
-  venue <- availAsset_df$venue[match(resource_vec,availAsset_df$assetCustacId)]
+  resourceNum <- length(resource_vec)
+  idxEli_vec <- which(eli_vec==1)
   
-  ###############################################
-  # eligibility matrix: 1-eligible, 0-ineligible
-  # haircut matrix: haircut+FX haircut
-  # tempQuantity_vec matrix
-  # unitValue matrix: unitValue/FX rate
-  # cost matrix: internal+external+opptunity-yield(interestRate)
-  # call amount matrix: duplicate the column
-  # minUnit matrix: minUnit[i,j]=x, asset j for margin call i has a minimum denomination x,
+  # matrix store the index number, by row
+  idx_mat <- matrix(1:(callNum*resourceNum),nrow=callNum,byrow = TRUE,dimnames = list(callId_vec,resource_vec))
+  # matrix store the variable name("msId_mcId_assetCustId"), by row
+  fullNameOri_mat <-  matrix('',nrow=callNum,ncol=resourceNum,byrow = TRUE,dimnames = list(callId_vec,resource_vec))
   
-  #     which means we can only allocate the integral multiples tempQuantity_vec of A_j to MC_i.
-  #     To start with, we use (i>=1) for non-cash securities; 0.01 for cash, apply to all margin calls.
-  ############################################
+  # new dummy for "msId_assetCustId"
+  newNameOri_mat <- matrix('',nrow=callNum,ncol=resourceNum,byrow = TRUE,dimnames = list(callId_vec,resource_vec))
   
-  base_mat <- matrix(0,nrow=callNum,ncol=resourceNum, dimnames = list(callId_vec,resource_vec))
-  eli_mat <- base_mat
-  haircut_mat <- base_mat
-  cost_mat <- base_mat
-  quantity_mat <- base_mat
-  minUnitQuantity_mat <- base_mat
-  callAmount_mat <- base_mat
   
-  unitValue_mat<- base_mat
-  minUnit_mat <- base_mat  
-  minUnitValue_mat <- base_mat
-  FXRate_mat <- base_mat
+  for(i in 1:callNum){
+    msId <- callInfo_df$marginStatement[i]
+    fullNameOri_mat[i,]<-PasteVarName(msId,callId_vec[i],resource_vec)
+    newNameOri_mat[i,] <- PasteVarName(msId,'dummy',resource_vec)
+  }
+  varNameOri_vec <- t(fullNameOri_mat)[idxEli_vec]
+  newNameOri_vec <- t(newNameOri_mat)[idxEli_vec]
   
-  # fill in matrixes with the data from availAsset_df
+  # remove duplicated variables constructed by same asset in one statement for different calls
+  newNameDummy_vec <- unique(newNameOri_vec) 
   
-  callAmount_mat[]<- matrix(rep(callInfo_df$callAmount,resourceNum),nrow=callNum,byrow=F)
-  idxTempCallId_vec <- match(availAsset_df$callId,callId_vec)
+  # use the dummies to construct the indicator
+  # same number means same asset for same statement: 1,2,3,4,1,2,4,5,...
+  pos_vec <- match(newNameOri_vec,newNameDummy_vec)
   
-  #resource_vec <- availAsset_df$assetCustacId
-  idxTempResource_vec <- match(availAsset_df$assetCustacId,resource_vec)
+  varName_vec <- c(varNameOri_vec,newNameDummy_vec)
   
-  quantity_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- availAsset_df$quantity
-  eli_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- 1
-  haircut_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- availAsset_df$haircut+availAsset_df$FXHaircut
-  cost_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- availAsset_df$internalCost+availAsset_df$externalCost+availAsset_df$opptCost-(availAsset_df$interestRate+availAsset_df$yield)
+  varNum <- length(varNameOri_vec)
+  varNum2 <- length(varName_vec)
   
-  #### restructure!
-  assetId_vec <- SplitResource(resource_vec,'asset') #### parallel with resource, not unique
-  resourceInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
-  
-  #unitValue_mat[] <- matrix(rep(resourceInfo_df$unitValue,callNum),nrow=callNum,byrow=TRUE)
-  
-  unitValue_mat[] <- matrix(rep(resourceInfo_df$unitValue/resourceInfo_df$FXRate,callNum),nrow=callNum,byrow=TRUE)
-  minUnit_mat[]<- matrix(rep(resourceInfo_df$minUnit,callNum),nrow=callNum,byrow=TRUE)
-  FXRate_mat[]<- matrix(rep(resourceInfo_df$FXRate,callNum),nrow=callNum,byrow=TRUE)
-  minUnitValue_mat[] <- minUnit_mat*unitValue_mat
-  minUnitQuantity_mat[]<- floor(quantity_mat/minUnit_mat) # round down to the nearest integer
-  
-  # convert the matrix format data to vector format
-  # thinking of keeping only eligible parts
-  eli_vec <- as.vector(t(eli_mat))
-  haircut_vec <- as.vector(t(haircut_mat))
-  cost_vec <- as.vector(t(cost_mat))
-  quantity_vec <- as.vector(t(quantity_mat))
-  minUnitQuantity_vec <- as.vector(t(minUnitQuantity_mat))
-  unitValue_vec <- as.vector(t(unitValue_mat))
-  minUnit_vec <- as.vector(t(minUnit_mat))
-  FXRate_vec <- as.vector(t(FXRate_mat))
-  minUnitValue_vec <- as.vector(t(minUnitValue_mat))
-  callAmount_vec <- as.vector(t(callAmount_mat))
-  
-  output_list <- list(resource_vec=resource_vec,callId_vec=callId_vec,assetInfo_df=assetInfo_df,callInfo_df=callInfo_df,
-                      custodianAccount=custodianAccount,venue=venue,
-                      base_mat=base_mat,
-                      FXRate_mat=FXRate_mat,FXRate_vec=FXRate_vec,
-                      eli_mat=eli_mat, eli_vec = eli_vec,
-                      haircut_mat=haircut_mat, haircut_vec=haircut_vec,
-                      cost_mat = cost_mat, cost_vec = cost_vec,
-                      quantity_mat=quantity_mat, quantity_vec=quantity_vec,
-                      minUnitQuantity_mat=minUnitQuantity_mat,minUnitQuantity_vec=minUnitQuantity_vec,
-                      unitValue_mat=unitValue_mat,unitValue_vec=unitValue_vec,
-                      minUnit_mat=minUnit_mat, minUnit_vec=minUnit_vec,
-                      minUnitValue_mat=minUnitValue_mat,minUnitValue_vec= minUnitValue_vec,
-                      callAmount_mat = callAmount_mat,callAmount_vec=callAmount_vec
-  )
-  return (output_list)
+  var_list <- list(varName_vec=varName_vec,varNum=varNum,varNum2=varNum2,pos_vec=pos_vec)
+  return(var_list)
 }
+
+UpdateQtyOriInResourceDf <- function(resource_df){
+  ## will be called at the very end of the allocation
+  quantity_vec <- resource_df$qtyMin*resource_df$minUnit + resource_df$qtyRes
+  resource_df$qtyOri <- quantity_vec
+  return(resource_df)
+}
+
+ResetQtyMinInResourceDf <- function(resource_df){
+  resource_df$qtyMin <- floor(resource_df$qtyOri/resource_df$minUnit)
+  return(resource_df)
+}
+
+
+
+CheckQtyInAvailAsset <- function(availAsset_df){
+  resource_vec <- unique(availAsset_df$assetCustacId)
+  for(i in 1:length(resource_vec)){
+    resource <- resource_vec[i]
+    idx_vec <- which(availAsset_df$assetCustacId==resource)
+    minQty <- min(availAsset_df$quantity[idx_vec])
+    if(!all(availAsset_df$quantity[idx_vec]==minQty)){
+      errormsg <- paste('Quantities in availAsset_df are not consistent for asset',resource,'!')
+      stop(errormsg)
+    }
+  }
+  return(1)
+}
+
+UsedQtyFromResultList <- function(result_list,resource_vec,callId_vec){
+  #### minUnitQuantity of resources used for allocation
+  quantityUsed_vec <- rep(0,length(resource_vec))
+  callNum <- length(callId_vec)
+  resourceNum <- length(resource_vec)
+  
+  for(i in 1:callNum){
+    callId <- callId_vec[i]
+    alloc_df <- result_list[[callId]]
+    resourceTemp_vec <- PasteResource(alloc_df$Asset,alloc_df$CustodianAccount)
+    idxInRes_vec <- na.omit(match(resourceTemp_vec,resource_vec))
+    if(length(idxInRes_vec)!=0){
+      idxInAlloc <- match(resource_vec[idxInRes_vec],resourceTemp_vec)
+      quantityUsed_vec[idxInRes_vec] <- quantityUsed_vec[idxInRes_vec]+alloc_df$Quantity[idxInAlloc]
+    }
+  }
+  return(quantityUsed_vec)
+}
+
 
 PasteFun1 <- function(x1='',x2=''){
   temp=paste(x1,x2,sep='_',collapse = '')
@@ -1195,4 +1271,11 @@ renjinFix <- function(frame, name) {
   d <- data.frame(frame);
   colnames(d) <- gsub(name, "", colnames(d));
   return(d);
+}
+
+BaseMat0 <- function(callId_vec,resource_vec){
+  resourceNum <- length(resource_vec)
+  callNum <- length(callId_vec)
+  base_mat <- matrix(0,nrow=callNum,ncol=resourceNum, dimnames = list(callId_vec,resource_vec))
+  return(base_mat)
 }

@@ -173,7 +173,7 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
     #### Control options
     lpPresolve <- ifelse(callNum<=10,'none','knapsack')
     lpEpsd <- 1e-9
-    lpEpsind <- 1e-9
+    lpEpsint <- 1e-9
     lpTimeout <- timeLimit
     bbRule <-  c("pseudononint","autoorder","greedy", "dynamic","rcostfixing")
     #bbRule <- c("pseudononint", "greedy", "dynamic","rcostfixing") # default
@@ -194,7 +194,7 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
                                      lpType_vec=lpType_vec,lpKind_vec=lpKind_vec,lpLowerBound_vec=lpLowerBound_vec,lpUpperBound_vec=lpUpperBound_vec,lpBranchMode_vec=lpBranchMode_vec,
                                      lpGuessBasis_vec=lpGuessBasis_vec, 
                                      presolve=lpPresolve,epsd=lpEpsd,timeout=lpTimeout,bbRule=bbRule,
-                                     epsint=lpEpsind, scaling=lpScale,improve=lpImprove)
+                                     epsint=lpEpsint, scaling=lpScale,improve=lpImprove)
     #### solver outputs
     solverStatus<- solverOutput_list$resultStatus
     solverSolution_vec <- solverOutput_list$solverSolution_vec

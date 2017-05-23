@@ -15,9 +15,9 @@
 #### Sources Start #########
 source('src/functionsOfDBRequestByExecutingCypher.R')
 
-source("src/allocationFunctionTest.R")
-source("src/coreAlgoTest.R")
-source("src/generalFunctionsTest.R")
+source("src/allocationFunction.R")
+source("src/coreAlgo.R")
+source("src/generalFunctions.R")
 source("src/callLpSolve.R")
 
 source("src/otherFunctions/infoFunctions.R")
