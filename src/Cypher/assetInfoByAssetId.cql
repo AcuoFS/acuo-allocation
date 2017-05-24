@@ -2,8 +2,8 @@ MATCH (a:Asset)
 WHERE a.id IN {assetId}
 
 WITH *
-MATCH (ccy:Currency {id:a.currency})-[fx:FX_RATE]->(usd:Currency {id:'USD'})
-
+OPTIONAL MATCH (ccy:Currency)<-[r1]-(fx:FXRate)-[r2]->(usd:Currency {id:'USD'})
+where ccy.id = a.id 
 RETURN  a.id AS id,
 		a.idType AS idType,
 		a.name AS name,
@@ -15,5 +15,8 @@ RETURN  a.id AS id,
 		a.parValue AS unitValue,
 		a.minUnit AS minUnit,
 		a.minUnitValue AS minUnitValue,
-		fx.fxRate AS FXRate
-
+		CASE WHEN a.id= 'USD' THEN 1
+         WHEN type(r1)="FROM" THEN fx.value 
+         WHEN type(r1)="TO" THEN 1/fx.value 
+	  END
+		AS FXRate
