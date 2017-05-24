@@ -10,26 +10,29 @@ assetInfoByAssetIdCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-a
 eliAssetByClientIdCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/eliAssetByClientId.cql'
 resAssetByClientIdCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/resAssetByClientId.cql'
 callIdByAgreementIdPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/callIdByAgreementId.cql'
-callIdByMsIdPath <- 'src/Cypher/callIdByMsId.cql'
+callIdByMsIdPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/callIdByMsId.cql'
 
 executeCypher <- function(path,...){
   params <- list(...)
   query = paste(readLines(path), collapse="\n")
   #graph = startGraph(neo4jUrl)
-  #graph = startGraph(neo4jDevUrl)
-  graph = startGraph(neo4jLocalUrl,username='neo4j',password='neo4j')
+  graph = startGraph(neo4jDevUrl)
+  #graph = startGraph(neo4jLocalUrl,username='neo4j',password='neo4j')
   cypher(graph,query,params)
 }
   
 callInfoByCallId <- function(callId){
+  callId <- c(callId,'nonexist')
   executeCypher(path=callInfoByCallIdCypherPath,callId=callId)
 }
 
 assetInfoByAssetId <- function(assetId){
+  assetId <- c(assetId,'nonexist')
   executeCypher(path=assetInfoByAssetIdCypherPath,assetId=assetId)
 }
 
 availAssetByCallIdAndClientId <- function(callId,clientId) {
+  callId <- c(callId,'nonexist')
   executeCypher(path=availAssetByCallIdAndClientIdCypherPath, callId=callId,clientId=clientId)
 }
 
@@ -42,9 +45,11 @@ resAssetByClientId <- function(clientId){
 }
 
 callIdByAgreementId <- function(agreementId){
+  agreementId <- c(agreementId,'nonexist')
   executeCypher(path=callIdByAgreementIdPath,agreementId=agreementId)
 }
 
 callIdByMsId <- function(msId){
+  msId <- c(msId,'nonexist')
   executeCypher(path=callIdByMsIdPath,msId=msId)
 }

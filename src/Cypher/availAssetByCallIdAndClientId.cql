@@ -12,23 +12,11 @@ WITH *
 MATCH (e)-[:HAS]-(acc:TradingAccount)
 WHERE (acc)-[:ACCESSES]->(ca)
 
-// the following match takes long time, without it, the time is 0.13s, with it, time is 3s.
-WITH *
-MATCH (ccy1:Currency {id:a.currency})-[fx1:FX_RATE]->(usd:Currency {id:'USD'})
-WITH *
-MATCH (ccy2:Currency {id:mc.currency})-[fx2:FX_RATE]->(usd:Currency {id:'USD'})
 
 RETURN DISTINCT
-//    ag.id AS agreementId,
     mc.id AS callId,
-    //ABS(mc.excessAmount/fx2.fxRate) AS callAmountUSD,
     a.id AS assetId,
-    //a.name AS assetName,
     h.availableQuantity AS quantity,
-    //mc.marginType AS marginType,
-    //mc.currency AS callCurrency,
-    //ABS(mc.excessAmount) AS callAmount,
-    //a.ACUOCategory AS ACUOCategory,
     a.parValue AS unitValue,
     a.minUnit AS minUnit,
     a.minUnitValue AS minUnitValue,
@@ -41,5 +29,4 @@ RETURN DISTINCT
     rule.haircut AS haircut,
     rule.FXHaircut AS FXHaircut,
     rule.externalCost AS externalCost,
-    rule.interestRate AS interestRate,
-    fx1.fxRate AS FXRate
+    rule.interestRate AS interestRate
