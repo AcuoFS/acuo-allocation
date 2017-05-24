@@ -366,26 +366,26 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
       if(length(idxSuff_vec)==0){
         warning('Allocating other assets may create more asset movements than limit, thus need reallocation of entire margin statement!')
       } else{ # at least one asset is sufficient
-        suffResource_vec <- resource_vec[idxSuff_vec]
-        insuffResource_vec <- resource_vec[-idxSuff_vec]
+        suffResource_vec <- resourceDs_vec[idxSuff_vec]
+        insuffResource_vec <- resourceDs_vec[-idxSuff_vec]
         #### sorting:
         suffSort_vec <- sort(optimal_vec[match(suffResource_vec,names(optimal_vec))])
         insuffSort_vec <- sort(optimal_vec[match(insuffResource_vec,names(optimal_vec))])
         optimal_vec <- c(suffSort_vec,insuffSort_vec)
-        idxOptimal_vec <- match(names(optimal_vec),resource_vec) # the index of the optimal_vec in the resource_vec
+        idxOptimal_vec <- match(names(optimal_vec),resourceDs_vec) # the index of the optimal_vec in the resourceDs_vec
       }
     } else if(movementsLeft>=2){
       # other scenarios will have more possibilities
       # for simplicity, use the same order method as the 1 movement left scenario
       # but warning at the end
       idxSuff_vec <- which(quantityLeft_vec >= lackQuantity_vec)
-      suffResource_vec <- resource_vec[idxSuff_vec]
-      insuffResource_vec <- ifelse(length(idxSuff_vec)==0,resource_vec,resource_vec[-idxSuff_vec])
+      suffResource_vec <- resourceDs_vec[idxSuff_vec]
+      insuffResource_vec <- ifelse(length(idxSuff_vec)==0,resourceDs_vec,resourceDs_vec[-idxSuff_vec])
       #### sorting:
       suffSort_vec <- sort(optimal_vec[match(suffResource_vec,names(optimal_vec))])
       insuffSort_vec <- sort(optimal_vec[match(insuffResource_vec,names(optimal_vec))])
       optimal_vec <- c(suffSort_vec,insuffSort_vec)
-      idxOptimal_vec <- match(names(optimal_vec),resource_vec) # the index of the optimal_vec in the resource_vec
+      idxOptimal_vec <- match(names(optimal_vec),resourceDs_vec) # the index of the optimal_vec in the resourceDs_vec
     }
     #### Check the Movements Limit END #######
     
@@ -548,8 +548,6 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
   quantityTotal_vec <- resourceTotal_df$qtyMin
   
   quantityRes_vec <- quantityTotal_vec-quantityUsed_vec/resourceTotal_df$minUnit
-  #idxTemp_vec <-match(resource_vec,resourceTotal_vec)
-  #quantityRes_vec[idxTemp_vec] <- resource_df$qtyMin
   
   liquidity_vec <- apply((1-availInfoTotal_list$haircut_mat)^2,2,min)
   
