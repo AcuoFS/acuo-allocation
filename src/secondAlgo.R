@@ -461,29 +461,29 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
     movementsUsedMs <- OperationFun(newSelection_list[idxTemp1],callInfo_df[idxTemp2,],'callList')
     movementsUsedAll <- OperationFun(newSelection_list,callInfo_df,'callList')
     
-    #### get the current allocation besides the MS
-    currentSelectionOther_list <- list()
-    otherCall_vec <- callId_vec[-idxTemp2]
-    for(call in otherCall_vec){
-      currentSelectionOther_list[[call]] <- newSelection_list[[call]]
-    }
-    #currentSelectionOther_list <- newSelection_list
-    #for(i in 1:length(allCallInDsMs_vec)){
-    #  tempCall <- allCallInDsMs_vec[i]
-    #  currentSelectionOther_list[[tempCall]] <- currentSelectionOther_list[[tempCall]][0,]
-    #}
+    #### get the info related to the MS
     availAssetMsOri_df <- availAssetTotal_df[which(availAssetTotal_df$callId %in% allCallInDsMs_vec),]
     resourceMs_vec <- unique(availAssetMsOri_df$assetCustacId)
     assetIdMs_vec <- SplitResource(resourceMs_vec,'asset')
     resourceMs_df <- resourceTotal_df[match(resourceMs_vec,resourceTotal_df$id),]
     callInfoMs_df <- callInfo_df[which(callInfo_df$id %in% allCallInDsMs_vec),]
     
-    quantityUsedOther_vec <- UsedQtyFromResultList(currentSelectionOther_list,resourceMs_vec,otherCall_vec)
-    ### review...
-    #### restore before deducting
-    resourceMs_df <- ResetQtyMinInResourceDf(resourceMs_df)
-    resourceMs_df$qtyMin <- resourceMs_df$qtyMin - quantityUsedOther_vec
+    #### get the allocation other than this ms
+    currentSelectionOther_list <- list()
+    otherCall_vec <- callId_vec[-idxTemp2]
     
+    if(length(otherCall_vec)>=1){
+      for(call in otherCall_vec){
+        currentSelectionOther_list[[call]] <- newSelection_list[[call]]
+      }
+      
+      quantityUsedOther_vec <- UsedQtyFromResultList(currentSelectionOther_list,resourceMs_vec,otherCall_vec)
+      ### review...
+      #### restore before deducting
+      resourceMs_df <- ResetQtyMinInResourceDf(resourceMs_df)
+      resourceMs_df$qtyMin <- resourceMs_df$qtyMin - quantityUsedOther_vec
+    }
+       
     #### remove the lines with deselect asset & call
     availAssetMs_df <- availAssetMsOri_df[which(availAssetMsOri_df$callId %in% allCallInDsMs_vec),]
     rmRow_vec <- which(availAssetMs_df$callId==dsCallId & availAssetMs_df$assetId==dsAssetId)
