@@ -1,32 +1,7 @@
 
-SecondAllocationAlgoAllMsV2<- function(callId_vec,callInfo_df,resourceTotal_vec,availAssetTotal_df,resourceTotal_df,
-                                       dsAssetId,dsCallId_vec,currentSelection_list,
-                                       pref_vec,operLimit,operLimitMs_vec,fungible){
-  if(0){
-    #### basic model Start #######
-    for(i in 1:length(dsCallId_vec)){
-      dsCallId <- dsCallId_vec[i]
-      
-      #### Remove the Deselected Asset Start
-      #### Only If the Asset is in the Selection
-      idxTemp <- which(currentSelection_list[[dsCallId]]$Asset==dsAssetId)
-      if(length(idxTemp)>=1){
-        currentSelection_list[[dsCallId]] <- currentSelection_list[[dsCallId]][-idxTemp,]
-        
-        #### Update the Quantity of Resource Start #####
-        #### restore the quantity of resources
-        resourceTotal_df <- ResetQtyMinInResourceDf(resourceTotal_df)
-        
-        #### Get minUnit from assetInfo
-        tempResult <- SecondAllocationAlgoV2(callId_vec,callInfo_df,resourceTotal_vec,availAssetTotal_df,resourceTotal_df,
-                                             dsAssetId,dsCallId,currentSelection_list,pref_vec,operLimit,operLimitMs_vec,fungible)
-        
-        currentSelection_list <- tempResult$newSuggestion
-        resultAnalysis <- tempResult$resultAnalysis
-      }
-    }
-    #### basic model END #########
-  }
+SecondAllocationV2<- function(callId_vec,callInfo_df,resourceTotal_vec,availAssetTotal_df,resourceTotal_df,
+                              dsAssetId,dsCallId_vec,currentSelection_list,
+                              pref_vec,operLimit,operLimitMs_vec,fungible){
   
   #### Advanced model Start ####
   
@@ -141,8 +116,9 @@ SecondAllocationAlgoAllMsV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
     }
   }
   
-  ## 7. Result analysis
+  #### Advanced model END ######
   
+  #### Result analysis Start #########
   availInfo_list <- AssetByCallInfo(callId_vec,resource_vec,availAssetTotal_df)
   
   eli_mat <- availInfo_list$eli_mat; 
@@ -176,23 +152,83 @@ SecondAllocationAlgoAllMsV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
   reservedLiquidityRatio <- LiquidFun(qtyLeft,resource_df$qtyMin,liquidity_vec,resource_df$minUnitValue/resource_df$FXRate)
   
   resultAnalysis <- list(dailyCost=dailyCost,monthlyCost=monthlyCost,movements=movements,reservedLiquidityRatio=reservedLiquidityRatio)
+  #### Result analysis END ###########
   
-  #### Advanced model END ######
-  
-  #### quantity left
-  quantityTotalLeft_vec <- resourceTotal_df$qtyMin
-  
-  output_list <- list(callOutput=currentSelection_list,resultAnalysis=resultAnalysis,
-                      quantityTotalLeft_vec=quantityTotalLeft_vec)
+  output_list <- list(callOutput=currentSelection_list,resultAnalysis=resultAnalysis)
   return(output_list)
 }
 
+SecondAllocationBasicV2<- function(callId_vec,callInfo_df,resourceTotal_vec,availAssetTotal_df,resourceTotal_df,
+                                   dsAssetId,dsCallId_vec,currentSelection_list,
+                                   pref_vec,operLimit,operLimitMs_vec,fungible){
+  
+  #### Basic model Start ####
+  for(i in 1:length(dsCallId_vec)){
+    dsCallId <- dsCallId_vec[i]
+    
+    #### Remove the Deselected Asset Start
+    #### Only If the Asset is in the Selection
+    idxTemp <- which(currentSelection_list[[dsCallId]]$Asset==dsAssetId)
+    if(length(idxTemp)>=1){
+      currentSelection_list[[dsCallId]] <- currentSelection_list[[dsCallId]][-idxTemp,]
+      
+      #### Update the Quantity of Resource Start #####
+      #### restore the quantity of resources
+      resourceTotal_df <- ResetQtyMinInResourceDf(resourceTotal_df)
+      
+      #### Get minUnit from assetInfo
+      tempResult <- SecondAllocationOneCallBasicV2(callId_vec,callInfo_df,resourceTotal_vec,availAssetTotal_df,resourceTotal_df,
+                                                   dsAssetId,dsCallId,currentSelection_list,pref_vec,operLimit,operLimitMs_vec[1],fungible)
+      
+      currentSelection_list <- tempResult$callOutput
+    }
+  }
+  #### Basic model END ######
+  
+  #### Result analysis Start #########
+  availInfo_list <- AssetByCallInfo(callId_vec,resource_vec,availAssetTotal_df)
+  
+  eli_mat <- availInfo_list$eli_mat; 
+  eli_vec <-  as.vector(t(eli_mat)) 
+  idxEli_vec <- which(eli_vec==1)     
+  
+  cost_mat <- availInfo_list$cost_mat
+  cost_vec <- as.vector(t(cost_mat))[idxEli_vec]
+  
+  varInfo_list <- VarInfo(eli_vec,callInfo_df,resource_vec,callId_vec)
+  varName_vec <- varInfo_list$varName_vec; 
+  varNum <- varInfo_list$varNum
+  varAmount_vec <- ResultList2AmountVec(currentSelection_list,callId_vec,varName_vec[1:varNum])
+  
+  #### Costs
+  dailyCost <- CostFun(varAmount_vec,cost_vec)
+  monthlyCost <- dailyCost*30
+  dailyCost <- round(dailyCost,2)
+  monthlyCost <- round(monthlyCost,2)
+  
+  #### Movements
+  varAmount_mat <- VarVec2mat(varAmount_vec[1:varNum],varName_vec[1:varNum],callId_vec,resource_vec)
+  movements <- OperationFun(varAmount_mat,callInfo_df,'matrix')
+  
+  #### Liquidity
+  liquidity_vec <- apply((1-availInfo_list$haircut_mat)^2,2,min)
+  
+  qtyUsed <- UsedQtyFromResultList(currentSelection_list,resource_vec,callId_vec)
+  qtyLeft <- resource_df$qtyMin - qtyUsed/resource_df$minUnit
+  
+  reservedLiquidityRatio <- LiquidFun(qtyLeft,resource_df$qtyMin,liquidity_vec,resource_df$minUnitValue/resource_df$FXRate)
+  
+  resultAnalysis <- list(dailyCost=dailyCost,monthlyCost=monthlyCost,movements=movements,reservedLiquidityRatio=reservedLiquidityRatio)
+  #### Result analysis END ###########
+  
+  output_list <- list(callOutput=currentSelection_list,resultAnalysis=resultAnalysis)
+  return(output_list)
+}
 
-
-SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
-                                  availAssetTotal_df, resourceTotal_df, 
-                                  dsAssetId,dsCallId,currentSelection_list,
-                                  pref_vec,operLimit,operLimitMs,fungible){
+SecondAllocationOneCallBasicV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
+                                          availAssetTotal_df, resourceTotal_df, 
+                                          dsAssetId,dsCallId,currentSelection_list,
+                                          pref_vec,operLimit,operLimitMs,fungible){
   #### keep the original availAssetTotal_df
   availAssetOri_df <- availAssetTotal_df
   
