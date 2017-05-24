@@ -309,20 +309,18 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
   assetQuanityAllocateddsCall_vec <- currentSelection_list[[dsCallId]]$Quantity
   #### Find Resources Allocated to the Deselected Margin Statement END ######
   
-  #### Calucate the Insufficient Amount, Initiate the New Allocation Start ######
-  #### calculate the sufficient amount & quantity of assets to fulfill the margin call
-  callAmount <- callInfo_df$callAmount[which(callInfo_df$id==dsCallId)]
   
+  #### New Allocation Start #####################
   allocationDsCall_df <- currentSelection_list[[dsCallId]]
-  lackAmount <- callAmount- sum(allocationDsCall_df$`NetAmount(USD)`)  # the amount left needs to be fulfilled after deseleting one asset
-  
-  ## if the call is fully fulfilled
-  #### delete from dsCallId_vec if correspond lackAmount is nagative
-  if(lackAmount > 0){
-    
+  callAmount <- callInfo_df$callAmount[which(callInfo_df$id==dsCallId)]
+  fulfilledAmount <- sum(allocationDsCall_df$`NetAmount(USD)`)
+  ## If the call is not fully fulfilled after removing dsAsset
+  if(callAmount > fulfilledAmount){
+    #### Calucate the Insufficient Amount, Initiate the New Allocation Start ######
+    lackAmount <- callAmount-fulfilledAmount
     lackQuantity_vec <- ceiling(lackAmount/(1-haircut_vec)/minUnitValue_vec) # tempQuantity_vec needed for a single asset to fulfill each call
     # could either add the amount of the original selection or add another one or several assets.
-    newAllocationDsCall_df <- allocationDsCall_df
+    
     #### Calucate the Insufficient Amount, Initiate the New Allocation END ######
     
     #### Calculate the Objective Parameters Start ############
@@ -394,32 +392,29 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
     #### Alternative Assets Selection Start ####
     # check whether the first optimal asset is already allocated to that margin statement
     # check whether the first optimal asset is enough to fulfill the margin call
-    result_mat <- matrix(0,resourceDsNum,nrow=1,dimnames=list(dsCallId,resourceDs_vec))
+    result_mat <- ResultList2Mat(currentSelection_list[dsCallId],dsCallId,resourceDs_vec,minUnit_vec)
     scenario <- 0
     for(i in idxOptimal_vec){
       resource <- resourceDs_vec[i]
       # create the new line
-      lineResource_df <- resourceDs_df[which(resource_df$id==resource),]
+      lineResource_df <- resourceDs_df[which(resourceDs_df$id==resource),]
       if(is.element(resource,resourceInDsMs_vec) && resourceInDsMs_vec!='na'){
         # if asset[i] is alreadly selected in the margin statement
         if(quantityLeft_vec[i]>=lackQuantity_vec[i]){
           # scenario 1: asset[i] is alreadly selected in the margin statement
           # & left quantity is larger than the insufficient quantity
           scenario <- 1
-          idxResource_vec <- match(resource,resourceInDsMs_vec)
-          addTempQuantity_vec <- lackQuantity_vec[i]
-          newQuantity <- newAllocationDsCall_df$Quantity[idxResource_vec]+addTempQuantity_vec
-          result_mat[i] <- newQuantity
+          idxResource <- match(resource,resourceInDsMs_vec)
+          addQuantity <- lackQuantity_vec[i]
+          result_mat[i] <- result_mat[i] + addQuantity
           break
         }else if(quantityLeft_vec[i] > 0){
           # scenario 2: asset[i] asset[i] is alreadly selected in the margin statement
           # & is less than the insufficient tempQuantity_vec but larger than 0
           scenario <- 2
-          idxResource_vec <- match(resource,resourceInDsMs_vec)
-          addTempQuantity_vec <- quantityLeft_vec[i]
-          
-          newQuantity <- newAllocationDsCall_df$Quantity[idxResource_vec]+addTempQuantity_vec
-          result_mat[i] <- newQuantity
+          idxResource <- match(resource,resourceInDsMs_vec)
+          addQuantity <- lackQuantity_vec[i]
+          result_mat[i] <- result_mat[i] + addQuantity
         }
       } else {
         # if asset[i] is not in the current selection for margin statement
@@ -510,9 +505,9 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
     
     currentSelection_list <-newSelection_list 
   }
-  #### Alternative Assets Selection END ######
+  #### New Allocation END #######################
   
-  #### Update Result Analysis Output Start #### OW-560 ###############
+  #### Result Analysis Start ###################
   
   availInfoTotal_list <- AssetByCallInfo(callId_vec,resourceTotal_vec,availAssetTotal_df)
   eli_mat <- availInfoTotal_list$eli_mat; 
@@ -567,7 +562,7 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
     warning('Allocating other assets will create more asset movements than limit!')
   }
   resultAnalysis <- list(dailyCost=dailyCost,monthlyCost=monthlyCost,movements=movements,reservedLiquidityRatio=reservedLiquidityRatio)
-  #### Update Result Analysis Output END ##### OW-560 ################
+  #### Result Analysis END #####################
   
   output_list <- list(callOutput=currentSelection_list,resultAnalysis=resultAnalysis)
   return(output_list)

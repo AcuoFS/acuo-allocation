@@ -394,7 +394,7 @@ ResultVec2Mat <- function(solution_vec,callId_vec,resource_vec,idxEli_vec,varNum
   return(result_mat)
 }
 
-ResultList2Mat <- function(callOutput_list,callId_vec,resource_vec,minUnit_mat){
+ResultList2Mat <- function(callOutput_list,callId_vec,resource_vec,minUnit_vec){
   callNum <- length(callId_vec)
   resourceNum <- length(resource_vec)
   
@@ -412,7 +412,7 @@ ResultList2Mat <- function(callOutput_list,callId_vec,resource_vec,minUnit_mat){
     idxTemp_vec <- match(resourceTemp_vec,resource_vec)
     
     quantityTemp_vec <- callAlloc_df$Quantity
-    minUnitQuantityTemp_vec <- quantityTemp_vec/minUnit_mat[m,idxTemp_vec]
+    minUnitQuantityTemp_vec <- quantityTemp_vec/minUnit_vec[idxTemp_vec]
     
     result_mat[m,idxTemp_vec] <- minUnitQuantityTemp_vec
   }
