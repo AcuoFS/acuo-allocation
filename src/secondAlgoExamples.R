@@ -42,15 +42,15 @@ source("src/otherFunctions/modelFunctions.R")
 
 callId_vec = c("mcp46","mcp50","mcp47","mcp38","mcp7","mcp34","mcp35")
 callId_vec <- c('mcp1','mcp31','mcp43')
-msId_vec = c("600dfde4")
+msId_vec = c("1e6e5e7b")
 callId_vec = unlist(callIdByMsId(msId_vec))
 clientId <- '999'
 pref_vec<-c(5.4,3.5)
 #### deselct the asset from all custodian accounts? Currently yes. Location 'loc1'
-dsAssetId <- 'SGD'
+dsAssetId <- 'USD'
 dsCallId_vec <- c('mcp50','mcp38','mcp34','mcp7',"mcp35")
 dsCallId_vec <- c('mcp31')
-dsCallId_vec <- "33a5a187"
+dsCallId_vec <- "b4352b81"
 
 callInfo_df <- callInfoByCallId(callId_vec); callId_vec <- unique(callInfo_df$id)
 availAsset_df <- availAssetByCallIdAndClientId(callId_vec,clientId) # available asset for the margin call

@@ -495,7 +495,8 @@ SecondAllocationAlgoV2<- function(callId_vec,callInfo_df,resourceTotal_vec,
     
     
     if(movementsUsedMs>operLimitMs & fungible==F){
-      newMsResult_list <- CoreAlgoV2(callInfoMs_df, resourceMs_df, availInfoMs_list,timeLimit=5,pref_vec,operLimitMs,operLimitMs,fungible,minMoveValue=1000)
+      newMsResult_list <- CoreAlgoV2(callInfoMs_df, resourceMs_df, availInfoMs_list,timeLimit=5,pref_vec,operLimitMs,operLimitMs,fungible,minMoveValue=1000,
+                                     ifNewAlloc=T)
       newSelection_list[idxTemp1] <- newMsResult_list$callOutput_list
     } else if(movementsUsedAll>operLimit & fungible==T){
       operLimitMsLeft <- operLimit-(movementsUsedAll-movementsUsedMs)
