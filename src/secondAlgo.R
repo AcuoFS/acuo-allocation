@@ -36,12 +36,12 @@ SecondAllocationV2<- function(callId_vec,callInfo_df,resourceTotal_vec,availAsse
     alloc_df <- currentSelection_list[[dsCallId]]
     lackAmount_vec[i] <- callInfoDs_df$callAmount[i] - sum(alloc_df$`NetAmount(USD)`)
   }
+  callInfoDs_df$callAmount <- lackAmount_vec
   
   ## b. Remove the calls which already fulfilled
   #### delete from dsCallId_vec if correspond lackAmount is nagative
   idxSuff_vec <- which(lackAmount_vec <= 0)
   if(length(idxSuff_vec)>=1){
-    callInfoDs_df$callAmount <- lackAmount_vec
     dsCallId_vec <- dsCallId_vec[-idxSuff_vec]
     callInfoDs_df <- callInfoDs_df[-idxSuff_vec,]
     availAssetDs_df <- availAssetDs_df[which(availAssetDs_df$callId %in% dsCallId_vec),] 
