@@ -13,9 +13,11 @@ CoreAlgoV2,operations as an constraint
 CallLpSolve,call the lpSolve solver to solve the optimization problem
 ,
 Procedure Function,Second Level
-SecondAllocationAlgoAllMsV2,main entrance of version 2 optimizer
-SecondAllocationAlgoV1,substitute from one margin call only version 1
-SecondAllocationAlgoV2,substitute from one margin call only version 2
+SecondAllocationV2,main entrance of version 2 optimizer using advanced model
+SecondAllocationBasicV2,main entrance of version 2 optimizer using basic model(not using)
+SecondAllocationOneCallBasicV2,substitute from one margin call only basic model version 2(not using)
+SecondAllocationAlgoV1,substitute from one margin call only version 1(not updated)
+,
 ,
 General Functions,Commonly used UDFs for Algo
 OrderCallId,sort the margin call ids in a specific order method

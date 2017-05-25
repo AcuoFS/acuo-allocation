@@ -1,4 +1,3 @@
-
 AdjustResultVec <- function(solution_vec,varNum,varName_vec,fCon4_mat,
                             callAmount_vec,minUnitQuantity_vec,minUnitValue_vec){
   

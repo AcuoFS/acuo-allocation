@@ -1,4 +1,4 @@
-
+#### analysisFunctions #######
 LiquidFun <- function(quantityLeft_vec,quantityTotal_vec,liquidity_vec,minUnitValue_vec){
   numerator <- sum(quantityLeft_vec*liquidity_vec*minUnitValue_vec)
   denominator <- sum(quantityTotal_vec*liquidity_vec*minUnitValue_vec)
@@ -79,6 +79,7 @@ OperationFun <- function(result,callInfo_df,method){
   return(movements)
 }
 
+#### checkFunctiions #######
 AdjustResultVec <- function(solution_vec,varNum,varName_vec,fCon4_mat,
                             callAmount_vec,minUnitQuantity_vec,minUnitValue_vec){
   
@@ -311,6 +312,8 @@ CheckResultVec <- function(result_mat,quantityTotal_vec,callId_vec,callAmount_ve
   
   return(result_mat)
 }
+
+#### convertFunctions #### 
 ResultMat2List <- function(result_mat,callId_vec,resource_vec,callInfo_df,haircut_mat,cost_mat,resourceInfo_df,
                            callSelect_list,msSelect_list){
   
@@ -547,6 +550,7 @@ ResultList2Df <- function(result_list,callId_vec){
   return(result_df)
 }
 
+#### improveFunctions #### 
 OrderCallId <- function(callOrderMethod,callInfo_df){
   ## method 0: Keep original
   ## method 1: By margin call amount, decreasing
@@ -658,7 +662,7 @@ GroupCallIdByMs <- function(callLimit,msLimit,callInfo_df,callId_vec){
   return(groupCallId_list)
 }
 
-
+#### infoFunctions #### 
 ResourceInfo <- function(resource_vec,assetInfo_df,availAsset_df){
   ## better retrieve from DB
   ## keep useful columns from assetInfo
@@ -722,9 +726,7 @@ AssetByCallInfo <- function(callId_vec,resource_vec,availAsset_df){
   return (output_list)
 }
 
-
-
-
+#### modelFunction #### 
 QtyConst <- function(varName_vec,varNum,resource_vec,quantityTotal_vec){
   
   resourceDul_vec <- SplitVarName(varName_vec,'resource')[1:varNum]
@@ -1167,6 +1169,7 @@ VarInfo <- function(eli_vec,callInfo_df,resource_vec,callId_vec){
   return(var_list)
 }
 
+#### qtyFunctions #### 
 UpdateQtyOriInResourceDf <- function(resource_df){
   ## will be called at the very end of the allocation
   quantity_vec <- resource_df$qtyMin*resource_df$minUnit + resource_df$qtyRes
@@ -1177,22 +1180,6 @@ UpdateQtyOriInResourceDf <- function(resource_df){
 ResetQtyMinInResourceDf <- function(resource_df){
   resource_df$qtyMin <- floor(resource_df$qtyOri/resource_df$minUnit)
   return(resource_df)
-}
-
-
-
-CheckQtyInAvailAsset <- function(availAsset_df){
-  resource_vec <- unique(availAsset_df$assetCustacId)
-  for(i in 1:length(resource_vec)){
-    resource <- resource_vec[i]
-    idx_vec <- which(availAsset_df$assetCustacId==resource)
-    minQty <- min(availAsset_df$quantity[idx_vec])
-    if(!all(availAsset_df$quantity[idx_vec]==minQty)){
-      errormsg <- paste('Quantities in availAsset_df are not consistent for asset',resource,'!')
-      stop(errormsg)
-    }
-  }
-  return(1)
 }
 
 UsedQtyFromResultList <- function(result_list,resource_vec,callId_vec){
@@ -1214,7 +1201,7 @@ UsedQtyFromResultList <- function(result_list,resource_vec,callId_vec){
   return(quantityUsed_vec)
 }
 
-
+#### staticFunctions #### 
 PasteFun1 <- function(x1='',x2=''){
   temp=paste(x1,x2,sep='_',collapse = '')
   return(temp)

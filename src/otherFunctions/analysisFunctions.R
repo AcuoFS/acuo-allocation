@@ -1,4 +1,3 @@
-
 LiquidFun <- function(quantityLeft_vec,quantityTotal_vec,liquidity_vec,minUnitValue_vec){
   numerator <- sum(quantityLeft_vec*liquidity_vec*minUnitValue_vec)
   denominator <- sum(quantityTotal_vec*liquidity_vec*minUnitValue_vec)
