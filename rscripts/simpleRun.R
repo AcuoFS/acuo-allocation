@@ -1,15 +1,36 @@
 options(stringsAsFactors = FALSE)
 
+if(length(callIds)==0){
+  stop('Empty callIds input!')
+}
+
+if(length(pref)==0){
+  stop('Empty pref input!')
+}
+
+if(length(callInfoByCallId)==0){
+  stop('Empty callInfoByCallId input!')
+}
+
+if(length(availAssetByCallIdAndClientId)==0){
+  stop('Empty availAssetByCallIdAndClientId input!')
+}
+
+if(length(assetInfoByAssetId)==0){
+  stop('Empty assetInfoByAssetId input!')
+}
+
+callId_vec <- callIds
+pref_vec <- pref
 callInfo_df <- callInfoByCallId
 callInfo_df$callAmount <- abs(as.numeric(callInfo_df$callAmount)) # make sure the callAmount is non-negative
 #print(callInfo_df)
 
 availAsset_df <- availAssetByCallIdAndClientId
 availAsset_df <- availAsset_df[order(availAsset_df$callId),]
+availAsset_df$quantity[which(availAsset_df$quantity<0)] <- 0 ### dont allow negative quantity, temp
 
-### add USD amount hard code
-availAsset_df$quantity[which(availAsset_df$quantity<0)] <- 0
-###
+assetInfo_df <- assetInfoByAssetId
 
 ###### 3 lines added fot testing purposes, comment them after tests ##################
 # changing the asset quantity and adding new custodian account to make the optimal assets insufficient,
@@ -24,7 +45,6 @@ availAsset_df$assetCustacId <- assetCustacId_vec
 resource_vec <- unique(assetCustacId_vec)
 
 assetId_vec <- unique(availAsset_df$assetId)
-assetInfo_df <- assetInfoByAssetId
 assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
 
 resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
@@ -49,8 +69,6 @@ availAsset_df$venue <- venue_vec
 #print(availAsset_df)
 ###### END ####################################
 
-callId_vec <- callIds
-pref_vec <- pref
 
 #print('callId_vec'); print(callId_vec)
 ## CALL THE ALLOCATION FUNCTION ###########
@@ -60,27 +78,7 @@ operLimitMs_vec <- rep(2,msNum)
 operLimit<- sum(operLimitMs_vec)
 fungible <- FALSE
 
-if(length(callId_vec)==0){
-  stop('Empty margin call ids!')
-}
 
-if(length(resource_vec)==0){
-  stop('Empty eligible assets!')
-}
-
-if(length(callInfo_df)==0){
-  stop('Empty callInfo_df input!')
-}
-
-if(length(availAsset_df)==0){
-  stop('Empty availAsset_df input!')
-}
-if(length(assetInfo_df)==0){
-  stop('Empty assetInfo_df input!')
-}
-#params <- c(algoVersion,callId_vec,pref_vec,operLimit,operLimitMs,fungible)
-
-#stop(paste('params:',params))
 callId_vec <- unlist(callId_vec)
 result <- CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
                           callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs_vec,fungible,
