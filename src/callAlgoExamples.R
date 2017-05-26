@@ -35,16 +35,25 @@ source("src/otherFunctions/modelFunctions.R")
 callId_vec = c("mcp38","mcp50")
 callId_vec = c("mcp46","mcp50","mcp47","mcp38","mcp7","mcp34","mcp35")
 #msId_vec = c("dc480ea2","5ea252df","26328f67","d2fb01e6","11133f47","7dcb5eca","4dd73d6d","d1868fc9","14a8662d","3e23925b")
-
+msId_vec <- "39f4e44e"
 callId_vec = unlist(callIdByMsId(msId_vec))
 #agreementId_vec <- c('a1','a34')
 #callId_vec <- unname(unlist(callIdByAgreementId(agreementId_vec)))
 clientId = '999';
 pref_vec = c(10,0);
 
-#### get info
-callInfo_df <- callInfoByCallId(callId_vec); callInfo_df<- callInfo_df[match(callId_vec,callInfo_df$id),]
+#### callInfo_df
+callInfo_df <- callInfoByCallId(callId_vec)
+if(length(unlist(callInfo_df))==0){
+  stop('Empty callInfo_df input!')
+}
+callInfo_df<- callInfo_df[match(callId_vec,callInfo_df$id),]
+
+#### availAsset_df
 availAsset_df <- availAssetByCallIdAndClientId(callId_vec,clientId) # available asset for the margin call
+if(length(unlist(availAsset_df))==0){
+  stop('Empty availAsset_df input!')
+}
 availAsset_df <- availAsset_df[order(availAsset_df$callId),]
 
 ### avoid negative amount
@@ -64,6 +73,9 @@ resource_vec <- unique(assetCustacId_vec)
 
 assetId_vec <- unique(SplitResource(resource_vec,'asset'))
 assetInfo_df <- assetInfoByAssetId(assetId_vec)
+if(length(unlist(assetInfo_df))==0){
+  stop('Empty assetInfo_df input!')
+}
 assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
 
 if(is.na(all(assetInfo_df$FXRate))){
@@ -76,7 +88,7 @@ if(is.na(all(assetInfo_df$FXRate))){
   }
 }
 
-
+#### resource_df
 resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
 availAsset_df <- AvailAsset(availAsset_df)
 
