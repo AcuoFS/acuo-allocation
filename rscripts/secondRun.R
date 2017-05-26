@@ -1,5 +1,33 @@
 options(stringsAsFactors = FALSE)
 
+if(length(unlist(callIds))==0){
+  stop('Empty callIds input!')
+}
+
+if(length(unlist(dsCallIds))==0){
+  stop('Empty dsCallIds input!')
+}
+
+if(length(unlist(assetId))==0){
+  stop('Empty assetId input!')
+}
+
+if(length(unlist(pref))==0){
+  stop('Empty pref input!')
+}
+
+if(length(unlist(callInfoByCallId))==0){
+  stop('Empty callInfoByCallId input!')
+}
+
+if(length(unlist(availAssetByCallIdAndClientId))==0){
+  stop('Empty availAssetByCallIdAndClientId input!')
+}
+
+if(length(unlist(assetInfoByAssetId))==0){
+  stop('Empty assetInfoByAssetId input!')
+}
+
 #### Input Prepare Start ###########
 callId_vec <- callIds
 pref_vec <- pref
@@ -10,6 +38,10 @@ print("selections")
 print(selections)
 
 selectedCallId_vec <- unique(selections$marginCall)
+
+if(all(sort(callId_vec)==sort(selectedCallId_vec))){
+  stop('callIds not match the margin calls in selections!')
+}
 
 #### Convert the Java input to R input
 
