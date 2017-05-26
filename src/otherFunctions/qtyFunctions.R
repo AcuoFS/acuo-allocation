@@ -10,23 +10,7 @@ ResetQtyMinInResourceDf <- function(resource_df){
   return(resource_df)
 }
 
-
-
-CheckQtyInAvailAsset <- function(availAsset_df){
-  resource_vec <- unique(availAsset_df$assetCustacId)
-  for(i in 1:length(resource_vec)){
-    resource <- resource_vec[i]
-    idx_vec <- which(availAsset_df$assetCustacId==resource)
-    minQty <- min(availAsset_df$quantity[idx_vec])
-    if(!all(availAsset_df$quantity[idx_vec]==minQty)){
-      errormsg <- paste('Quantities in availAsset_df are not consistent for asset',resource,'!')
-      stop(errormsg)
-    }
-  }
-  return(1)
-}
-
-UsedQtyFromResultList <- function(result_list,resource_vec,callId_vec){ ## quantity in result_list are unitQuantity
+UsedQtyFromResultList <- function(result_list,resource_vec,callId_vec){
   #### minUnitQuantity of resources used for allocation
   quantityUsed_vec <- rep(0,length(resource_vec))
   callNum <- length(callId_vec)
@@ -44,5 +28,3 @@ UsedQtyFromResultList <- function(result_list,resource_vec,callId_vec){ ## quant
   }
   return(quantityUsed_vec)
 }
-
-

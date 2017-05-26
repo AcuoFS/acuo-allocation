@@ -8,7 +8,10 @@ ResultMat2List <- function(result_mat,callId_vec,resource_vec,callInfo_df,haircu
     # resource and result_mat columns have the same order 
     # the allocated indexes: 
     idx_vec <- which(result_mat[i,]!=0) 
-    
+    if(length(idx_vec)==0){
+      errormsg <- paste("There's no asset allocated to margin call",callId_vec[i])
+      stop(errormsg)
+    }
     #### Get the information of the allocation Start ####
     selectResource_vec <- resource_vec[idx_vec]
     selectAssetId_vec <- resourceInfo_df$assetId[idx_vec]
@@ -78,7 +81,7 @@ ResultVec2Mat <- function(solution_vec,callId_vec,resource_vec,idxEli_vec,varNum
   return(result_mat)
 }
 
-ResultList2Mat <- function(callOutput_list,callId_vec,resource_vec,minUnit_mat){
+ResultList2Mat <- function(callOutput_list,callId_vec,resource_vec,minUnit_vec){
   callNum <- length(callId_vec)
   resourceNum <- length(resource_vec)
   
@@ -96,7 +99,7 @@ ResultList2Mat <- function(callOutput_list,callId_vec,resource_vec,minUnit_mat){
     idxTemp_vec <- match(resourceTemp_vec,resource_vec)
     
     quantityTemp_vec <- callAlloc_df$Quantity
-    minUnitQuantityTemp_vec <- quantityTemp_vec/minUnit_mat[m,idxTemp_vec]
+    minUnitQuantityTemp_vec <- quantityTemp_vec/minUnit_vec[idxTemp_vec]
     
     result_mat[m,idxTemp_vec] <- minUnitQuantityTemp_vec
   }

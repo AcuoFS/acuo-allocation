@@ -66,6 +66,17 @@ assetId_vec <- unique(SplitResource(resource_vec,'asset'))
 assetInfo_df <- assetInfoByAssetId(assetId_vec)
 assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
 
+if(is.na(all(assetInfo_df$FXRate))){
+  warning('FXRate contains NA! Use Static FX rates for this test!')
+  ccy_vec <- c('USD', 'EUR', 'GBP', 'SGD', 'JPY', 'HKD', 'AUD', 'CNY', 'KRW', 'CAD', 'NOK', 'SEK', 'NZD')
+  FXRate_vec <- c(1,0.92,0.80,1.39,110.6,7.77,1.32,6.86,1112,1.34,8.68,9.02,1.42)
+  for(k in 1:length(assetInfo_df[,1])){
+    idxTemp <- which(assetInfo_df$currency[k] == ccy_vec)
+    assetInfo_df$FXRate[k] <- FXRate_vec[idxTemp]
+  }
+}
+
+
 resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
 availAsset_df <- AvailAsset(availAsset_df)
 

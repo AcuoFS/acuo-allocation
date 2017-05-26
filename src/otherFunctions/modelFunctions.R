@@ -1,4 +1,3 @@
-
 QtyConst <- function(varName_vec,varNum,resource_vec,quantityTotal_vec){
   
   resourceDul_vec <- SplitVarName(varName_vec,'resource')[1:varNum]
