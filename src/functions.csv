@@ -20,18 +20,55 @@ SecondAllocationAlgoV1,substitute from one margin call only version 1(not update
 ,
 ,
 General Functions,Commonly used UDFs for Algo
-OrderCallId,sort the margin call ids in a specific order method
-GroupCallIdByMs,split the margin statements into groups for the algo performance
-AllocationInputData,convert the related information for Algo into standard format
-ResultList2Mat,convert allocation result list to matrix
-ResultMat2List,convert result matrix to allocation result list
-ResultList2Vec,convert allocation result list to decision variable vector
-ResultList2AmountVec,convert allocation result list to amount of resources vector
-ResultVec2Mat,convert vector to matrix
-VarInfo,construct the decision variables names. 
+,
+Analysis Functions,
 CostFun,compute allocation cost
 LiquidFun,compute allocation reserved liquidity ration
 OperationFun,compute allocation total movements
+,
+Check Functions,
+AdjustResultVec,Adjust the solution(rounding)
+CheckResultVec,Check whether the solution meets all the requirements
+,
+Convert Functions,
+ResultMat2List,convert result matrix to allocation result list
+ResultVar2Mat,convert solution vector to matrix
+ResultList2Mat,convert allocation result list to matrix by eligibility indexes
+ResultList2Vec,convert allocation result list to decision variable vector
+ResultList2DummyVec,derive the dummy vector from the result list
+ResultDf2List,convert the result data frame to list
+ResultList2AmountVec,convert allocation result list to amount of resources vector
+VarVec2mat,convert solution vector to matrix by variable names
+ResultList2Df,Convert result list to data frame format
+,
+Improve Functions,
+OrderCallId,sort the margin call ids in a specific order method
+GroupCallIdByMs,split the margin statements into groups for the algo performance
+,
+Info Functions,
+ResourceInfo,Consruct resource_df by assetInfo_df and availAsset_df
+AvailAsset,"Reconstruct the availAsset_df, remove unused columns"
+AssetByCallInfo,Construct the availAsset_list by availAsset_df
+,
+Model Function,
+QtyConst,Construct quantity limit constraints
+MarginConst,Construct margin call requirements constraints
+DummyConst,Construct dummy variables constraints
+DummyConstInherit,Construct dummy variables constraints
+MoveConst,Construct movements limit constraints
+MoveConstInherit,Construct movements limit constraints
+AllocateByRank,Simple allocation by ranking in case of solver fails
+ConstructModelObj,Construct the objectives of the model
+DeriveOptimalAssetsV2,Determine the optimal asset based on the objective parameters optimizer version 2
+DeriveOptimalAssetsV1,Determine the optimal asset based on the objective parameters optimizer version 1
+VarInfo,construct the decision variables names. 
+,
+Qty Functions,
+UpdateQtyOriInResourceDf,Update the original quantity by minUnitQuantity and rest quantity
+ResetQtyMinInResourceDf,Reset the minUnitQuantity by original quantity and minUnit
+UsedQtyFromResultList,Get the used quantity from result list
+,
+staticFunctions,
 PasteFun1,paste two items with underscore
 PasteFun2,paste inside an item with underscore
 PasteResource,paste the asset id and custodian accout into resource id
@@ -39,13 +76,4 @@ PasteVarName,"paste ms id, call id, resource id into variable name"
 SplitResource,split the resource into asset id and/or custodian account
 SplitVarName,split the variable name into ms id and/or call id and/or resource id
 renjinFix,fix the dataframe format for java framework
-UpdateQtyInAvailAsset,Update the quantity in availAsset_df by used or left quantity input
-GetQtyFromAvailAsset,Get the quantity from availAsset_df by used or left quantity fromput
-CheckQtyInAvailAsset,Check the quantity in availAsset_df by used or left quantity input
-UsedQtyFromResultList,Used the quantity from availAsset_df
-AdjustResultVec,Adjust the solution(rounding)
-CheckResultVec,Check whether the solution meets all the requirements
-ConstructModelObj,Construct the objectives of the model
-DeriveOptimalAssetsV2,Determine the optimal asset based on the objective parameters optimizer version 2
-DeriveOptimalAssetsV1,Determine the optimal asset based on the objective parameters optimizer version 1
-ResultList2Df,Convert result list to data frame format
+BaseMat0,construct a 0 base matrix
