@@ -32,12 +32,16 @@ availAsset_df <- AvailAsset(availAsset_df)
 
 ###### Manually add FXRate and venue for DEMO purposes ########
 # FX rate: value = 1 USD can change how much foreign currency
-# ccy_vec <- c('USD', 'EUR', 'GBP', 'SGD', 'JPY', 'HKD', 'AUD', 'CNY', 'KRW', 'CAD', 'NOK', 'SEK', 'NZD')
-# FXRate_vec <- c(1,0.92,0.80,1.39,110.6,7.77,1.32,6.86,1112,1.34,8.68,9.02,1.42)
-# for(k in 1:length(assetInfo_df[,1])){
-#    idxTemp <- which(assetInfo_df$currency[k] == ccy_vec)
-#    assetInfo_df$FXRate[k] <- FXRate_vec[idxTemp]
-#}
+
+if(is.na(all(assetInfo_df$FXRate))){
+  stop('FXRate contains NA! ')
+  ccy_vec <- c('USD', 'EUR', 'GBP', 'SGD', 'JPY', 'HKD', 'AUD', 'CNY', 'KRW', 'CAD', 'NOK', 'SEK', 'NZD')
+  FXRate_vec <- c(1,0.92,0.80,1.39,110.6,7.77,1.32,6.86,1112,1.34,8.68,9.02,1.42)
+  for(k in 1:length(assetInfo_df[,1])){
+    idxTemp <- which(assetInfo_df$currency[k] == ccy_vec)
+    assetInfo_df$FXRate[k] <- FXRate_vec[idxTemp]
+  }
+}
 
 # venue: all SG
 venue_vec <- rep('SG',length(availAsset_df[,1]))
