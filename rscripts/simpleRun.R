@@ -1,22 +1,22 @@
 options(stringsAsFactors = FALSE)
 
-if(length(callIds)==0){
+if(length(unlist(callIds))==0){
   stop('Empty callIds input!')
 }
 
-if(length(pref)==0){
+if(length(unlist(pref))==0){
   stop('Empty pref input!')
 }
 
-if(length(callInfoByCallId)==0){
+if(length(unlist(callInfoByCallId))==0){
   stop('Empty callInfoByCallId input!')
 }
 
-if(length(availAssetByCallIdAndClientId)==0){
+if(length(unlist(availAssetByCallIdAndClientId))==0){
   stop('Empty availAssetByCallIdAndClientId input!')
 }
 
-if(length(assetInfoByAssetId)==0){
+if(length(unlist(assetInfoByAssetId))==0){
   stop('Empty assetInfoByAssetId input!')
 }
 
