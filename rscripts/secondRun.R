@@ -37,9 +37,9 @@ dsCallId_vec <- dsCallIds
 print("selections")
 print(selections)
 
-selectedCallId_vec <- unique(selections$marginCall)
+selectedCallId_vec <- unlist(unique(selections$marginCall))
 
-if(all(sort(callId_vec)==sort(selectedCallId_vec))){
+if(all(sort(unlist(callId_vec))==sort(selectedCallId_vec))){
   stop('callIds not match the margin calls in selections!')
 }
 
