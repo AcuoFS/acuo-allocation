@@ -35,7 +35,9 @@ source("src/otherFunctions/modelFunctions.R")
 callId_vec = c("mcp38","mcp50")
 callId_vec = c("mcp46","mcp50","mcp47","mcp38","mcp7","mcp34","mcp35")
 #msId_vec = c("dc480ea2","5ea252df","26328f67","d2fb01e6","11133f47","7dcb5eca","4dd73d6d","d1868fc9","14a8662d","3e23925b")
-msId_vec <- "39f4e44e"
+msId_vec <- c("88b9fb68",
+              "39f4e44e",
+              "444b0455")
 callId_vec = unlist(callIdByMsId(msId_vec))
 #agreementId_vec <- c('a1','a34')
 #callId_vec <- unname(unlist(callIdByAgreementId(agreementId_vec)))
@@ -44,9 +46,17 @@ pref_vec = c(10,0);
 
 #### callInfo_df
 callInfo_df <- callInfoByCallId(callId_vec)
+
 if(length(unlist(callInfo_df))==0){
   stop('Empty callInfo_df input!')
 }
+
+idxTemp_vec <- which(callInfo_df$direction == 'IN')
+if(length(idxTemp_vec)>0){
+  errormsg <- paste(paste(unique(callInfo_df$marginStatement[idxTemp_vec]),collapse = ','),'is(are) money IN statement(s)!')
+  stop(errormsg)
+}
+
 callInfo_df<- callInfo_df[match(callId_vec,callInfo_df$id),]
 
 #### availAsset_df
