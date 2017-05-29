@@ -6,4 +6,5 @@ RETURN  mc.id AS id,
 		ms.id AS marginStatement,
 		ABS(mc.marginAmount) AS callAmount,
 		mc.currency AS currency,
-		mc.callDate AS callDate
+		mc.callDate AS callDate,
+		ms.direction AS direction
