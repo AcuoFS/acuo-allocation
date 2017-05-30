@@ -40,7 +40,7 @@ print(selections)
 selectedCallId_vec <- unlist(unique(selections$marginCall))
 
 if(!all(sort(unlist(callId_vec))==sort(selectedCallId_vec))){
-  errormsg <-  paste('callIds',paste(callId_vec,collapse = ' '),'not match the margin calls in selections',paste(temp,collapse = ' '))
+  errormsg <-  paste('callIds',paste(callId_vec,collapse = ' '),'not match the margin calls in selections',paste(selectedCallId_vec,collapse = ' '))
   stop(errormsg)
 }
 
