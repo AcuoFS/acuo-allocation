@@ -4,7 +4,9 @@
 # 2. clientId
 # 3. uesr preference: 
 #   3.1. objective vector: pref_vec
-#   3.2. operation limit: operLimit
+#   3.2. operation limit
+#   3.2.1 movements limit per margin statement: operLimitMs
+#   3.2.2 whether the limit on the ms is fungible: fungible
 # 4. callInfo_df <- callInfoByCallId(callId_vec)
 # 5. availAsset_df <- availAssetByCallIdAndClientId(callId_vec,clientId)
 # 6. resource_vec <- unique(paste(availAsset_df$assetId,availAsset_df$CustodianAccount,sep='-'))
