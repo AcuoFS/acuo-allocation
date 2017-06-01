@@ -26,11 +26,9 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
     t2 = sum(is.na(lpDir_vec[i]))
     t3 = sum(is.na(lpRhs_vec[i]))
     if((t1+t2+t3>=1)){
-      print(lpCon_mat[i,])
-      print(lpDir_vec[i])
-      print(lpRhs_vec[i])
+      errormsg <- paste(paste('constraint ',i), 'contains NA!')
+      stop(errormsg)
     }
-    
     add.constraint(lpModel,lpCon_mat[i,],lpDir_vec[i],lpRhs_vec[i])
   }
   

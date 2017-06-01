@@ -182,8 +182,10 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
     msIdGroup_vec <- unique(callInfo_df$marginStatement[which(callInfo_df$id %in% callIdGroup_vec)])
     ratio <- length(msIdGroup_vec)/length(msId_vec) # the proportion of the msGroup in the msList
     operLimitGroup <- operLimit*ratio
-    idxTemp_vec <- match(callIdGroup_vec,callId_vec)
+    
+    idxTemp_vec <- match(msIdGroup_vec,msId_vec)
     operLimitGroupMs_vec <- operLimitMs_vec[idxTemp_vec]
+    
     #cat(' group:',i,'\n','callId_vec:',callIdGroup_vec,'\n')
     
     callInfoGroup_df <- callInfo_df[match(callIdGroup_vec,callInfo_df$id),]

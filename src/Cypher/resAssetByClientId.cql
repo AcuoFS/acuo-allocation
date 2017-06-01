@@ -1,72 +1,69 @@
 //query for asset in 'Available' status
-MATCH path=(e:LegalEntity)<-[:MANAGES]-(c:Client)-[:CLIENT_ASSET]->(:ClientAsset)-[p:POSSESSES]->(a:Asset)-[:IS_AVAILABLE_FOR]->(ag:Agreement)
-WHERE (e)-[:CLIENT_SIGNS]->(ag)
-AND c.id = {clientId}
-AND p.reservedQuantities>0
 
-WITH *
-MATCH (c)-->(e)-->(ta:TradingAccount)-->(ca:CustodianAccount)-[:HOLDS]->(a)
+MATCH (client:Client {id:{clientId}})-[:MANAGES]->(entity:LegalEntity)-[:CLIENT_SIGNS]->(agreement:Agreement)-[:IS_COMPOSED_OF]->(rule:Rule)-[:APPLIES_TO]->(asset:Asset) 
 
-WITH *
-MATCH (cu:Custodian)-[:MANAGES]->(ca)
+WITH asset, client, rule
 
-WITH DISTINCT a,p,ca,cu
+MATCH h=(cu:Custodian)-[:MANAGES]->(ca:CustodianAccount)-[holds:HOLDS]->(asset) 
+//MATCH v=(asset)<-[:VALUATED]-(:AssetValuation)-[:VALUE]->(:AssetValue) 
+
+WHERE holds.reservedQuantity > 0
+
+WITH DISTINCT asset,cu,ca,holds
 
 RETURN
-	a.ACUOCategory AS ACUOCategory,
-    a.type AS type,
- 	a.id AS assetId,
-    a.idType AS idType,
-    a.name AS assetName,
-    a.currency AS currency,
-    a.rating AS rating,
-    a.maturityDate AS maturityDate,
+	  asset.ACUOCategory AS ACUOCategory,
+ 	  asset.id AS assetId,
+    asset.idType AS idType,
+    asset.name AS assetName,
+    asset.currency AS currency,
+    asset.rating AS rating,
+    asset.maturityDate AS maturityDate,
     cu.countryShortName AS venue,
     ca.id AS custodianAccountId,
-    p.deliveryTime AS deliveryTime,
+    holds.deliveryTime AS deliveryTime,
     'Available' AS status,
-    p.subStatus AS subStatus, //no subStatus in [p], value is NULL, 
-    a.parValue AS unitValue,
-    a.minUnit AS minUnit,
-    a.minUnitValue AS minUnitValue,
-    p.reservedQuantities AS quantity,
-    p.internalCost AS internalCost,
-    p.opptCost AS opptCost
-
-UNION
-
-MATCH (c:Client)-->(e:LegalEntity)-->(ta:TradingAccount)-->(ca:CustodianAccount)-[:RECEIVES]-(at:AssetTransfer)
-WHERE c.id = {clientId}
-AND at.status = 'Arriving'
-AND at.reservedQuantities >0 
-
-WITH DISTINCT at, ca
-MATCH (ca)-[:HOLDS]->(a:Asset)<-[p:POSSESSES]-(:ClientAsset)<-[:CLIENT_ASSET]-(c)
-WHERE a.id = at.assetId
-
-WITH *
-MATCH (cu:Custodian)-[:MANAGES]->(ca:CustodianAccount)-[:HOLDS]->(a)
+    holds.subStatus AS subStatus, //no subStatus in [p], value is NULL, 
+    asset.parValue AS unitValue,
+    holds.availableQuantity AS quantity,
+    holds.internalCost AS internalCost,
+    holds.opptCost AS opptCost
 
 
-WITH DISTINCT at,a,p,ca,cu
+UNION 
+
+//query for asset in 'Available' status
+
+MATCH (client:Client {id:{clientId}})-[:MANAGES]->(entity:LegalEntity)-[:CLIENT_SIGNS]->(agreement:Agreement)-[:IS_COMPOSED_OF]->(rule:Rule)-[:APPLIES_TO]->(asset:Asset) 
+
+WITH asset, client, rule
+
+MATCH h=(cu:Custodian)-[:MANAGES]->(ca:CustodianAccount)-[holds:HOLDS]->(asset) 
+//MATCH v=(asset)<-[:VALUATED]-(:AssetValuation)-[:VALUE]->(:AssetValue) 
+
+MATCH (asset)<-[:OF]-(at:AssetTransfer)-[:FROM|TO]->(:CustodianAccount)<-[:HAS]-(client) 
+
+WHERE at.status = 'Arriving'
+AND at.reservedQuantity > 0
+
+WITH DISTINCT at,asset,cu,ca,holds
 
 RETURN
-    a.ACUOCategory AS ACUOCategory,
-    a.type AS type,
-    a.id AS assetId,
-    a.idType AS idType,
-    a.name AS assetName,
-    a.currency AS currency,
-    a.rating AS rating,
-    a.maturityDate AS maturityDate,
+	  asset.ACUOCategory AS ACUOCategory,
+ 	  asset.id AS assetId,
+    asset.idType AS idType,
+    asset.name AS assetName,
+    asset.currency AS currency,
+    asset.rating AS rating,
+    asset.maturityDate AS maturityDate,
     cu.countryShortName AS venue,
     ca.id AS custodianAccountId,
     at.deliveryTime AS deliveryTime,
     at.status AS status,
     at.subStatus AS subStatus,
-    a.parValue AS unitValue,
-    a.minUnit AS minUnit,
-    a.minUnitValue AS minUnitValue,
-    at.reservedQuantities AS quantity,
-    p.internalCost AS internalCost,
-    p.opptCost AS opptCost
+    asset.parValue AS unitValue,
+    holds.availableQuantity AS quantity,
+    holds.internalCost AS internalCost,
+    holds.opptCost AS opptCost
+
+
