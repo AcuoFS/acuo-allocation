@@ -637,6 +637,7 @@ ResourceInfo <- function(resource_vec,assetInfo_df,availAsset_df){
   qtyRes_vec <- qtyOri_vec - qtyMin_vec*resource_df$minUnit # quantity left after integral minQty
   
   resource_df <- cbind(resource_df[,1:3],qtyOri_vec,qtyMin_vec,qtyRes_vec,resource_df[,4:9],venue_vec)
+  resource_df$id <- as.character(resource_df$id)
   
   names(resource_df) <- c('id','assetId','assetName','qtyOri','qtyMin','qtyRes','unitValue', 'minUnit','minUnitValue','currency','FXRate',
                           'custodianAccount','venue')
