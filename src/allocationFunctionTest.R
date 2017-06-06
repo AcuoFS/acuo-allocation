@@ -7,7 +7,7 @@ CallAllocation <- function(algoVersion,scenario,callId_vec,resource_vec,callInfo
   # scenario = 2, post settlement cash only
   # scenario = 3, post least liquid assets
   #### Scenario Code END ###########
-  
+  resource_vec <- as.character(resource_vec)
   inputLimit_vec <- c(7,7,7,4); 
   timeLimit=13; 
   callOrderMethod=3
@@ -182,8 +182,10 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
     msIdGroup_vec <- unique(callInfo_df$marginStatement[which(callInfo_df$id %in% callIdGroup_vec)])
     ratio <- length(msIdGroup_vec)/length(msId_vec) # the proportion of the msGroup in the msList
     operLimitGroup <- operLimit*ratio
-    idxTemp_vec <- match(callIdGroup_vec,callId_vec)
+    
+    idxTemp_vec <- match(msIdGroup_vec,msId_vec)
     operLimitGroupMs_vec <- operLimitMs_vec[idxTemp_vec]
+    
     #cat(' group:',i,'\n','callId_vec:',callIdGroup_vec,'\n')
     
     callInfoGroup_df <- callInfo_df[match(callIdGroup_vec,callInfo_df$id),]
@@ -203,7 +205,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
     #### Pre-allocate Start ######################
     
     resultPre <- PreAllocation(algoVersion,callIdGroup_vec,callInfoGroup_df,availAssetGroup_df,resourceGroup_df,
-                               pref_vec,operLimitGroupMs_vec,operLimitGroupMs_vec,fungible,minMoveValue,timeLimit,
+                               pref_vec,operLimitGroup,operLimitGroupMs_vec,fungible,minMoveValue,timeLimit,
                                ifNewAlloc,allocatedGroup_list)
     
     callOutputGroupPre_list <- resultPre$callOutput_list

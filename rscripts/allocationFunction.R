@@ -7,7 +7,7 @@ CallAllocation <- function(algoVersion,scenario,callId_vec,resource_vec,callInfo
   # scenario = 2, post settlement cash only
   # scenario = 3, post least liquid assets
   #### Scenario Code END ###########
-  
+  resource_vec <- as.character(resource_vec)
   inputLimit_vec <- c(7,7,7,4); 
   timeLimit=13; 
   callOrderMethod=3
@@ -205,7 +205,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
     #### Pre-allocate Start ######################
     
     resultPre <- PreAllocation(algoVersion,callIdGroup_vec,callInfoGroup_df,availAssetGroup_df,resourceGroup_df,
-                               pref_vec,operLimitGroupMs_vec,operLimitGroupMs_vec,fungible,minMoveValue,timeLimit,
+                               pref_vec,operLimitGroup,operLimitGroupMs_vec,fungible,minMoveValue,timeLimit,
                                ifNewAlloc,allocatedGroup_list)
     
     callOutputGroupPre_list <- resultPre$callOutput_list
