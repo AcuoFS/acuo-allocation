@@ -2,8 +2,13 @@ MATCH (a:Asset)
 WHERE a.id IN {assetId}
 
 WITH *
-OPTIONAL MATCH (ccy:Currency)<-[r1]-(fx:FXRate)-[r2]->(usd:Currency {id:'USD'})
+OPTIONAL MATCH (ccy:Currency)<-[r1]-(fxrate:FXRate)-[r2]->(usd:Currency {id:'USD'})
 where ccy.id = a.currency
+
+WITH *
+OPTIONAL match (fxrate)<-[:OF]-(fx)
+where (fxrate)-[:LAST]->(fx)
+
 RETURN  a.id AS id,
 		a.idType AS idType,
 		a.name AS name,
