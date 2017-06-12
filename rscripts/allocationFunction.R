@@ -322,7 +322,7 @@ PreAllocation <- function(algoVersion,callId_vec,callInfo_df,availAsset_df,resou
       resultGroup_list <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue)
     } else if(algoVersion==2){
       resultGroup_list <- CoreAlgoV2(callInfoGroup_df, resourceGroup_df, availInfoGroup_list,
-                                     timeLimit,pref_vec,operLimit,operLimitMs,fungible,minMoveValue,
+                                     timeLimit,pref_vec,operLimitMs,operLimitMs,fungible,minMoveValue,
                                      ifNewAlloc,list(),allocatedGroup_list)
     }
     
