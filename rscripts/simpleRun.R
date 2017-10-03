@@ -90,8 +90,8 @@ result1 <- result
 if(length(result$callOutput)==0){
   stop('empty output!')
   print('empty callOutput: ')
-  selectAsset_df <- data.frame(matrix(1:15,nrow=1))
-  colnames(selectAsset_df)<- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType','marginStatement','marginCall')
+  selectAsset_df <- data.frame(matrix(1:17,nrow=1))
+  colnames(selectAsset_df)<- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Hc','Hfx','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType','marginStatement','marginCall')
   
   output[['mcp1']] <- selectAsset_df
   result$callOutput <- output

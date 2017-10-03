@@ -314,7 +314,7 @@ CheckResultVec <- function(result_mat,quantityTotal_vec,callId_vec,callAmount_ve
 }
 
 #### convertFunctions #### 
-ResultMat2List <- function(result_mat,callId_vec,resource_vec,callInfo_df,haircut_mat,cost_mat,resourceInfo_df,
+ResultMat2List <- function(result_mat,callId_vec,resource_vec,callInfo_df,haircut_mat,haircutC_mat,haircutFX_mat,cost_mat,resourceInfo_df,
                            callSelect_list,msSelect_list){
   
   callNum <- length(callId_vec)
@@ -335,6 +335,11 @@ ResultMat2List <- function(result_mat,callId_vec,resource_vec,callInfo_df,haircu
     selectAssetVenue_vec <- resourceInfo_df$venue[idx_vec]
     selectAssetName_vec <- resourceInfo_df$assetName[idx_vec]
     selectAssetHaircut_vec <- haircut_mat[i,idx_vec]
+    ## add collateral haircut
+    selectAssetHaircutC_vec <- haircutC_mat[i,idx_vec]
+    ## add fx haircut
+    selectAssetHaircutFX_vec <- haircutFX_mat[i,idx_vec]
+    
     selectAssetCostFactor_vec <- cost_mat[i,idx_vec]
     selectAssetCurrency_vec <- resourceInfo_df$currency[idx_vec]
     selectAssetMinUnitQuantity_vec <- result_mat[i,idx_vec]
@@ -361,9 +366,9 @@ ResultMat2List <- function(result_mat,callId_vec,resource_vec,callInfo_df,haircu
     #### UPDATE THE ASSET QUANTITY END ##########
     
     #### Construct alloc_df Start #############
-    alloc_df <- data.frame(selectAssetId_vec,selectAssetName_vec,selectAssetNetAmount_vec,selectAssetNetAmountUSD_vec,selectAssetFX_vec,selectAssetHaircut_vec,selectAssetAmount_vec,selectAssetAmountUSD_vec,selectAssetCurrency_vec,
+    alloc_df <- data.frame(selectAssetId_vec,selectAssetName_vec,selectAssetNetAmount_vec,selectAssetNetAmountUSD_vec,selectAssetFX_vec,selectAssetHaircut_vec,selectAssetHaircutC_vec,selectAssetHaircutFX_vec,selectAssetAmount_vec,selectAssetAmountUSD_vec,selectAssetCurrency_vec,
                            selectAssetQuantity_vec,selectAssetCustodianAccount_vec,selectAssetVenue_vec,selectMarginType_vec,selectMs_vec,selectCall_vec,selectAssetCostFactor_vec,selectAssetCost_vec)
-    colnames(alloc_df)<- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType','marginStatement','marginCall',
+    colnames(alloc_df)<- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Hc','Hfx','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType','marginStatement','marginCall',
                            'CostFactor','Cost')
     rownames(alloc_df)<- 1:length(alloc_df[,1])
     #### Construct alloc_df END ###############
@@ -663,6 +668,8 @@ AssetByCallInfo <- function(callId_vec,resource_vec,availAsset_df){
   base_mat <- matrix(0,nrow=callNum,ncol=resourceNum, dimnames = list(callId_vec,resource_vec))
   eli_mat <- base_mat
   haircut_mat <- base_mat
+  haircutC_mat <- base_mat
+  haircutFX_mat <- base_mat
   cost_mat <- base_mat
   
   # fill in matrixes with the data from availAsset_df
@@ -670,6 +677,8 @@ AssetByCallInfo <- function(callId_vec,resource_vec,availAsset_df){
   idxTempResource_vec <- match(availAsset_df$assetCustacId,resource_vec)
   
   eli_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- 1
+  haircutC_mat[cbind(idxTempCallId_vec,idxTempResource_vec)] <- availAsset_df$haircut
+  haircutFX_mat[cbind(idxTempCallId_vec,idxTempResource_vec)] <- availAsset_df$FXHaircut
   haircut_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- availAsset_df$haircut+availAsset_df$FXHaircut
   cost_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- availAsset_df$internalCost+availAsset_df$externalCost+availAsset_df$opptCost-(availAsset_df$interestRate+availAsset_df$yield)
   
@@ -679,7 +688,7 @@ AssetByCallInfo <- function(callId_vec,resource_vec,availAsset_df){
   haircut_vec <- as.vector(t(haircut_mat))
   cost_vec <- as.vector(t(cost_mat))
   
-  output_list <- list(base_mat=base_mat,eli_mat=eli_mat,haircut_mat=haircut_mat,cost_mat=cost_mat)
+  output_list <- list(base_mat=base_mat,eli_mat=eli_mat,haircut_mat=haircut_mat,haircutC_mat=haircutC_mat,haircutFX_mat=haircutFX_mat,cost_mat=cost_mat)
   return (output_list)
 }
 
