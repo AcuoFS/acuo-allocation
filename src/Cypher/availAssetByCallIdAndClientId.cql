@@ -1,6 +1,5 @@
-MATCH (cu:Custodian)-[:MANAGES]->(ca:CustodianAccount)-[h:HOLDS]->(a:Asset)<-[:APPLIES_TO]-(rule:Rule)<-[:IS_COMPOSED_OF]-(ag:Agreement)<-
-[:STEMS_FROM]-(ms:MarginStatement)-[:DIRECTED_TO]->(e:LegalEntity)<-[:MANAGES]-(c:Client)
-MATCH (mc:MarginCall)-[*1..2]->(ms:MarginStatement)
+MATCH (cu:Custodian)-[:MANAGES]->(ca:CustodianAccount)-[h:HOLDS]->(a:Asset)<-[:APPLIES_TO]-(rule:Rule)<-[:IS_COMPOSED_OF]-(ag:Agreement)<-[:STEMS_FROM]-(ms:MarginStatement)<-[*1..2]-(mc:MarginCall)
+MATCH (e:LegalEntity)<-[:MANAGES]-(c:Client)
 
 WHERE mc.id IN {callId}
 AND c.id = {clientId}
