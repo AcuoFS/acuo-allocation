@@ -41,6 +41,8 @@ AssetByCallInfo <- function(callId_vec,resource_vec,availAsset_df){
   base_mat <- matrix(0,nrow=callNum,ncol=resourceNum, dimnames = list(callId_vec,resource_vec))
   eli_mat <- base_mat
   haircut_mat <- base_mat
+  haircutC_mat <- base_mat
+  haircutFX_mat <- base_mat
   cost_mat <- base_mat
   
   # fill in matrixes with the data from availAsset_df
@@ -48,6 +50,8 @@ AssetByCallInfo <- function(callId_vec,resource_vec,availAsset_df){
   idxTempResource_vec <- match(availAsset_df$assetCustacId,resource_vec)
   
   eli_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- 1
+  haircutC_mat[cbind(idxTempCallId_vec,idxTempResource_vec)] <- availAsset_df$haircut
+  haircutFX_mat[cbind(idxTempCallId_vec,idxTempResource_vec)] <- availAsset_df$FXHaircut
   haircut_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- availAsset_df$haircut+availAsset_df$FXHaircut
   cost_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- availAsset_df$internalCost+availAsset_df$externalCost+availAsset_df$opptCost-(availAsset_df$interestRate+availAsset_df$yield)
   
@@ -57,6 +61,6 @@ AssetByCallInfo <- function(callId_vec,resource_vec,availAsset_df){
   haircut_vec <- as.vector(t(haircut_mat))
   cost_vec <- as.vector(t(cost_mat))
   
-  output_list <- list(base_mat=base_mat,eli_mat=eli_mat,haircut_mat=haircut_mat,cost_mat=cost_mat)
+  output_list <- list(base_mat=base_mat,eli_mat=eli_mat,haircut_mat=haircut_mat,haircutC_mat=haircutC_mat,haircutFX_mat=haircutFX_mat,cost_mat=cost_mat)
   return (output_list)
 }

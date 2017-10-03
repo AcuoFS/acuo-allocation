@@ -1,6 +1,6 @@
-ResultMat2List <- function(result_mat,callId_vec,resource_vec,callInfo_df,haircut_mat,cost_mat,resourceInfo_df,
+ResultMat2List <- function(result_mat,callId_vec,resource_vec,callInfo_df,haircut_mat,haircutC_mat,haircutFX_mat,cost_mat,resourceInfo_df,
                            callSelect_list,msSelect_list){
-  
+
   callNum <- length(callId_vec)
   
   #### construct the result
@@ -19,6 +19,11 @@ ResultMat2List <- function(result_mat,callId_vec,resource_vec,callInfo_df,haircu
     selectAssetVenue_vec <- resourceInfo_df$venue[idx_vec]
     selectAssetName_vec <- resourceInfo_df$assetName[idx_vec]
     selectAssetHaircut_vec <- haircut_mat[i,idx_vec]
+    ## add collateral haircut
+    selectAssetHaircutC_vec <- haircutC_mat[i,idx_vec]
+    ## add fx haircut
+    selectAssetHaircutFX_vec <- haircutFX_mat[i,idx_vec]
+    
     selectAssetCostFactor_vec <- cost_mat[i,idx_vec]
     selectAssetCurrency_vec <- resourceInfo_df$currency[idx_vec]
     selectAssetMinUnitQuantity_vec <- result_mat[i,idx_vec]
@@ -45,9 +50,9 @@ ResultMat2List <- function(result_mat,callId_vec,resource_vec,callInfo_df,haircu
     #### UPDATE THE ASSET QUANTITY END ##########
     
     #### Construct alloc_df Start #############
-    alloc_df <- data.frame(selectAssetId_vec,selectAssetName_vec,selectAssetNetAmount_vec,selectAssetNetAmountUSD_vec,selectAssetFX_vec,selectAssetHaircut_vec,selectAssetAmount_vec,selectAssetAmountUSD_vec,selectAssetCurrency_vec,
+    alloc_df <- data.frame(selectAssetId_vec,selectAssetName_vec,selectAssetNetAmount_vec,selectAssetNetAmountUSD_vec,selectAssetFX_vec,selectAssetHaircut_vec,selectAssetHaircutC_vec,selectAssetHaircutFX_vec,selectAssetAmount_vec,selectAssetAmountUSD_vec,selectAssetCurrency_vec,
                            selectAssetQuantity_vec,selectAssetCustodianAccount_vec,selectAssetVenue_vec,selectMarginType_vec,selectMs_vec,selectCall_vec,selectAssetCostFactor_vec,selectAssetCost_vec)
-    colnames(alloc_df)<- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType','marginStatement','marginCall',
+    colnames(alloc_df)<- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Hc','Hfx','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType','marginStatement','marginCall',
                            'CostFactor','Cost')
     rownames(alloc_df)<- 1:length(alloc_df[,1])
     #### Construct alloc_df END ###############
