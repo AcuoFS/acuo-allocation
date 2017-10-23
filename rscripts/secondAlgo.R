@@ -1,5 +1,5 @@
 
-SecondAllocationV2<- function(callId_vec,callInfo_df,resourceTotal_vec,availAssetTotal_df,resourceTotal_df,
+SecondAllocationV2<- function(callId_vec,callInfo_df,resource_vec,availAsset_df,resource_df,
                               dsAssetId,dsCallId_vec,currentSelection_list,
                               pref_vec,operLimit,operLimitMs_vec,fungible){
   
@@ -119,7 +119,7 @@ SecondAllocationV2<- function(callId_vec,callInfo_df,resourceTotal_vec,availAsse
   #### Advanced model END ######
   
   #### Result analysis Start #########
-  availInfo_list <- AssetByCallInfo(callId_vec,resource_vec,availAssetTotal_df)
+  availInfo_list <- AssetByCallInfo(callId_vec,resource_vec,availAsset_df)
   
   eli_mat <- availInfo_list$eli_mat; 
   eli_vec <-  as.vector(t(eli_mat)) 

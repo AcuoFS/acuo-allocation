@@ -1,5 +1,5 @@
 
-SecondAllocationV2<- function(callId_vec,callInfo_df,resourceTotal_vec,availAssetTotal_df,resourceTotal_df,
+SecondAllocationV2<- function(callId_vec,callInfo_df,resource_vec,availAsset_df,resource_df,
                                        dsAssetId,dsCallId_vec,currentSelection_list,
                                        pref_vec,operLimit,operLimitMs_vec,fungible){
 
@@ -119,7 +119,7 @@ SecondAllocationV2<- function(callId_vec,callInfo_df,resourceTotal_vec,availAsse
   #### Advanced model END ######
   
   #### Result analysis Start #########
-  availInfo_list <- AssetByCallInfo(callId_vec,resource_vec,availAssetTotal_df)
+  availInfo_list <- AssetByCallInfo(callId_vec,resource_vec,availAsset_df)
   
   eli_mat <- availInfo_list$eli_mat; 
   eli_vec <-  as.vector(t(eli_mat)) 
@@ -273,6 +273,9 @@ SecondAllocationOneCallBasicV2<- function(callId_vec,callInfo_df,resourceTotal_v
   
   haircut_mat<-availInfoDs_list$haircut_mat; 
   haircut_vec <- as.vector(t(haircut_mat))[idxEli_vec]      # haircut mat & vec
+  
+  haircutC_mat<-availInfo_list$haircutC_mat
+  haircutFX_mat<-availInfo_list$haircutFX_mat; 
   
   #### Persist the Quantity Used in Algo
   quantity_vec <- resourceDs_df$qtyMin
@@ -473,7 +476,7 @@ SecondAllocationOneCallBasicV2<- function(callId_vec,callInfo_df,resourceTotal_v
     }
     callDs_list <- list();
     msDs_list <- list();
-    result_list <- ResultMat2List(result_mat,dsCallId,resourceDs_vec,dsCallInfo,haircut_mat,costBasis_mat,resourceDs_df,
+    result_list <- ResultMat2List(result_mat,dsCallId,resourceDs_vec,dsCallInfo,haircut_mat,haircutC_mat,haircutFX_mat,costBasis_mat,resourceDs_df,
                                   callDs_list,msDs_list)
     
     #cat('scenario: ',scenario,'\n')
