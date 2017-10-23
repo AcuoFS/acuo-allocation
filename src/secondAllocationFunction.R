@@ -1,6 +1,6 @@
 
 #### Main Function Start ############
-CallSecondAllocation <- function(algoVersion,callId_vec, resource_vec,callInfo_df,availAsset_df,assetInfo_df,
+CallSecondAllocation <- function(algoVersion,callId_vec, resource_vec,callInfo_df,availAsset_df,assetInfo_df,resource_df,
                                  dsAssetId,dsCallId_vec, currentSelection_list,
                                  pref_vec,operLimit,operLimitMs_vec,fungible){
   callId_vec <- unlist(callId_vec)

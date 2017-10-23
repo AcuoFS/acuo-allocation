@@ -78,7 +78,7 @@ fungible <- FALSE
 #### Input Prepare END ##############
 
 #### Correct Order for One Margin Call Allocation
-outputColnames <- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType','marginStatement','marginCall',
+outputColnames <- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Hc','Hfx','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType','marginStatement','marginCall',
                     'CostFactor','Cost')
 
 #### Fill in the Missing Columns from Java Start ####
@@ -119,7 +119,7 @@ for(m in 1:length(callId_vec)){
 
 
 #### Call Second Level Algo Start ###
-result <- CallSecondAllocation(algoVersion,callId_vec, resource_vec,callInfo_df,availAsset_df,resource_df,
+result <- CallSecondAllocation(algoVersion,callId_vec, resource_vec,callInfo_df,availAsset_df,assetInfo_df,resource_df,
                                dsAssetId,dsCallId_vec,currentSelection_list,
                                pref_vec,operLimit,operLimitMs_vec,fungible)
 print('new suggestions(present in DF format)')
