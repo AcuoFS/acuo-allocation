@@ -106,7 +106,7 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
       idxTempResource <- which(resource_vec==tempResource)
       result_mat[k,idxTempResource] <- assetSuffQty_mat[k,idxTempResource]
     }
-    solverStatus <- 'solved'
+    solverStatus <- -1
     lpsolveRun <- FALSE
     solverObjValue <- -1
     #### Optimal Assets are Sufficient END #############
