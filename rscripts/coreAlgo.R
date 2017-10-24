@@ -107,12 +107,10 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
       result_mat[k,idxTempResource] <- assetSuffQty_mat[k,idxTempResource]
     }
     solverStatus <- 1
-    lpsolveRun <- FALSE
     solverObjValue <- -1
     #### Optimal Assets are Sufficient END #############
   } else if(1){
     #### Optimal Assets are not Sufficient Start #########
-    lpsolveRun<-TRUE
     
     #### Build the Optimization Model Start #######
     #### OBJECTIVE FUNCTION
@@ -250,5 +248,5 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
   
   return(list(msOutput_list=msSelect_list,
               callOutput_list=callSelect_list,checkCall_mat=checkCall_mat,
-              solverStatus=solverStatus,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue))
+              solverStatus=solverStatus,solverObjValue=solverObjValue))
 }

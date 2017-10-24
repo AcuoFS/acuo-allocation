@@ -95,13 +95,11 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
       result_mat[k,idxTempResource] <- assetSuffQty_mat[k,idxTempResource]
     }
     solverStatus <- -1
-    lpsolveRun <- FALSE
     solverObjValue <- -1
     #### Optimal Assets are Sufficient END #############
   } else if(1){
     
     #### Optimal Assets are not Sufficient Start #########
-    lpsolveRun<-TRUE
     
     #### MODEL SETUP Start ##################################################
     # decision variables: x, qunatity used of each asset for each margin call
@@ -304,5 +302,5 @@ CoreAlgoV1 <- function(coreInput_list,availAsset_df,timeLimit,pref_vec,minMoveVa
   return(list(msOutput_list=msSelect_list,availAsset_df=availAsset_df,
               varName_vec,varNum,
               callOutput_list=callSelect_list,checkCall_mat=checkCall_mat,
-              solverStatus=solverStatus,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue))
+              solverStatus=solverStatus,solverObjValue=solverObjValue))
 }
