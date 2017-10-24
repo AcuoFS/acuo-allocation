@@ -40,8 +40,8 @@ source("src/otherFunctions/modelFunctions.R")
 #### Sources END ###########
 
 #### Input Prepare Start ###########
-msId_vec <- c("92624c52",
-              "542e0e64")
+msId_vec <- c("2c5f946d",
+              "71483adb")
 callId_vec = unlist(callIdByMsId(msId_vec))
 clientId <- '999'
 pref_vec<-c(5.4,3.5)
@@ -77,9 +77,9 @@ resultpre <- CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
 
 currentSelection_list <- resultpre$callOutput 
 
-outputColnames <- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType','marginStatement','marginCall',
+outputColnames <- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Hc','Hfx','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType','marginStatement','marginCall',
                     'CostFactor','Cost')
-#,'Hc','Hfx'
+
 #### Add the Missing Columns Start #####
 for(m in 1:length(callId_vec)){
   #### remove columns to resemble the java input
@@ -123,7 +123,7 @@ for(m in 1:length(callId_vec)){
 
 #### Call Second Level Algo Start #####
 dsAssetId <- 'GBP'
-dsCallId_vec <- c('efdfb88','m100020172924qlosc')
+dsCallId_vec <- c('a4f1091f','9acf0c98')
 result <- CallSecondAllocation(algoVersion,callId_vec, resource_vec,callInfo_df,availAsset_df,assetInfo_df,resource_df,
                                dsAssetId,dsCallId_vec,currentSelection_list,
                                pref_vec,operLimit,operLimitMs_vec,fungible)
