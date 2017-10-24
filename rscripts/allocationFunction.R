@@ -228,7 +228,6 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
     callOutputGroup_list <- resultGroup_list$callOutput_list
     
     solverStatus <- resultGroup_list$solverStatus
-    lpsolveRun <- resultGroup_list$lpsolveRun
     solverObjValue <- resultGroup_list$solverObjValue
     checkCallGroup_mat <- resultGroup_list$checkCall_mat
     
@@ -288,7 +287,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
   
   return(list(#msOutput=msOutput_list,
     callOutput=callOutput_list,checkCall_mat=checkCall_mat,
-    solverStatus=solverStatus,lpsolveRun=lpsolveRun,solverObjValue=solverObjValue,resultAnalysis=resultAnalysis))
+    solverStatus=solverStatus,solverObjValue=solverObjValue,resultAnalysis=resultAnalysis))
 }
 
 PreAllocation <- function(algoVersion,callId_vec,callInfo_df,availAsset_df,resource_df,
@@ -329,7 +328,6 @@ PreAllocation <- function(algoVersion,callId_vec,callInfo_df,availAsset_df,resou
     #msOutputGroup_list <- resultGroup_list$msOutput_list
     callOutputGroup_list <- resultGroup_list$callOutput_list
     solverStatus <- resultGroup_list$solverStatus
-    lpsolveRun <- resultGroup_list$lpsolveRun
     solverObjValue <- resultGroup_list$solverObjValue
     checkCallGroup_mat <- resultGroup_list$checkCall_mat
     
