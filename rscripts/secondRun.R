@@ -123,10 +123,6 @@ result <- CallSecondAllocation(algoVersion,callId_vec, resource_vec,callInfo_df,
                                dsAssetId,dsCallId_vec,currentSelection_list,
                                pref_vec,operLimit,operLimitMs_vec,fungible)
 
-# change for test on dev
-result$callOutput[[1]]$Amount <- -999
-result$callOutput[[1]]$Name <- paste(dsCallId_vec,collapse = ",")
-
 print('new suggestions(present in DF format)')
 print(ResultList2Df(result$callOutput,callId_vec))
 
