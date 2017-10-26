@@ -73,7 +73,7 @@ OperationFun <- function(result,callInfo_df,method){
     }
     
   } else{
-    stop('Please input a valid method!')
+    stop('ALERR3005: Invalid OperationFun input method!')
   }
   
   return(movements)
@@ -325,7 +325,7 @@ ResultMat2List <- function(result_mat,callId_vec,resource_vec,callInfo_df,haircu
     # the allocated indexes: 
     idx_vec <- which(result_mat[i,]!=0) 
     if(length(idx_vec)==0){
-      errormsg <- paste("There's no asset allocated to margin call",callId_vec[i])
+      errormsg <- paste("ALEER3004: There's no asset allocated to margin call",callId_vec[i])
       stop(errormsg)
     }
     #### Get the information of the allocation Start ####
@@ -893,7 +893,7 @@ AllocateByRank <- function(resource_vec,callId,rank_vec,callAmount,quantity_vec,
     integralSuffQty_vec <- ceiling(callAmount/(1-haircut_vec)/minUnitValue_vec)
     suffIdx_vec <- which(quantity_vec >= integralSuffQty_vec)
     if(length(suffIdx_vec)==0){
-      errormsg <- paste('It is not sufficient to allocate',floor(operLimit),'assets for',callId,'!')
+      errormsg <- paste('ALERR2004: It is not sufficient to allocate',floor(operLimit),'assets for',callId,'!')
       stop(errormsg)
     } else{
       suffResource_vec <- resource_vec[suffIdx_vec]
@@ -1216,7 +1216,7 @@ SplitVarName <- function(varName_vec,target){
   } else if(target=='all'){
     return(varName_mat)
   } else{
-    stop('Please input a valid target!')
+    stop('ALERR3001: Invalid varName_vec splitor!')
   }
 }
 

@@ -58,7 +58,7 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
   suffPerCall <- all(apply(eli_mat*(quantity_mat*minUnitValue_mat*(1-haircut_mat)),1,sum) > callAmount_mat[,1])
   suffAllCall <- sum(resource_df$qtyMin*minUnitValue_mat[1,]*(1-apply(haircut_mat,2,max)))>sum(callAmount_mat[,1])
   if(!(suffPerCall&suffAllCall)){
-    stop('Asset inventory is insufficient!')
+    stop('ALERR2003: Asset inventory is insufficient!')
   }
   #### CHECK WHETHER ASSET POOL IS SUFFICIENT END ############
   

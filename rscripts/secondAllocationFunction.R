@@ -19,18 +19,12 @@ CallSecondAllocation <- function(algoVersion,callId_vec, resource_vec,callInfo_d
                                        dsAssetId,dsCallId, currentSelection_list,
                                        pref_vec)
     } else if(length(dsCallId_vec)>1){
-      stop('Cannot handle deselection from multiple margin calls currently under operation as an objective settings!')
-    } else{
-      stop('Please specify which margin calls the asset is removed from!')
-    }
+      stop('ALERR3002: Algorithm version 1 can not deal with deselecting an asset from multiple margin calls!')
+    } 
   } else if(algoVersion==2){
-    if(length(dsCallId_vec)>=1){
-      result <- SecondAllocationV2(callIdTotal_vec,callInfoTotal_df,resourceTotal_vec,availAssetTotal_df,resourceTotal_df,
-                                   dsAssetId,dsCallId_vec,currentSelection_list,
-                                   pref_vec,operLimit,operLimitMs_vec,fungible)
-    } else{
-      stop('Please specify which margin calls the asset is removed from!')
-    }
+    result <- SecondAllocationV2(callIdTotal_vec,callInfoTotal_df,resourceTotal_vec,availAssetTotal_df,resourceTotal_df,
+                                 dsAssetId,dsCallId_vec,currentSelection_list,
+                                 pref_vec,operLimit,operLimitMs_vec,fungible)
   }
   return(result)
 }

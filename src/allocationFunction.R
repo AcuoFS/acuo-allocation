@@ -32,7 +32,7 @@ CallAllocation <- function(algoVersion,scenario,callId_vec,resource_vec,callInfo
       assetTemp_vec <- SplitResource(availAsset_df$assetCustacId,'asset')
       idxTemp_vec <- which(availAssetCash_df$callId==callId_vec[i] & assetTemp_vec==callInfo_df$currency[i])
       if(length(idxTemp_vec)==0){
-        stop('Settlement currency is not available(not in inventory/not eligible)!')
+        stop('ALERR2001: Settlement currency is not available(not in inventory/not eligible)!')
       }
       numTemp <- length(idxTemp_vec)
       count <- count+numTemp
@@ -55,7 +55,7 @@ CallAllocation <- function(algoVersion,scenario,callId_vec,resource_vec,callInfo
                              algoVersion,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod,
                              ifNewAlloc,allocated_list)
   } else{
-    stop('Please input a valid scenario!')
+    stop('ALERR1006: Please input a valid scenario!')
   }
   return(result)
 }
@@ -95,6 +95,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
   #### Input Prepare & Output Initialization END #############
   
   #### Case When Movement Limit Is 1 Per Margin Statement Start ####
+  ## keep only the sufficient assets and remove the other
   for(i in 1:msNum){
     msId <- msId_vec[i]
     operLimitMs <- operLimitMs_vec[i]
@@ -111,7 +112,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
         resource2_vec <- availAsset_df$assetCustacId[idx2_vec]
         sameResource_vec <- intersect(resource1_vec,resource2_vec)
         if(length(sameResource_vec)==0){ # not possible normally
-          errormsg <- paste('There is no common asset can be allocated for both',paste(callInThisMs_vec),'in',msId)
+          errormsg <- paste('ALERR2002: There is no asset sufficient for both',paste(callInThisMs_vec),'in',msId)
           stop(errormsg)
         }
         
@@ -142,7 +143,6 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
         haircut2_vec <- availAsset_df$haircut[idxAvail2_vec]+availAsset_df$FXHaircut[idxAvail2_vec]
         
         resourceAvail_vec <- availAsset_df$assetCustacId[idxAvail1_vec]
-        # resourceAvail_vec <- availAsset_df$assetCustacId[idxAvail2_vec] # should be the same
         
         idxRes_vec <- match(resourceAvail_vec,resource_df$id)
         minUnitValue_vec <- resource_df$minUnitValue[idxRes_vec]
@@ -154,7 +154,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
         
         suffIdx_vec <- which(quantity_vec >= integralSuffQty_vec)
         if(length(suffIdx_vec)==0){ # not possible normally
-          errormsg <- paste('There is no asset which is sufficient for both',callInThisMs_vec,'in',msId)
+          errormsg <- paste('ALERR2002: There is no asset sufficient for both',callInThisMs_vec,'in',msId)
           stop(errormsg)
         }
         
@@ -185,8 +185,6 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
     
     idxTemp_vec <- match(msIdGroup_vec,msId_vec)
     operLimitGroupMs_vec <- operLimitMs_vec[idxTemp_vec]
-    
-    #cat(' group:',i,'\n','callId_vec:',callIdGroup_vec,'\n')
     
     callInfoGroup_df <- callInfo_df[match(callIdGroup_vec,callInfo_df$id),]
     availAssetGroup_df <- availAsset_df[which(availAsset_df$callId %in% callIdGroup_vec),]
