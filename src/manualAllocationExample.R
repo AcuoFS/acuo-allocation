@@ -108,14 +108,26 @@ for(m in 1:length(callId_vec)){
 # scenario 1
 newAssetId <- 'SGD'
 newResourceAmount <- 50
+operLimitMc <- 2
 
 # scenario 2
 newAssetId <- 'USD'
 newResourceAmount <- 50
+operLimitMc <- 2
+
+# scenario 3
+newAssetId <- 'USD'
+newResourceAmount <- 50
+operLimitMc <- 1
+
+# scenario 4
+# we cannot simulate because the the integer minUnit amount does not match
+# especially for different currencies, the calculation of fx rate
 
 # scenario 5
 newAssetId <- 'USD'
 newResourceAmount <- 768.52
+operLimitMc <- 2
 
 #
 newAssetCustodianAccount <- "CustodianAccount1D"
@@ -155,7 +167,7 @@ availAsset_df <- availAsset_df[match(availAsset_df$assetCustacId,resource_df$id)
 
 result1 <- ManualAllocationAssetToAsset(algoVersion,selectCallId, newResource,newResourceAmount,selectionForCall,
                                      replaceResource,resource_df,callInfo_df,availAsset_df,
-                               pref_vec,operLimit,operLimitMc=2,fungible)
+                               pref_vec,operLimit,operLimitMc,fungible)
 
 
 #### Call Manual Allocation Asset to Asset END #######
