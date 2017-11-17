@@ -261,8 +261,8 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
   #### Costs
   dailyCost <- CostFun(varAmount_vec,cost_vec)
   monthlyCost <- dailyCost*30
-  dailyCost <- round(dailyCost,2)
-  monthlyCost <- round(monthlyCost,2)
+  dailyCost <- dailyCost
+  monthlyCost <- monthlyCost
   
   #### Movements
   varAmount_mat <- VarVec2mat(varAmount_vec[1:varNum],varName_vec[1:varNum],callId_vec,resource_vec)

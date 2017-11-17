@@ -6,6 +6,11 @@ LiquidFun <- function(quantityLeft_vec,quantityTotal_vec,liquidity_vec,minUnitVa
   return(ratio)
 }
 
+CostDefinition <- function(availAsset_df){
+  cost <- availAsset_df$internalCost+availAsset_df$externalCost+availAsset_df$opptCost-(availAsset_df$interestRate+availAsset_df$yield)
+  return(cost)
+}
+
 CostFun <- function(amount_vec,cost_vec){
   cost <- sum(amount_vec*cost_vec)
   return(cost)
@@ -314,7 +319,43 @@ CheckResultVec <- function(result_mat,quantityTotal_vec,callId_vec,callAmount_ve
 }
 
 #### convertFunctions #### 
-ResultMat2List <- function(result_mat,callId_vec,resource_vec,callInfo_df,haircut_mat,haircutC_mat,haircutFX_mat,cost_mat,resourceInfo_df,
+ConstructAllocDf <- function(resourceInfo_df,callInfo_df,haircutC_vec,haircutFX_vec,minUnitQuantity_vec,cost_vec ){
+  assetId_vec <- resourceInfo_df$assetId
+  assetCustodianAccount_vec <- resourceInfo_df$custodianAccount
+  assetVenue_vec <- resourceInfo_df$venue
+  assetName_vec <- resourceInfo_df$assetName
+  assetHaircut_vec <- haircutC_vec+haircutFX_vec
+  assetHaircutC_vec <- haircutC_vec
+  ## add fx haircut
+  assetHaircutFX_vec <- haircutFX_vec
+  assetCostFactor_vec <- cost_vec
+  assetCurrency_vec <- resourceInfo_df$currency
+  assetMinUnitQuantity_vec <- minUnitQuantity_vec
+  assetQuantity_vec <- minUnitQuantity_vec*resourceInfo_df$minUnit
+  marginType_vec <- rep(callInfo_df$marginType,length(cost_vec))
+  ms_vec <- rep(callInfo_df$marginStatement,length(cost_vec))
+  call_vec <- rep(callInfo_df$id,length(cost_vec))
+  
+  assetFX_vec <- resourceInfo_df$FXRate
+  assetUnitValue_vec <- resourceInfo_df$unitValue/assetFX_vec
+  
+  assetAmountUSD_vec <- assetQuantity_vec*assetUnitValue_vec
+  assetNetAmountUSD_vec <- assetAmountUSD_vec*(1-assetHaircut_vec)
+  
+  assetCost_vec <- assetCostFactor_vec*assetAmountUSD_vec
+  
+  assetAmount_vec <- assetAmountUSD_vec*assetFX_vec
+  assetNetAmount_vec <- assetNetAmountUSD_vec*assetFX_vec
+  
+  alloc_df <- data.frame(assetId_vec,assetName_vec,assetNetAmount_vec,assetNetAmountUSD_vec,assetFX_vec,assetHaircut_vec,assetHaircutC_vec,assetHaircutFX_vec,assetAmount_vec,assetAmountUSD_vec,
+                         assetCurrency_vec,assetQuantity_vec,assetCustodianAccount_vec,assetVenue_vec,marginType_vec,ms_vec,call_vec,assetCostFactor_vec,assetCost_vec)
+  colnames(alloc_df)<- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Hc','Hfx','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType',
+                         'marginStatement','marginCall','CostFactor','Cost')
+  rownames(alloc_df)<- 1:length(alloc_df[,1])
+  return(alloc_df)
+}
+
+ResultMat2List <- function(result_mat,callId_vec,resource_vec,callInfo_df, haircutC_mat,haircutFX_mat,cost_mat,resourceInfo_df,
                            callSelect_list,msSelect_list){
   
   callNum <- length(callId_vec)
@@ -328,51 +369,13 @@ ResultMat2List <- function(result_mat,callId_vec,resource_vec,callInfo_df,haircu
       errormsg <- paste("ALEER3004: There's no asset allocated to margin call",callId_vec[i])
       stop(errormsg)
     }
-    #### Get the information of the allocation Start ####
-    selectResource_vec <- resource_vec[idx_vec]
-    selectAssetId_vec <- resourceInfo_df$assetId[idx_vec]
-    selectAssetCustodianAccount_vec <- resourceInfo_df$custodianAccount[idx_vec]
-    selectAssetVenue_vec <- resourceInfo_df$venue[idx_vec]
-    selectAssetName_vec <- resourceInfo_df$assetName[idx_vec]
-    selectAssetHaircut_vec <- haircut_mat[i,idx_vec]
-    ## add collateral haircut
-    selectAssetHaircutC_vec <- haircutC_mat[i,idx_vec]
-    ## add fx haircut
-    selectAssetHaircutFX_vec <- haircutFX_mat[i,idx_vec]
     
-    selectAssetCostFactor_vec <- cost_mat[i,idx_vec]
-    selectAssetCurrency_vec <- resourceInfo_df$currency[idx_vec]
-    selectAssetMinUnitQuantity_vec <- result_mat[i,idx_vec]
-    selectAssetQuantity_vec <- result_mat[i,idx_vec]*resourceInfo_df$minUnit[idx_vec]
-    selectMarginType_vec <- rep(callInfo_df$marginType[i],length(idx_vec))
-    selectMs_vec <- rep(callInfo_df$marginStatement[i],length(idx_vec))
-    selectCall_vec <- rep(callId_vec[i],length(idx_vec))
-    
-    selectAssetFX_vec <- resourceInfo_df$FXRate[idx_vec]
-    selectAssetUnitValue_vec <- resourceInfo_df$unitValue[idx_vec]/selectAssetFX_vec
-    
-    selectAssetAmountUSD_vec <- round(selectAssetQuantity_vec*selectAssetUnitValue_vec,2)
-    selectAssetNetAmountUSD_vec <- selectAssetAmountUSD_vec*(1-haircut_mat[i,idx_vec])
-    
-    selectAssetCost_vec <- selectAssetCostFactor_vec*selectAssetAmountUSD_vec
-    
-    selectAssetAmount_vec <- selectAssetAmountUSD_vec*selectAssetFX_vec
-    selectAssetNetAmount_vec <- selectAssetNetAmountUSD_vec*selectAssetFX_vec
-    #### Get the information of the allocation END ######
+    alloc_df <- ConstructAllocDf(resourceInfo_df[idx_vec,], callInfo_df[i,], haircutC_mat[i,idx_vec], haircutFX_mat[i,idx_vec],result_mat[i,idx_vec],cost_mat[i,idx_vec])
     
     #### UPDATE THE ASSET QUANTITY START ########
-    resourceInfo_df$quantity[idx_vec] <- resourceInfo_df$quantity[idx_vec]-selectAssetQuantity_vec
+    resourceInfo_df$quantity[idx_vec] <- resourceInfo_df$quantity[idx_vec]-alloc_df$Quantity #selectAssetQuantity_vec
     
     #### UPDATE THE ASSET QUANTITY END ##########
-    
-    #### Construct alloc_df Start #############
-    alloc_df <- data.frame(selectAssetId_vec,selectAssetName_vec,selectAssetNetAmount_vec,selectAssetNetAmountUSD_vec,selectAssetFX_vec,selectAssetHaircut_vec,selectAssetHaircutC_vec,selectAssetHaircutFX_vec,selectAssetAmount_vec,selectAssetAmountUSD_vec,selectAssetCurrency_vec,
-                           selectAssetQuantity_vec,selectAssetCustodianAccount_vec,selectAssetVenue_vec,selectMarginType_vec,selectMs_vec,selectCall_vec,selectAssetCostFactor_vec,selectAssetCost_vec)
-    colnames(alloc_df)<- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Hc','Hfx','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType','marginStatement','marginCall',
-                           'CostFactor','Cost')
-    rownames(alloc_df)<- 1:length(alloc_df[,1])
-    #### Construct alloc_df END ###############
-    
     #### Update callSelect_list Start ####
     callSelect_list[[callId_vec[i]]] <- alloc_df
     #### Update callSelect_list END ######
@@ -680,7 +683,7 @@ AssetByCallInfo <- function(callId_vec,resource_vec,availAsset_df){
   haircutC_mat[cbind(idxTempCallId_vec,idxTempResource_vec)] <- availAsset_df$haircut
   haircutFX_mat[cbind(idxTempCallId_vec,idxTempResource_vec)] <- availAsset_df$FXHaircut
   haircut_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- availAsset_df$haircut+availAsset_df$FXHaircut
-  cost_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- availAsset_df$internalCost+availAsset_df$externalCost+availAsset_df$opptCost-(availAsset_df$interestRate+availAsset_df$yield)
+  cost_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- CostDefinition(availAsset_df)
   
   # convert the matrix format data to vector format
   # thinking of keeping only eligible parts
@@ -691,6 +694,7 @@ AssetByCallInfo <- function(callId_vec,resource_vec,availAsset_df){
   output_list <- list(base_mat=base_mat,eli_mat=eli_mat,haircut_mat=haircut_mat,haircutC_mat=haircutC_mat,haircutFX_mat=haircutFX_mat,cost_mat=cost_mat)
   return (output_list)
 }
+
 
 #### modelFunction #### 
 QtyConst <- function(varName_vec,varNum,resource_vec,quantityTotal_vec){
@@ -915,11 +919,16 @@ ConstructModelObj <- function(callAmount_mat,minUnitValue_mat,haircut_mat,costBa
   integerCallAmount_mat <- ceiling(callAmount_mat/(1-haircut_mat)/minUnitValue_mat)*minUnitValue_mat
   
   cost_mat<-integerCallAmount_mat*costBasis_mat  # cost amount
-  
+  cost_vec <- as.vector(t(cost_mat))
   #costBasis_mat <- costBasis_mat/(1-haircut_mat)
   costBasis_vec <- as.vector(t(costBasis_mat))
-  
-  assetLiquidity_vec <- apply((1-haircut_mat*eli_mat)^2,2,min) # define asset liquidity
+  if(is.null(dim(haircut_mat))){
+    assetLiquidity_vec <- (1-haircut_mat*eli_mat)^2 # define asset liquidity
+    
+  } else{
+    assetLiquidity_vec <- apply((1-haircut_mat*eli_mat)^2,2,min) # define asset liquidity
+    
+  }
   liquidity_mat <- matrix(rep(assetLiquidity_vec,callNum),nrow=callNum,byrow=TRUE,dimnames=list(callId_vec,resource_vec)) 
   liquidity_vec <- as.vector(t(liquidity_mat))
   
@@ -960,10 +969,11 @@ ConstructModelObj <- function(callAmount_mat,minUnitValue_mat,haircut_mat,costBa
   normLiquidity_vec <- as.vector(t(normLiquidity_mat))
   normOperation_mat <- operation_mat*9+1
   normOperation_vec <- as.vector(t(normOperation_mat))
-  
+
   objParams_list <- list(cost_vec=normCost_vec,cost_mat=normCost_mat,
                          liquidity_vec=normLiquidity_vec,liquidity_mat=normLiquidity_mat,
                          operation_vec=normOperation_vec,operation_mat=normOperation_mat)
+
   return(objParams_list)
 }
 
@@ -999,7 +1009,6 @@ DeriveOptimalAssetsV2 <- function(minUnitQuantity_mat,eli_mat,callAmount_mat,hai
     # unless, they are from the same margin statment (deal with that in OW-379)
     # Best approach, allocate the most sufficient asset to the largest call amount, deal with that later
     # better to deal with that now
-    # round to 2 digits
     idxMinScore_vec <- sortOptimal_mat[2,which(round(sortOptimal_mat[1,],2)==round(min(sortOptimal_mat[1,]),2))]
     # if idxMinScore_vec contains only one element, don't need to sort
     if(length(idxMinScore_vec) > 1){
