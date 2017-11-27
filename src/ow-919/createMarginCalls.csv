@@ -1,0 +1,13 @@
+agreement,type,marginType,marginStatement,marginCall
+a1,legacy,variation,ms1v,mc1v
+a3,legacy,variation,ms3v,mc3v
+a5,legacy,variation,ms5v,mc5v
+a7,legacy,variation,ms7v,mc7v
+a2,regulatory,variation,ms2v,mc2v
+a4,regulatory,variation,ms4v,mc4v
+a6,regulatory,variation,ms6v,mc6v
+a8,regulatory,variation,ms8v,mc8v
+a31,cleared,initial,ms31i,mc31i
+a31,cleared,variation,ms31v,mc31v
+a32,cleared,initial,ms32i,mc32i
+a32,cleared,variation,ms32v,mc32v
