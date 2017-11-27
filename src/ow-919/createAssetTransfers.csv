@@ -7,7 +7,8 @@ JPY,CustodianAccount1D,CustodianAccount3A,JPY,mc4v,10000000,1,0,,Deployed,,30/11
 CHF,CustodianAccount1E,CustodianAccount3A,CHF,mc5v,300000,1,0,,Deployed,,01/12/2017
 EUR,CustodianAccount1D,CustodianAccount3A,EUR,mc6v,2000000,1,0,,Deployed,,02/12/2017
 USD,CustodianAccount1D,CustodianAccount3C,USD,mc7v,1500000,1,0,,Deployed,,03/12/2017
-USD,CustodianAccount1D,CustodianAccount3C,USD,mc7v,1500000,1,0,,Deployed,,04/12/2017
+CAD,CustodianAccount1E,CustodianAccount3C,CAD,mc7v,1500000,1,0,,Deployed,,04/12/2017
+EUR,CustodianAccount1D,CustodianAccount3A,EUR,mc8v,2000000,1,0,,Deployed,,02/12/2017
 USD,CustodianAccount1D,CustodianAccount3B,USD,mc31v,1000000,1,0,,Deployed,,05/12/2017
 GBP,CustodianAccount1D,CustodianAccount3B,GBP,mc31i,500000,1,0,,Deployed,,06/12/2017
 GBP,CustodianAccount1D,CustodianAccount3B,GBP,mc32v,500000,1,0,,Deployed,,07/12/2017
