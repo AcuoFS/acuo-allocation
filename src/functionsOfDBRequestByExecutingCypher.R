@@ -11,13 +11,14 @@ eliAssetByClientIdCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-a
 resAssetByClientIdCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/resAssetByClientId.cql'
 callIdByAgreementIdPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/callIdByAgreementId.cql'
 callIdByMsIdPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/callIdByMsId.cql'
+settledCollateralsPath <- 'E:/ACUO/projects/acuo-allocation/src/ow-919/settledCollaterals.cql'
 
 executeCypher <- function(path,...){
   params <- list(...)
   query = paste(readLines(path), collapse="\n")
   #graph = startGraph(neo4jUrl)
-  graph = startGraph(neo4jDevUrl)
-  #graph = startGraph(neo4jLocalUrl,username='neo4j',password='neo4j')
+  #graph = startGraph(neo4jDevUrl)
+  graph = startGraph(neo4jLocalUrl,username='neo4j',password='neo4j')
   cypher(graph,query,params)
 }
   
@@ -52,4 +53,9 @@ callIdByAgreementId <- function(agreementId){
 callIdByMsId <- function(msId){
   msId <- c(msId,'nonexist')
   executeCypher(path=callIdByMsIdPath,msId=msId)
+}
+
+settledCollaterals <- function(){
+  
+  executeCypher(path=settledCollateralsPath)
 }
