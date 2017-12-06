@@ -1,4 +1,4 @@
-SubstitutionOptimization <- function(algoVersion, resource_vec,availAsset_df,assetInfo_df,resource_df,callInfo_df,
+SubstitutionOptimization <- function(algoVersion,availAsset_df,assetInfo_df,resource_df,callInfo_df,
                                      subCollateral_df,
                                      pref_vec,operLimit,operLimitMs_vec,fungible){
   subResourceId <- PasteResource(subCollateral_df$asset,subCollateral_df$custodianAccount)

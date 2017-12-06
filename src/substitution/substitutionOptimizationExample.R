@@ -40,7 +40,7 @@ DeleteTestData()
 BuildTestData()
 
 
-#### Input Prepare Start ###########
+#### Input Prepare ###########
 clientId <- '999'
 
 # load data from DB to mock the input 
@@ -81,8 +81,20 @@ callInfo_df <- CallInfoByCallId(subCollateral_df$call)
 resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
 availAsset_df <- AvailAsset(availAsset_df)
 
-# new allocate
-result <- SubstitutionOptimization(algoVersion=2, resource_vec,availAsset_df,assetInfo_df,resource_df,callInfo_df,
+#### Run Substitution ##################
+# scenario 1: sufficient optimal assets
+# result
+result1 <- SubstitutionOptimization(algoVersion=2,availAsset_df,assetInfo_df,resource_df,callInfo_df,
                                    subCollateral_df,
                                   pref_vec,operLimit,operLimitMs_vec,fungible)
+
+# scenario 2: insufficient optimal assets
+trimResource_df <- resource_df
+trimResource_df$qtyOri <- resource_df$qtyOri/1000
+trimResource_df$qtyMin <- resource_df$qtyMin/1000
+# result
+result2 <- SubstitutionOptimization(algoVersion=2,availAsset_df,assetInfo_df,trimResource_df,callInfo_df,
+                                    subCollateral_df,
+                                    pref_vec,operLimit,operLimitMs_vec,fungible)
+
 
