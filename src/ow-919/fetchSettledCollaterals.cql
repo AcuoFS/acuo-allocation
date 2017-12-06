@@ -1,5 +1,5 @@
 // fetch settled collateral
-match (asset:Asset)<-[:OF]-(transfer)-[:GENERATED_BY]->(mc:MarginCall)-[:PART_OF]->(ms:MarginStatement)<-[:BALANCE]-(collateral:Collateral)-[:LATEST]->(cValue:CollateralValue)
+match (asset:Asset)<-[:OF]-(transfer:AssetTransfer)-[:GENERATED_BY]->(mc:MarginCall)-[:PART_OF]->(ms:MarginStatement)<-[:BALANCE]-(collateral:Collateral)-[:LATEST]->(cValue:CollateralValue)
 where mc.marginType = collateral.marginType
 and collateral.status = "settled"
 and collateral.assetType = "cash"
@@ -12,7 +12,8 @@ return  asset.id as asset,
 		transfer.quantities as quantity,
 		transfer.value as unitValue,
 		asset.currency as currency,
-		fxRate.value as fxRate,
+		TOFLOAT(fxRate.value) as fxRate,
+		transfer.totalHaircut as haircut,
 		toFloat(transfer.quantities)*toFloat(transfer.value)/toFloat(fxRate.value) as amount,
 		mc.id as call,
 		collateral.assetType as assetType,

@@ -7,4 +7,3 @@ set collateral.marginType = line.marginType,
 	collateral.assetType = line.assetType,
 	collateral.status = line.status
 merge (collateral)-[:LATEST]->(value)
-

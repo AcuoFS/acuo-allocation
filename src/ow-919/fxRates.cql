@@ -3,7 +3,7 @@ LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/AcuoFS/acuo-alloca
 AS line
 
 MATCH (c1:Currency {id:line.CurrencyISO})
-merge (:FXRate {id:c1.id,value:line.ValueToUSD})
+merge (:FXRate {id:c1.id,value:TOFLOAT(line.ValueToUSD)})
 with *
 match (c2:Currency {id:"USD"})
 merge (:FXRate {id:c2.id,value:1})

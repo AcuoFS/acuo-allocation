@@ -7,6 +7,7 @@ MATCH (from:CustodianAccount {id:line.clientCustodianAccountId}),
 	  (asset:Asset {id:line.assetId})
 merge (asset)<-[:OF]-(transfer:AssetTransfer{id:line.id})-[:GENERATED_BY]->(mc)
 set transfer.quantities = TOFLOAT(line.quantities),	
+	transfer.totalHaircut = TOFLOAT(line.haircut),
 	transfer.value = TOFLOAT(line.value),	
 	transfer.status = line.status,
 	transfer.subStatus = line.subStatus,

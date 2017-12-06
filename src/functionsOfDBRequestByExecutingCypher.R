@@ -11,51 +11,45 @@ eliAssetByClientIdCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-a
 resAssetByClientIdCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/resAssetByClientId.cql'
 callIdByAgreementIdPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/callIdByAgreementId.cql'
 callIdByMsIdPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/callIdByMsId.cql'
-settledCollateralsPath <- 'E:/ACUO/projects/acuo-allocation/src/ow-919/settledCollaterals.cql'
 
-executeCypher <- function(path,...){
+ExecuteCypher <- function(path,...){
   params <- list(...)
   query = paste(readLines(path), collapse="\n")
-  #graph = startGraph(neo4jUrl)
-  #graph = startGraph(neo4jDevUrl)
   graph = startGraph(neo4jLocalUrl,username='neo4j',password='neo4j')
+  #graph = startGraph(neo4jDevUrl)
+  #graph = startGraph(neo4jUrl)
   cypher(graph,query,params)
 }
   
-callInfoByCallId <- function(callId){
+CallInfoByCallId <- function(callId){
   callId <- c(callId,'nonexist')
-  executeCypher(path=callInfoByCallIdCypherPath,callId=callId)
+  ExecuteCypher(path=callInfoByCallIdCypherPath,callId=callId)
 }
 
-assetInfoByAssetId <- function(assetId){
+AssetInfoByAssetId <- function(assetId){
   assetId <- c(assetId,'nonexist')
-  executeCypher(path=assetInfoByAssetIdCypherPath,assetId=assetId)
+  ExecuteCypher(path=assetInfoByAssetIdCypherPath,assetId=assetId)
 }
 
-availAssetByCallIdAndClientId <- function(callId,clientId) {
+AvailAssetByCallIdAndClientId <- function(callId,clientId) {
   callId <- c(callId,'nonexist')
-  executeCypher(path=availAssetByCallIdAndClientIdCypherPath, callId=callId,clientId=clientId)
+  ExecuteCypher(path=availAssetByCallIdAndClientIdCypherPath, callId=callId,clientId=clientId)
 }
 
-eliAssetByClientId <- function(clientId){
-  executeCypher(path=eliAssetByClientIdCypherPath,clientId=clientId)
+EliAssetByClientId <- function(clientId){
+  ExecuteCypher(path=eliAssetByClientIdCypherPath,clientId=clientId)
 }
 
-resAssetByClientId <- function(clientId){
-  executeCypher(path=resAssetByClientIdCypherPath,clientId=clientId)
+ResAssetByClientId <- function(clientId){
+  ExecuteCypher(path=resAssetByClientIdCypherPath,clientId=clientId)
 }
 
-callIdByAgreementId <- function(agreementId){
+CallIdByAgreementId <- function(agreementId){
   agreementId <- c(agreementId,'nonexist')
-  executeCypher(path=callIdByAgreementIdPath,agreementId=agreementId)
+  ExecuteCypher(path=callIdByAgreementIdPath,agreementId=agreementId)
 }
 
-callIdByMsId <- function(msId){
+CallIdByMsId <- function(msId){
   msId <- c(msId,'nonexist')
-  executeCypher(path=callIdByMsIdPath,msId=msId)
-}
-
-settledCollaterals <- function(){
-  
-  executeCypher(path=settledCollateralsPath)
+  ExecuteCypher(path=callIdByMsIdPath,msId=msId)
 }
