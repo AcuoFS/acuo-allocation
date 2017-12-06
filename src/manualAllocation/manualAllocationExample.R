@@ -3,16 +3,15 @@
 # Triggered after the user drag an asset from collateral widget to an asset in call widget
 ######
 
-#### Sources Start #########
 setwd("E:/ACUO/projects/acuo-allocation/")
-source('src/functionsOfDBRequestByExecutingCypher.R')
 
+#### Sources Start #########
+source('src/functionsOfDBRequestByExecutingCypher.R')
 source("src/allocationFunction.R")
 source("src/coreAlgo.R")
 source("src/callLpSolve.R")
-
 source('src/generalFunctions.R')
-source('src/manualAllocationAssetToAsset.R')
+source('src/manualAllocation/manualAllocationAssetToAsset.R')
 
 #### Sources END ###########
 
