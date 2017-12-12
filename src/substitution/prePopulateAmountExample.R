@@ -16,7 +16,6 @@
 # 3. newCustodianAccount
 # 4. availAsset_df
 # 5. assetInfo_df
-# 6. callInfo_df 
 #
 ####
 
@@ -29,7 +28,7 @@ source('src/substitution/dbExecutionForLocalTests.R')
 source('src/functionsOfDBRequestByExecutingCypher.R')
 source('src/generalFunctions.R')
 source('src/manualAllocation/manualAllocationGeneralFunctions.R')
-source('src/substitution/manualSubstitution.R')
+source('src/substitution/prePopulateAmount.R')
 #### Sources END ###########
 
 
@@ -73,9 +72,6 @@ assetInfo_df <- AssetInfoByAssetId(assetId_vec)
 # use the static fx in local DB
 fxRate_df <- FxRates(assetInfo_df$currency)
 assetInfo_df$FXRate <- as.double(fxRate_df$fxRate[match(assetInfo_df$currency,fxRate_df$currency)])
-
-# 6: callInfo_df
-callInfo_df <- CallInfoByCallId(subCollateral_df$call)
 
 # resource_df & adjusted availAsset_df
 resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
