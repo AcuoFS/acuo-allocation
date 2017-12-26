@@ -1188,17 +1188,17 @@ PasteFun2 <- function(x){
 }
 
 PasteResource <- function(assetId_vec,custodianAccount_vec){
-  temp <- paste(assetId_vec,custodianAccount_vec,sep='-')
+  temp <- paste(assetId_vec,custodianAccount_vec,sep='---')
   return(temp)
 }
 
 PasteVarName <- function(msId_vec,callId_vec,resource_vec){
-  temp <- paste(msId_vec,callId_vec,resource_vec,sep='_')
+  temp <- paste(msId_vec,callId_vec,resource_vec,sep='___')
   return(temp)
 }
 
 SplitResource <- function(resource_vec,target){
-  resource_mat <- matrix(unlist(strsplit(resource_vec,'-')),nrow=2)
+  resource_mat <- matrix(unlist(strsplit(resource_vec,'---')),nrow=2)
   if(missing(target)){
     target <- 'all'
   }
@@ -1212,7 +1212,7 @@ SplitResource <- function(resource_vec,target){
 }
 
 SplitVarName <- function(varName_vec,target){
-  varName_mat <- matrix(unlist(strsplit(varName_vec,'_')),nrow=3)
+  varName_mat <- matrix(unlist(strsplit(varName_vec,'___')),nrow=3)
   if(missing(target)){
     target <- 'all'
   }
