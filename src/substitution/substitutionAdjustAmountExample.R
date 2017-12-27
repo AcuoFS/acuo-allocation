@@ -1,8 +1,7 @@
-# Project: one for one asset manual substitution
+# Project: adjust the user enterred amount 
 # Create: 12 Dec 2017
 # Author: Yuan Silin
-# Functionality: Substitute the settled collateral with a with a new asset
-# which may potentially reduce the costs of collateral based on the user preferences and constraints
+# Functionality: round down the user enterred the amount to the nearest unit value
 #
 # Inputs
 #
@@ -11,19 +10,7 @@
 # 3. newAssetAmount
 # 4. availAsset_df
 # 5. assetInfo_df
-#
-# DB updates
-# Create (:AssetTransfer) for new asset
-# Update (:AssetTransfer) of original asset ?
-# Update (:AssetPledge {status:pending}) -- add the amount of new asset
-# Update (:AssetPledge {status:settled}) -- ? remove the amount of original asset
-# Update (:Collateral {status:pending}) -- add the amount of new asset
-# Update (:Collateral {status:settled}) -- ? remove the amount of original asset
-#
-# R will return the information for AssetTransfer, the rest updates will be handled by java layer
-#
-# UI has to call the backend again to refresh the new data
-#
+
 ###
 
 # set path
@@ -70,7 +57,7 @@ resource_vec <- newResource
 availAsset_df <- AvailAssetByCallIdAndClientId(clientId = clientId, callId = subCollateral_df$call)
 availAsset_df$assetCustacId <- PasteResource(availAsset_df$assetId,availAsset_df$CustodianAccount)
 
-availAsset_df <- availAsset_df[match(newResource,assetCustacId_vec),]
+availAsset_df <- availAsset_df[match(newResource,availAsset_df$assetCustacId),]
 
 # 5: assetInfo_df
 assetId_vec <- newAsset
