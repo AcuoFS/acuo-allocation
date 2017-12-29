@@ -22,28 +22,20 @@ source("src/coreAlgo.R")
 source("src/generalFunctions.R")
 source("src/callLpSolve.R")
 
-source("src/otherFunctions/infoFunctions.R")
-source("src/otherFunctions/analysisFunctions.R")
-source("src/otherFunctions/checkFunctions.R")
-source("src/otherFunctions/convertFunctions.R")
-source("src/otherFunctions/modelFunctions.R")
-source("src/otherFunctions/qtyFunctions.R")
-source("src/otherFunctions/improveFunctions.R")
-source("src/otherFunctions/modelFunctions.R")
 
 #### Sources END ###########
 
 #### Input Prepare Start ###########
-msId_vec <- c("4b5fd5d3",
-              "b5199313")
-callId_vec = unlist(callIdByMsId(msId_vec))
+msId_vec <- c("b58e2458",
+              "4ca554fd")
+callId_vec = unlist(CallIdByMsId(msId_vec))
 #agreementId_vec <- c('a1','a34')
 #callId_vec <- unname(unlist(callIdByAgreementId(agreementId_vec)))
 clientId = '999';
 pref_vec = c(5.4,3.5);
 
 #### callInfo_df
-callInfo_df <- callInfoByCallId(callId_vec)
+callInfo_df <- CallInfoByCallId(callId_vec)
 
 if(length(unlist(callInfo_df))==0){
   stop('Empty callInfo_df input!')
@@ -58,7 +50,7 @@ if(length(idxTemp_vec)>0){
 callInfo_df<- callInfo_df[match(callId_vec,callInfo_df$id),]
 
 #### availAsset_df
-availAsset_df <- availAssetByCallIdAndClientId(callId_vec,clientId) # available asset for the margin call
+availAsset_df <- AvailAssetByCallIdAndClientId(callId_vec,clientId) # available asset for the margin call
 if(length(unlist(availAsset_df))==0){
   stop('Empty availAsset_df input!')
 }
@@ -80,7 +72,7 @@ availAsset_df$assetCustacId <- assetCustacId_vec
 resource_vec <- unique(assetCustacId_vec)
 
 assetId_vec <- unique(SplitResource(resource_vec,'asset'))
-assetInfo_df <- assetInfoByAssetId(assetId_vec)
+assetInfo_df <- AssetInfoByAssetId(assetId_vec)
 if(length(unlist(assetInfo_df))==0){
   stop('Empty assetInfo_df input!')
 }

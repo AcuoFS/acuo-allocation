@@ -28,28 +28,19 @@ source('src/generalFunctions.R')
 source('src/secondAllocationFunction.R')
 source('src/secondAlgo.R')
 
-source("src/otherFunctions/infoFunctions.R")
-source("src/otherFunctions/analysisFunctions.R")
-source("src/otherFunctions/checkFunctions.R")
-source("src/otherFunctions/convertFunctions.R")
-source("src/otherFunctions/modelFunctions.R")
-source("src/otherFunctions/qtyFunctions.R")
-source("src/otherFunctions/improveFunctions.R")
-source("src/otherFunctions/modelFunctions.R")
-
 #### Sources END ###########
 
 #### Input Prepare Start ###########
-msId_vec <- c("2c5f946d",
-              "71483adb")
-callId_vec = unlist(callIdByMsId(msId_vec))
+msId_vec <- c("b58e2458",
+              "4ca554fd")
+callId_vec = unlist(CallIdByMsId(msId_vec))
 clientId <- '999'
 pref_vec<-c(5.4,3.5)
 #### deselct the asset from all custodian accounts? Currently yes. Location 'loc1'
 
 
-callInfo_df <- callInfoByCallId(callId_vec); callId_vec <- unique(callInfo_df$id)
-availAsset_df <- availAssetByCallIdAndClientId(callId_vec,clientId) # available asset for the margin call
+callInfo_df <- CallInfoByCallId(callId_vec); callId_vec <- unique(callInfo_df$id)
+availAsset_df <- AvailAssetByCallIdAndClientId(callId_vec,clientId) # available asset for the margin call
 availAsset_df <- availAsset_df[order(availAsset_df$callId),]
 
 assetCustacId_vec <- PasteResource(availAsset_df$assetId,availAsset_df$CustodianAccount)
@@ -57,7 +48,7 @@ availAsset_df$assetCustacId <- assetCustacId_vec
 resource_vec <- unique(assetCustacId_vec)
 
 assetId_vec <- unique(SplitResource(resource_vec,'asset'))
-assetInfo_df <- assetInfoByAssetId(assetId_vec)
+assetInfo_df <- AssetInfoByAssetId(assetId_vec)
 assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
 
 resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
