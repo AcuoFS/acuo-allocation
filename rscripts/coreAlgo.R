@@ -19,7 +19,7 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
   base_mat <- availInfo_list$base_mat
   eli_mat <- availInfo_list$eli_mat; 
   eli_vec <-  as.vector(t(eli_mat)) # eligibility matrix & vector
-  idxEli_vec <- which(eli_vec==1)         # eligible indext
+  idxEli_vec <- which(eli_vec==1)         # eligible index
   
   haircut_mat<-availInfo_list$haircut_mat; 
   haircut_vec <- as.vector(t(haircut_mat))[idxEli_vec]      # haircut mat & vec
@@ -232,7 +232,7 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
   #### Prepare Outputs Start #######################
   #### convert the result_mat to list
   
-  result_list <- ResultMat2List(result_mat,callId_vec,resource_vec,callInfo_df,haircut_mat,haircutC_mat,haircutFX_mat,costBasis_mat,resource_df,
+  result_list <- ResultMat2List(result_mat,callId_vec,resource_vec,callInfo_df,haircutC_mat,haircutFX_mat,costBasis_mat,resource_df,
                                 callSelect_list,msSelect_list)
   
   callSelect_list <- result_list$callSelect_list

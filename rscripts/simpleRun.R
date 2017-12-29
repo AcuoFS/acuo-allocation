@@ -86,19 +86,5 @@ result <- CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
 result_df <- ResultList2Df(result$callOutput,callId_vec)
 print(result_df)
 
-result1 <- result
-if(length(result$callOutput)==0){
-  stop('empty output!')
-  print('empty callOutput: ')
-  selectAsset_df <- data.frame(matrix(1:17,nrow=1))
-  colnames(selectAsset_df)<- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Hc','Hfx','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType','marginStatement','marginCall')
-  
-  output[['mcp1']] <- selectAsset_df
-  result$callOutput <- output
-  result1 <- result
-}
-
-result <- result1
-
 
 
