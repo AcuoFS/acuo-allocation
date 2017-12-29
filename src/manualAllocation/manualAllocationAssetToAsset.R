@@ -1,8 +1,7 @@
 
-ManualAllocationAssetToAsset <- function(algoVersion,selectCallId, newResource,newResourceAmount,selectionForCall,
-                                 replaceResource,resource_df,callInfo_df,availAsset_df,
-                                 pref_vec,operLimit,operLimitMc,fungible){
-  pref_vec/sum(pref_vec[1:2])
+ManualAllocationAssetToAsset <- function(algoVersion, newResource,newResourceAmount,selectionForCall,
+                                 replaceResource,resource_df,availAsset_df,
+                                 operLimit,operLimitMc,fungible){
   # Initialize the outputs
   newSelectionForCall <- selectionForCall
   replaceRecord_df <- selectionForCall[-(1:length(selectionForCall$Asset)),]

@@ -12,13 +12,12 @@
 # 1.4 $fxRate
 # 1.5 $haircut
 # 1.6 $amount
-# 2. uesr preference: 
+# 2. user preference: 
 # 2.1. pref_vec: vector, the objective scores for cost and liquidity
 # 2.2. operLimit: operation limit, the maximum assets the user can use to substitute the current collateral
 # 3. availAsset_df
-# 4. assetId_vec: eligible and available assets
-# 5. assetInfo_df
-# 6. callInfo_df 
+# 4. assetInfo_df
+# 5. callInfo_df 
 ###
 
 # set path
@@ -64,17 +63,15 @@ assetCustacId_vec <- PasteResource(availAsset_df$assetId,availAsset_df$Custodian
 availAsset_df$assetCustacId <- assetCustacId_vec
 resource_vec <- unique(assetCustacId_vec)
 
-# 4: assetId_vec
+# 4: assetInfo_df
 assetId_vec <- unique(SplitResource(resource_vec,'asset'))
-
-# 5: assetInfo_df
 assetInfo_df <- AssetInfoByAssetId(assetId_vec)
 
 # use the static fx in local DB
 fxRate_df <- FxRates(assetInfo_df$currency)
 assetInfo_df$FXRate <- as.double(fxRate_df$fxRate[match(assetInfo_df$currency,fxRate_df$currency)])
 
-# 6: callInfo_df
+# 5: callInfo_df
 callInfo_df <- CallInfoByCallId(subCollateral_df$call)
 
 # resource_df & adjusted availAsset_df

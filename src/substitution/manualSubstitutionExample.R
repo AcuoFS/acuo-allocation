@@ -76,7 +76,7 @@ resource_vec <- c(oldResource,newResource)
 availAsset_df <- AvailAssetByCallIdAndClientId(clientId = clientId, callId = subCollateral_df$call)
 availAsset_df$assetCustacId <- PasteResource(availAsset_df$assetId,availAsset_df$CustodianAccount)
 
-availAsset_df <- availAsset_df[match(c(oldResource,newResource),assetCustacId_vec),]
+availAsset_df <- availAsset_df[match(c(oldResource,newResource),availAsset_df$assetCustacId),]
 
 # 5: assetInfo_df
 assetId_vec <- unique(SplitResource(resource_vec,'asset'))

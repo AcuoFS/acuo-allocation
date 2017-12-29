@@ -1,7 +1,7 @@
 # pre-populate new asset amount for substitution
 # Create: 12 Dec 2017
 # Author: Yuan Silin
-# Functionality: Substitute the settled collateral with a specific amount with a new asset
+# Functionality: pre-populate the amount of the user selected new asset to substitute the deployed asset
 # which may potentially reduce the costs of collateral based on the user preferences and constraints
 #
 # Inputs

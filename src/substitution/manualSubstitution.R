@@ -5,7 +5,7 @@ ManualSubstitution <- function(newResource,resource_df,availAsset_df,
   newIdx <- which(resource_df$id==newResource)
   
   # original asset adjusted amount
-  oldResourceRequireAmount <- ceiling(oldResourceAmount/resource_df$minUnitValue[newIdx])
+  oldResourceRequireAmount <- ceiling(oldResourceAmount/resource_df$minUnitValue[newIdx])*resource_df$minUnitValue[newIdx]
   
   oldResourceAdjAmountUSD <- oldResourceRequireAmount/resource_df$FXRate[newIdx]*(1-subCollateral_df$haircut)
   

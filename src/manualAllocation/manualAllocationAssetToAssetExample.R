@@ -16,6 +16,12 @@
 # 10. uesr preference: 
 # 10.1. pref_vec: vector, the objective scores for cost and liquidity
 # 10.2. operLimit,operLimitMc,fungible
+#
+#
+# Outputs
+# 1. newSelectionForCall
+# 2. asset inventory changes
+#
 ######
 
 setwd("E:/ACUO/projects/acuo-allocation/")
@@ -175,8 +181,8 @@ availAsset_df <- availAsset_df[match(availAsset_df$assetCustacId,resource_df$id)
 
 
 #### Run ManualAllocation Asset to Asset Function #########
-result1 <- ManualAllocationAssetToAsset(algoVersion,selectCallId, newResource,newResourceAmount,selectionForCall,
-                                     replaceResource,resource_df,callInfo_df,availAsset_df,
-                               pref_vec,operLimit,operLimitMc,fungible)
+result1 <- ManualAllocationAssetToAsset(algoVersion, newResource,newResourceAmount,selectionForCall,
+                                     replaceResource,resource_df,availAsset_df,
+                                    operLimit,operLimitMc,fungible)
 
 

@@ -7,8 +7,6 @@
 # 2. newCustodianAccount
 # 3. newAssetAmount
 # 4. selectionForCall
-# 5. replaceAsset
-# 6. replaceCustodianAccount
 # 7. availAsset_df
 # 8. assetInfo_df
 # 9. callInfo_df

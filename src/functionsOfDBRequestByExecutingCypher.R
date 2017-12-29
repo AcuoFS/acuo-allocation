@@ -15,8 +15,8 @@ callIdByMsIdPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/de
 ExecuteCypher <- function(path,...){
   params <- list(...)
   query = paste(readLines(path), collapse="\n")
-  graph = startGraph(neo4jLocalUrl,username='neo4j',password='neo4j')
-  #graph = startGraph(neo4jDevUrl)
+ # graph = startGraph(neo4jLocalUrl,username='neo4j',password='neo4j')
+  graph = startGraph(neo4jDevUrl)
   #graph = startGraph(neo4jUrl)
   cypher(graph,query,params)
 }

@@ -44,5 +44,5 @@ SubstitutionOptimization <- function(algoVersion,availAsset_df,assetInfo_df,reso
   monthlyCostSaving <- currentResult$resultAnalysis$monthlyCost - newResult$resultAnalysis$monthlyCost
   
   
-  return(list(newResult=newResult,currentResult=currentResult,dailyCostSavin=dailyCostSaving,monthlyCostSaving=monthlyCostSaving))
+  return(list(newResult=newResult,currentResult=currentResult,dailyCostSaving=dailyCostSaving,monthlyCostSaving=monthlyCostSaving))
 }
