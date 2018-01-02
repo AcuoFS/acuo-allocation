@@ -83,8 +83,7 @@ callId_vec <- unlist(callId_vec)
 result <- CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
                           callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs_vec,fungible,
                           ifNewAlloc=T,list())
-result_df <- ResultList2Df(result$callOutput,callId_vec)
-print(result_df)
+#result_df <- ResultList2Df(result$callOutput,callId_vec)
+#print(result_df)
 
-
-
+result <- result
