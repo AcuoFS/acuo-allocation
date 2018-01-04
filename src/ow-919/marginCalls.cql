@@ -4,7 +4,7 @@ as line
 with line where line.agreement is not null
 match (a:Agreement {id:line.agreement})
 merge (a)<-[:STEMS_FROM]-(ms: MarginStatement{id:line.marginStatement})
-merge (ms)<-[:PART_OF]-(mc:MarginCall{id:line.marginCall,callDate:line.callDate, currency:line.currency, marginAmount:line.callAmount,direction:line.direction})
+merge (ms)<-[:PART_OF]-(mc:MarginCall{id:line.marginCall,callDate:line.callDate, currency:line.currency, marginAmount:TOFLOAT(line.callAmount),direction:line.direction})
 set mc.marginType = line.marginType
 
 
