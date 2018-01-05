@@ -1,5 +1,6 @@
 MATCH (c1:Currency)<-[:FROM]-(fx:FXRate)-[:TO]->(c2:Currency)
-OPTIONAL MATCH (fx)-[:LAST]->(fxValue:FXValue)
+WITH *
+MATCH (fx)-[:LAST]->(fxValue:FXValue)
 WHERE c1.id="USD" 
 AND c2.id in {currencies}
 RETURN 
@@ -9,7 +10,8 @@ RETURN
 UNION
   
 MATCH (c1:Currency)<-[:FROM]-(fx:FXRate)-[:TO]->(c2:Currency)
-OPTIONAL MATCH (fx)-[:LAST]->(fxValue:FXValue)
+WITH *
+MATCH (fx)-[:LAST]->(fxValue:FXValue)
 WHERE c2.id="USD"
 AND c1.id in {currencies}
 RETURN 
