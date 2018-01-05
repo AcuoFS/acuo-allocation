@@ -26,8 +26,7 @@ source("src/callLpSolve.R")
 #### Sources END ###########
 
 #### Input Prepare Start ###########
-msId_vec <- c("b58e2458",
-              "4ca554fd")
+msId_vec <- c("ec1c368f")
 callId_vec = unlist(CallIdByMsId(msId_vec))
 #agreementId_vec <- c('a1','a34')
 #callId_vec <- unname(unlist(callIdByAgreementId(agreementId_vec)))
@@ -46,6 +45,8 @@ if(length(idxTemp_vec)>0){
   errormsg <- paste(paste(unique(callInfo_df$marginStatement[idxTemp_vec]),collapse = ','),'is(are) money IN statement(s)!')
   stop(errormsg)
 }
+fxRates <- FxRateByCurrency(callInfo_df$currency)
+callInfo_df$FXRate <- fxRates$FXRate[match(callInfo_df$currency,fxRates$currency)]
 # callInfo_df$callAmountUSD <- callInfo_df$callAmount/callInfo_df$FXRate
 callInfo_df$callAmountOri <- callInfo_df$callAmount
 callInfo_df$callAmount <- callInfo_df$callAmount/callInfo_df$FXRate
