@@ -46,6 +46,7 @@ if(length(idxTemp_vec)>0){
   stop(errormsg)
 }
 fxRates <- FxRateByCurrency(callInfo_df$currency)
+
 callInfo_df$FXRate <- fxRates$FXRate[match(callInfo_df$currency,fxRates$currency)]
 # callInfo_df$callAmountUSD <- callInfo_df$callAmount/callInfo_df$FXRate
 callInfo_df$callAmountOri <- callInfo_df$callAmount

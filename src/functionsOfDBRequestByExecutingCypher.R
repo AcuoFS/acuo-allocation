@@ -11,7 +11,8 @@ eliAssetByClientIdCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-a
 resAssetByClientIdCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/resAssetByClientId.cql'
 callIdByAgreementIdPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/callIdByAgreementId.cql'
 callIdByMsIdPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/callIdByMsId.cql'
-fxRateByCurrencyPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/fxRateByCurrency.cql'
+#fxRateByCurrencyPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/fxRateByCurrency.cql'
+fxRateByCurrencyPath <- 'E:/ACUO/projects/acuo-allocation/src/Cypher/fxRateByCurrency.cql'
 
 ExecuteCypher <- function(path,...){
   params <- list(...)
@@ -57,5 +58,5 @@ CallIdByMsId <- function(msId){
 
 FxRateByCurrency <- function(currency){
   currencies <- c(currency,'nonexist')
-  ExecuteCypher(path=fxRateByCurrencyPath,currencies=currency)
+  ExecuteCypher(path=fxRateByCurrencyPath,currencies=currencies)
 }
