@@ -16,6 +16,8 @@ RETURN
   c1.id as currency, 
   1/fxValue.value as FxRate
   
+UNION
+  
 MATCH (c1:Currency)
 WHERE c1.id="USD"
 AND c1.id in {currencies}
