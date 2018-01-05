@@ -46,6 +46,9 @@ if(length(idxTemp_vec)>0){
   errormsg <- paste(paste(unique(callInfo_df$marginStatement[idxTemp_vec]),collapse = ','),'is(are) money IN statement(s)!')
   stop(errormsg)
 }
+# callInfo_df$callAmountUSD <- callInfo_df$callAmount/callInfo_df$FXRate
+callInfo_df$callAmountOri <- callInfo_df$callAmount
+callInfo_df$callAmount <- callInfo_df$callAmount/callInfo_df$FXRate
 
 callInfo_df<- callInfo_df[match(callId_vec,callInfo_df$id),]
 

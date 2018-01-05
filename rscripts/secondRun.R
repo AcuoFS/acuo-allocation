@@ -54,6 +54,9 @@ currentSelection_list <- ResultDf2List(selections,callId_vec)
 
 callInfo_df <- callInfoByCallId
 callInfo_df$callAmount <- abs(as.numeric(callInfo_df$callAmount)) # make sure the callAmount is non-negative
+
+callInfo_df$callAmountOri <- callInfo_df$callAmount # call amount in principal currency
+callInfo_df$callAmount <- callInfo_df$callAmount/callInfo_df$FXRate # call amount in USD
 #print(callInfo_df)
 
 availAsset_df <- availAssetByCallIdAndClientId # available asset for the margin call

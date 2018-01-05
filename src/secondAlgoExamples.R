@@ -40,6 +40,8 @@ pref_vec<-c(5.4,3.5)
 
 
 callInfo_df <- CallInfoByCallId(callId_vec); callId_vec <- unique(callInfo_df$id)
+callInfo_df$callAmountOri <- callInfo_df$callAmount
+callInfo_df$callAmount <- callInfo_df$callAmount/callInfo_df$FXRate
 availAsset_df <- AvailAssetByCallIdAndClientId(callId_vec,clientId) # available asset for the margin call
 availAsset_df <- availAsset_df[order(availAsset_df$callId),]
 
