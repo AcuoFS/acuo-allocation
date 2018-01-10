@@ -6,6 +6,8 @@ and collateral.assetType = "cash"
 with *
 optional match (clientAccount:CustodianAccount)<-[:FROM]-(transfer)
 with *
+optional match (ms)-[:STEMS_FROM]->(ag:Agreement)
+with *
 match (fxRate:FXRate {id:asset.currency})
 return  asset.id as asset,
 		clientAccount.id as custodianAccount,
@@ -16,6 +18,7 @@ return  asset.id as asset,
 		transfer.totalHaircut as haircut,
 		toFloat(transfer.quantities)*toFloat(transfer.value)/toFloat(fxRate.value) as amount,
 		mc.id as call,
+		ag.id as agreement,
 		collateral.assetType as assetType,
 		cValue.amount as collateralAmount
 order by mc.id

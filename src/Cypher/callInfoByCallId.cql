@@ -9,3 +9,4 @@ RETURN  mc.id AS id,
 		mc.currency AS currency,
 		mc.callDate AS callDate,
 		mc.direction AS direction
+		
