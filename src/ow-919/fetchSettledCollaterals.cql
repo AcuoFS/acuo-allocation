@@ -18,6 +18,7 @@ return  asset.id as asset,
 		transfer.totalHaircut as haircut,
 		toFloat(transfer.quantities)*toFloat(transfer.value)/toFloat(fxRate.value) as amount,
 		mc.id as call,
+		mc.marginType as marginType,
 		ag.id as agreement,
 		collateral.assetType as assetType,
 		cValue.amount as collateralAmount
