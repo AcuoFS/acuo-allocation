@@ -15,8 +15,8 @@
 ########### FUNCTION INPUT FROM JAVA LAYER END ##########################
 
 #### Sources Start #########
+setwd("E:/ACUO/projects/acuo-allocation/")
 source('src/functionsOfDBRequestByExecutingCypher.R')
-
 source("src/allocationFunction.R")
 source("src/coreAlgo.R")
 source("src/generalFunctions.R")

@@ -22,4 +22,4 @@ return  asset.id as asset,
 		ag.id as agreement,
 		collateral.assetType as assetType,
 		cValue.amount as collateralAmount
-order by mc.id
+order by ag.id

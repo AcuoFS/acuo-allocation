@@ -196,7 +196,10 @@ SettledQuantityVec2Mat <- function(settledCollaterals,resource_vec){
 }
 
 # function to aggregate margin calls by agreement
-AggregateCallByAgreement <- function(){
+AggregateCallByAgreement <- function(settledCollaterals){
+  # differentiate initial calls and variation calls 
+  # because they have different eligibility and haircut rules
+  
   
 }
 
