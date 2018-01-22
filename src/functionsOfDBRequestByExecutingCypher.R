@@ -4,6 +4,7 @@ neo4jUrl <-"http://neo4j:7474/db/data"
 neo4jDevUrl <- "http://dev.acuo.com:7474/db/data"
 neo4jLocalUrl <- "http://localhost:7474/db/data/"
 neo4jUATUrl <- "http://10.0.1.6:7474/db/data"
+neo4jQAUrl <- "http://10.0.1.5:7474/db/data"
 
 callInfoByCallIdCypherPath <- "https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/callInfoByCallId.cql"
 availAssetByCallIdAndClientIdCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/availAssetByCallIdAndClientId.cql'
@@ -22,6 +23,7 @@ ExecuteCypher <- function(path,...){
   #graph <- startGraph(neo4jDevUrl)
   #graph <- startGraph(neo4jUrl)
   #graph <- startGraph(neo4jUATUrl)
+  #graph <- startGraph(neo4jQAUrl)
   cypher(graph,query,params)
 }
   
