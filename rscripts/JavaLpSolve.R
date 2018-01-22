@@ -122,10 +122,10 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
   }
 
   if(!missing(bbRule)){
-    if(all.equal(sort(bbRule)==sort(c("pseudononint","autoorder","greedy", "dynamic","rcostfixing")))==TRUE){
+    if(all.equal(sort(bbRule),sort(c("pseudononint","autoorder","greedy", "dynamic","rcostfixing")))==TRUE){
       bbRuleValue <- 25637
       #lpModel$setBbRule(as.integer(bbRuleValue))
-    } else if(all.equal(sort(bbRule)==sort(c("pseudononint", "greedy", "dynamic","rcostfixing")))==TRUE){
+    } else if(all.equal(sort(bbRule),sort(c("pseudononint", "greedy", "dynamic","rcostfixing")))==TRUE){
       bbRuleValue <- 17445
       #lpModel$setBbRule(as.integer(bbRuleValue))
     }
