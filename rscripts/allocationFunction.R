@@ -201,7 +201,6 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
       allocatedGroup_list <- allocated_list[idxTemp_vec]
     }
     #### Pre-allocate Start ######################
-    
     resultPre <- PreAllocation(algoVersion,callIdGroup_vec,callInfoGroup_df,availAssetGroup_df,resourceGroup_df,
                                pref_vec,operLimitGroup,operLimitGroupMs_vec,fungible,minMoveValue,timeLimit,
                                ifNewAlloc,allocatedGroup_list)
@@ -229,9 +228,9 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
     solverObjValue <- resultGroup_list$solverObjValue
     checkCallGroup_mat <- resultGroup_list$checkCall_mat
     
-    # update the resource_df 
+    # update the resource_df quantity, rounding
     quantityUsed_vec <- UsedQtyFromResultList(callOutputGroup_list,resource_vec,callId_vec)
-    resource_df$qtyMin <- resource_df$qtyMin - quantityUsed_vec/resource_df$minUnit
+    resource_df$qtyMin <- round(resource_df$qtyMin - quantityUsed_vec/resource_df$minUnit,4)
     
     for(k in 1:length(callIdGroup_vec)){
       callId <- callIdGroup_vec[k]

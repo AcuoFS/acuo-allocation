@@ -138,9 +138,12 @@ CheckResultVec <- function(result_mat,quantityTotal_vec,callId_vec,callAmount_ve
   #
   callNum <- length(callId_vec)
   # 1. whether all variables are non-negative
-  idxNeg_vec <- which(result_mat<0)
-  if(length(idxNeg_vec)>=1){
-    result_mat[idxNeg_vec] <-0 # set to 0 first, then check the other two criteria
+  for(k in 1:callNum){
+    idxNeg_vec <- which(result_mat[k,]<0)
+    if(length(idxNeg_vec)>=1){
+      quantityTotal_vec[idxNeg_vec] <- quantityTotal_vec[idxNeg_vec] - result_mat[k,idxNeg_vec]
+      result_mat[k,idxNeg_vec] <-0 # set to 0 first, then check the other two criteria
+    }
   }
   # whether meet the constraint
   
@@ -315,7 +318,7 @@ CheckResultVec <- function(result_mat,quantityTotal_vec,callId_vec,callAmount_ve
     }
   }
   
-  return(result_mat)
+  return(list(result_mat=result_mat,quantityTotal_vec=quantityTotal_vec))
 }
 
 #### convertFunctions #### 

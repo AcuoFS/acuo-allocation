@@ -177,7 +177,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
   ############ ITERATE THE GROUP, RUN THE ALGO Start #########################
   
   for(i in 1:length(groupCallId_list)){
-  #  if(i==5){
+    
       callIdGroup_vec <- groupCallId_list[[i]]
       msIdGroup_vec <- unique(callInfo_df$marginStatement[which(callInfo_df$id %in% callIdGroup_vec)])
       ratio <- length(msIdGroup_vec)/length(msId_vec) # the proportion of the msGroup in the msList
