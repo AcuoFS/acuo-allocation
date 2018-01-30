@@ -20,13 +20,17 @@ source('src/manualAllocation/manualAllocationGeneralFunctions.R')
 DeleteTestData()
 BuildTestData()
 
-
 #### Input Prepare ###########
-clientId <- '999'
-pref_vec = c(5.4,3.5);
-
 
 settledCollaterals <- SettledCollaterals()
+
+clientId <- '999'
+pref_vec <- c(5.4,3.5)
+agreementNum <- length(unique(settledCollaterals$agreement))
+operLimitAg_vec <- rep(2,agreementNum)
+operLimit<- sum(operLimitAg_vec)
+fungible <- FALSE
+
 
 callId_vec <- unique(settledCollaterals$call)
 
@@ -57,6 +61,7 @@ availAsset_df <- AvailAsset(availAsset_df)
 
 #### CALL Reallocation FUNCTION ####
 
-result <- Reallocation(settledCollaterals,availAsset_df,callInfo_df,resource_df,pref_vec)
+result <- Reallocation(settledCollaterals,availAsset_df,callInfo_df,resource_df,
+                       pref_vec,operLimit,operLimitAg_vec,fungible)
 
 
