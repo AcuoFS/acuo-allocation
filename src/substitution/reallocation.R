@@ -58,13 +58,6 @@ Reallocation <- function(settledCollaterals,availAsset_df,callInfo_df,resource_d
   settledQuantity_mat <- SettledQuantityVec2Mat(newSettledCollaterals,resource_vec,agreementCallType_vec)
   newSettledQuantity_mat <- settledQuantity_mat
   
-  #### Use CoreAlgo to Reallocate Start #####
-  algoResult <- ReallocateUseCoreAlgo(newCallInfo_df, resource_df, availInfo_list,agreementCallType_vec,agreementCallTypeNum,
-                                    timeLimit=10,pref_vec,operLimit,operLimitAg_vec,fungible,minMoveValue=100,
-                                    ifNewAlloc=T)
-  #### Use CoreAlgo to Reallocate End #######
-  
-  
   # apply the movement constraint
   # if fungible = FALSE, then apply operLimitAg_vec[i] on agreement[i]
   # if fungible = TRUE, then apply operLimit on all agreements
@@ -146,87 +139,3 @@ Reallocation <- function(settledCollaterals,availAsset_df,callInfo_df,resource_d
   
   return(list(newAllocation_list=newAllocation_list,changeAllocation_list=changeAllocation_list))
 }
-
-#### Reuse coreAlgo Function #########
-ReallocateUseCoreAlgo <- function(newCallInfo_df, resource_df, availInfo_list,agreementCallType_vec,agreementCallTypeNum,
-                                  timeLimit=10,pref_vec,operLimit,operLimitAg_vec,fungible,minMoveValue=100,
-                                  ifNewAlloc=T){
-  # replace newCallInfo_df id and msId
-  oriCallId_vec <- newCallInfo_df$id
-  oriMsId_vec <- newCallInfo_df$marginStatement
-  
-  newCallInfo_df$id <- newCallInfo_df$newId
-  newCallInfo_df$marginStatement <- newCallInfo_df$agreement
-  
-  ### group by agreement
-  groupNewCallId_list <- GroupNewIdByAgreement(2,1,newCallInfo_df,agreementCallType_vec)
-  
-  # id list: agreementCallType_vec
-  ifNewAlloc <- T
-  algoVersion <- 2
-  newCallOutput_list <- list()
-  agreementOutput_list <- list()
-  checkCall_mat <- matrix(c(newCallInfo_df$callAmount,rep(0,agreementCallTypeNum)),nrow=agreementCallTypeNum, dimnames = list(agreementCallType_vec,c('callAmount','fulfilledAmount')))
-  
-  for(i in 1:length(groupNewCallId_list)){
-    
-    newCallIdGroup_vec <- groupNewCallId_list[[i]]
-    agreementGroup_vec <- unique(newCallInfo_df$agreement[which(newCallInfo_df$newId %in% newCallIdGroup_vec)])
-    ratio <- length(agreementGroup_vec)/length(agreement_vec) # the proportion of the msGroup in the msList
-    operLimitGroup <- operLimit*ratio
-    
-    idxTemp_vec <- match(agreementGroup_vec,agreement_vec)
-    operLimitGroupAg_vec <- operLimitAg_vec[idxTemp_vec]
-    
-    callInfoGroup_df <- newCallInfo_df[match(newCallIdGroup_vec,newCallInfo_df$newId),]
-    
-    # difficulty: match available assets via agreement-callType
-    availAssetGroup_df <- newAvailAsset_df[which(newAvailAsset_df$callId %in% newCallIdGroup_vec),]
-    
-    resourceGroup_vec <- unique(availAssetGroup_df$assetCustacId)
-    resourceGroup_df <- resource_df[match(resourceGroup_vec,resource_df$id),]
-    
-    availInfoGroup_list <- AssetByCallInfo(newCallIdGroup_vec,resourceGroup_vec,availAssetGroup_df)
-    
-    if(ifNewAlloc){
-      allocatedGroup_list <- list()
-    } else{
-      idxTemp_vec <- match(newCallIdGroup_vec,names(allocated_list))
-      allocatedGroup_list <- allocated_list[idxTemp_vec]
-    }
-    
-    #### Run CoreAlgo Start ######################
-    if(algoVersion==1){
-      resultGroup_list <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue)
-    } else if(algoVersion==2){
-      resultGroup_list <- CoreAlgoV2(callInfoGroup_df, resourceGroup_df, availInfoGroup_list,
-                                     timeLimit,pref_vec,operLimitGroup,operLimitGroupAg_vec,fungible,minMoveValue,
-                                     ifNewAlloc)
-    }
-    #### Run CoreAlgo END ########################
-    
-    agreementOutputGroup_list <- resultGroup_list$msOutput_list
-    newCallOutputGroup_list <- resultGroup_list$callOutput_list
-    
-    solverStatus <- resultGroup_list$solverStatus
-    solverObjValue <- resultGroup_list$solverObjValue
-    checkCallGroup_mat <- resultGroup_list$checkCall_mat
-    
-    # update the resource_df quantity, rounding
-    quantityUsed_vec <- UsedQtyFromResultList(newCallOutputGroup_list,resource_vec,callId_vec)
-    resource_df$qtyMin <- round(resource_df$qtyMin - quantityUsed_vec/resource_df$minUnit,4)
-    
-    for(k in 1:length(newCallIdGroup_vec)){
-      callId <- newCallIdGroup_vec[k]
-      agreement <- newCallInfo_df$agreement[which(newCallInfo_df$newId==callId)]
-      newCallOutput_list[[callId]] <- newCallOutputGroup_list[[callId]]
-      agreementOutput_list[[agreement]] <- agreementOutputGroup_list[[agreement]]
-      checkCall_mat[which(rownames(checkCall_mat)==callId),2] <- checkCallGroup_mat[which(rownames(checkCallGroup_mat)==callId),2]
-    }
-  }
-  return(list(newCallOutput_list=newCallOutput_list,agreementOutput_list=agreementOutput_list))
-}
-
-
-
-

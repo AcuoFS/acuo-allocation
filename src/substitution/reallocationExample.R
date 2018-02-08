@@ -64,7 +64,10 @@ availAsset_df <- AvailAsset(availAsset_df)
 
 #### CALL Reallocation FUNCTION ####
 
-result <- Reallocation(settledCollaterals,availAsset_df,callInfo_df,resource_df,
+result1 <- Reallocation(settledCollaterals,availAsset_df,callInfo_df,resource_df,
+                       pref_vec,operLimit,operLimitAg_vec,fungible)
+
+result2 <- Reallocation2(settledCollaterals,availAsset_df,callInfo_df,resource_df,
                        pref_vec,operLimit,operLimitAg_vec,fungible)
 
 

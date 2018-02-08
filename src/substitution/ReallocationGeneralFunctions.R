@@ -121,7 +121,7 @@ SettledQuantityVec2Mat <- function(settledCollaterals,resource_vec,callId_vec){
   return(settledQuantity_mat)
 }
 
-# function to aggregate margin calls by agreement
+# function to aggregate margin calls by agreement and callType
 AggregateCallByAgreementAndCallType <- function(settledCollaterals,availAsset_df,callInfo_df){
   # differentiate initial calls and variation calls 
   # because they have different eligibility and haircut rules
@@ -129,6 +129,7 @@ AggregateCallByAgreementAndCallType <- function(settledCollaterals,availAsset_df
   ## newSettledCollaterals
   newSettledCollaterals <- aggregate(cbind(quantity,amount)~agreement+marginType+asset+custodianAccount,data=settledCollaterals,sum)
   newSettledCollaterals$newCallId <- PasteResource(newSettledCollaterals$agreement,newSettledCollaterals$marginType)
+  newSettledCollaterals$currency <- settledCollaterals$currency[match(newSettledCollaterals$asset,settledCollaterals$asset)]
   
   ## newAvailAsset_df
   newAvailAsset_df <- availAsset_df
@@ -161,6 +162,167 @@ AggregateCallByAgreementAndCallType <- function(settledCollaterals,availAsset_df
   return(list(newSettledCollaterals=newSettledCollaterals,newAvailAsset_df=newAvailAsset_df,newCallInfo_df=newCallInfo_df))
 }
 
+# function to aggregate margin calls by asset, agreement and callType
+AggregateCallByAssetAgreementAndCallType <- function(settledCollaterals,availAsset_df){
+  # differentiate initial calls and variation calls 
+  # because they have different eligibility and haircut rules
+  callId_vec <- settledCollaterals$call
+  ## newSettledCollaterals
+  newSettledCollaterals <- aggregate(cbind(quantity,amount)~asset+agreement+marginType+asset+custodianAccount,data=settledCollaterals,sum)
+  newSettledCollaterals$newCallId <- PasteNewCallId(newSettledCollaterals$asset,newSettledCollaterals$agreement,newSettledCollaterals$marginType,type="asset---agreement---callType")
+  newSettledCollaterals$currency <- settledCollaterals$currency[match(newSettledCollaterals$asset,settledCollaterals$asset)]
+    
+  ## newAvailAsset_df
+  newAvailAsset_df <- availAsset_df
+  # change callId_vec to (agreementId---marginType)
+  assets <- settledCollaterals$asset[match(callId_vec,settledCollaterals$call)]
+  agreements <- settledCollaterals$agreement[match(callId_vec,settledCollaterals$call)]
+  marginTypes <- settledCollaterals$marginType[match(callId_vec,settledCollaterals$call)]
+  agreementCallType_vec <-PasteNewCallId(assets,agreements,marginTypes,type="asset---agreement---callType")
+  
+  
+  # add newId column to newAvailAsset_df
+  oriCallId_vec <- newAvailAsset_df$callId
+  newAvailAsset_df$callId <- agreementCallType_vec[match(newAvailAsset_df$callId,callId_vec)]
+  newAvailAsset_df <- unique(newAvailAsset_df)
+  
+  idxKeep_vec <- which(!duplicated(newAvailAsset_df))
+  newAvailAsset_df$oriCallId <- oriCallId_vec[idxKeep_vec]
+  
+  ## newCallInfo_df
+  newCallInfo_df <- settledCollaterals
+  colnames(newCallInfo_df)[which(colnames(newCallInfo_df)=="amount")] <- "callAmount"
+  
+  # add agreement id to newCallInfo_df
+  newCallInfo_df$newId <- agreementCallType_vec
+  newCallInfo_df$agreement <- agreements
+  # aggregate
+  temp_df <- aggregate(callAmount~newId,newCallInfo_df,sum)
+  # mock the other data
+  idxKeep_vec <- which(!duplicated(newCallInfo_df$newId))
+  newCallInfo_df <- newCallInfo_df[idxKeep_vec,]
+  newCallInfo_df$callAmount <-temp_df$callAmount[match(newCallInfo_df$newId,temp_df$newId)]
+  
+  
+  return(list(newSettledCollaterals=newSettledCollaterals,newAvailAsset_df=newAvailAsset_df,newCallInfo_df=newCallInfo_df))
+}
+
+# function to construct id: asset---agreement---callType
+PasteNewCallId <- function(assetId_vec,agreement_vec,callType_vec,type){
+  if(type=="agreement---callType"){
+    temp <- paste(agreement_vec,callType_vec,sep='---')
+  } else if(type=="asset---agreement---callType"){
+    temp <- paste(agreement_vec,callType_vec,sep='---')
+    temp <- paste(assetId_vec,temp,sep='---')
+  }
+  return(temp)
+}
+
+# function to split id: asset---agreement---callType
+SplitNewCallId <- function(newCallId_vec,target,type){
+  if(type=="agreement---callType"){
+    newCallId_mat <- matrix(unlist(strsplit(newCallId_vec,'---')),nrow=2)
+    if(target=="agreement"){
+      temp <- newCallId_mat[1,]
+    } else if(target=="callType"){
+      temp <- newCallId_mat[2,]
+    }
+  } else if(type=="asset---agreement---callType"){
+    newCallId_mat <- matrix(unlist(strsplit(newCallId_vec,'---')),nrow=3)
+    if(target=="asset"){
+      temp <- newCallId_mat[1,]
+    } else if(target=="agreement"){
+      temp <- newCallId_mat[2,]
+    } else if(target=="callType"){
+      temp <- newCallId_mat[3,]
+    }
+  }
+  return(temp)
+}
+
+# function to construct the decision variable info
+VarInfoAgreement <- function(eli_vec,callInfo_df,resource_vec,callId_vec){
+  callNum <- length(callId_vec)
+  resourceNum <- length(resource_vec)
+  idxEli_vec <- which(eli_vec==1)
+  
+  # matrix store the index number, by row
+  idx_mat <- matrix(1:(callNum*resourceNum),nrow=callNum,byrow = TRUE,dimnames = list(callId_vec,resource_vec))
+  # matrix store the variable name("msId_mcId_assetCustId"), by row
+  fullNameOri_mat <-  matrix('',nrow=callNum,ncol=resourceNum,byrow = TRUE,dimnames = list(callId_vec,resource_vec))
+  
+  # new dummy for "msId_assetCustId"
+  newNameOri_mat <- matrix('',nrow=callNum,ncol=resourceNum,byrow = TRUE,dimnames = list(callId_vec,resource_vec))
+  
+  
+  for(i in 1:callNum){
+    agreement <- callInfo_df$agreement[i]
+    fullNameOri_mat[i,]<-PasteVarName(agreement,callId_vec[i],resource_vec)
+    newNameOri_mat[i,] <- PasteVarName(agreement,'dummy',resource_vec)
+  }
+  varNameOri_vec <- t(fullNameOri_mat)[idxEli_vec]
+  newNameOri_vec <- t(newNameOri_mat)[idxEli_vec]
+  
+  # remove duplicated variables constructed by same asset in one statement for different calls
+  newNameDummy_vec <- unique(newNameOri_vec) 
+  
+  # use the dummies to construct the indicator
+  # same number means same asset for same statement: 1,2,3,4,1,2,4,5,...
+  pos_vec <- match(newNameOri_vec,newNameDummy_vec)
+  
+  varName_vec <- c(varNameOri_vec,newNameDummy_vec)
+  
+  varNum <- length(varNameOri_vec)
+  varNum2 <- length(varName_vec)
+  
+  var_list <- list(varName_vec=varName_vec,varNum=varNum,varNum2=varNum2,pos_vec=pos_vec)
+  return(var_list)
+}
+
+# function to calculate total movements
+OperationFunAgreement <- function(result,callInfo_df,method){
+  movements <- 0
+  if(method=='matrix'){
+    result_mat <- result
+    resultDummy_mat <- 1*(result_mat&1)
+    agreementDul_vec <- callInfo_df$agreement
+    agreement_vec <- unique(agreementDul_vec)
+    
+    if(length(result_mat[1,])==1){
+      for(m in 1:length(agreement_vec)){
+        idxTemp_vec <- which(agreementDul_vec==agreement_vec[m])
+        if(length(idxTemp_vec)==1){
+          movements <- movements+sum(resultDummy_mat[idxTemp_vec])
+        } else{
+          movements <- movements+max(resultDummy_mat[idxTemp_vec])
+        }
+      }
+    } else{
+      for(m in 1:length(agreement_vec)){
+        idxTemp_vec <- which(agreementDul_vec==agreement_vec[m])
+        if(length(idxTemp_vec)==1){
+          movements <- movements+sum(resultDummy_mat[idxTemp_vec,])
+        } else{
+          movements <- movements+sum(apply(resultDummy_mat[idxTemp_vec,],2,max))
+        }
+      }
+    }
+  } else if(method=='msList'){
+    agreementOutput_list <- result
+    agreement_vec <- unique(callInfo_df$agreement)
+    agreementNum <- length(agreement_vec)
+    for(i in 1:agreementNum){
+      msId <- agreement_vec[i]
+      agreementAlloc_df <- agreementOutput_list[[agreement]]
+      resources <- unique(PasteResource(agreementAlloc_df$Asset,agreementAlloc_df$CustodianAccout))
+      movements <- movements + length(resources)
+    }
+  } else{
+    stop('ALERR3005: Invalid OperationFun input method!')
+  }
+  
+  return(movements)
+}
 
 # function to group agreement-callType by agreement
 GroupNewIdByAgreement <- function(agreementCallTypeLimit,agreementLimit,newCallInfo_df,agreementCallType_vec){
@@ -219,7 +381,7 @@ ResultMat2ListAgreement <- function(result_mat,newCallId_vec,resource_vec,callIn
     #### Update newCallSelect_list END ######
     
     #### Update agreementSelect_list Start ######
-    agreement <- callInfo_df$marginStatement[i]
+    agreement <- callInfo_df$agreement[i]
     if(is.null(agreementSelect_list[[agreement]])){
       agreementSelect_list[[agreement]] <- alloc_df
     } else{
