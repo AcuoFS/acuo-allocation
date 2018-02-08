@@ -1,0 +1,308 @@
+
+Reallocation <- function(settledCollaterals,availAsset_df,callInfo_df,resource_df,pref_vec,operLimit,operLimitAg_vec,fungible){
+  
+  callId_vec <- callInfo_df$id
+  resource_vec <- resource_df$id
+  
+  resourceNum <- length(resource_vec)
+  callNum <- length(callId_vec)
+  
+  pref_vec <- pref_vec/sum(pref_vec[1:2])
+  
+  #### parameters ############
+  
+  
+  aggregateInfo_list <- AggregateCallByAgreementAndCallType(settledCollaterals,availAsset_df,callInfo_df)
+  
+  newSettledCollaterals <- aggregateInfo_list$newSettledCollaterals
+  newAvailAsset_df <- aggregateInfo_list$newAvailAsset_df
+  newCallInfo_df <- aggregateInfo_list$newCallInfo_df
+  
+  agreementCallType_vec <- newCallInfo_df$newId
+  agreementCallTypeNum <- length(agreementCallType_vec)
+  agreement_vec <- unique(newSettledCollaterals$agreement)
+  agreementNum <- length(agreement_vec)
+  
+  availInfo_list <- AssetByCallInfo(agreementCallType_vec,resource_vec,newAvailAsset_df)
+  
+  callAmount_mat <- matrix(rep(newCallInfo_df$callAmount,resourceNum),nrow=agreementCallTypeNum,byrow=F)
+  unitValue_mat<- matrix(rep(resource_df$unitValue/resource_df$FXRate, agreementCallTypeNum),nrow=agreementCallTypeNum,byrow=T)
+  minUnit_mat <- matrix(rep(resource_df$minUnit,agreementCallTypeNum),nrow=agreementCallTypeNum,byrow=T)
+  minUnitValue_mat <- unitValue_mat*minUnit_mat
+  haircutC_mat<-availInfo_list$haircutC_mat
+  haircutFX_mat<-availInfo_list$haircutFX_mat
+  haircut_mat<-availInfo_list$haircut_mat
+  costBasis_mat <- availInfo_list$cost_mat 
+  eli_mat <- availInfo_list$eli_mat
+  quantity_mat <- matrix(rep(resource_df$qtyMin,callNum),nrow=callNum,byrow=T)
+  
+  
+  objParams_list <- ConstructModelObj(callAmount_mat,minUnitValue_mat,haircut_mat,costBasis_mat,eli_mat,newCallInfo_df,
+                                      agreementCallType_vec,resource_vec)
+  
+  # cost+liquidity matrix
+  normCost_mat <- objParams_list$cost_mat
+  normLiquidity_mat <- objParams_list$liquidity_mat 
+  
+  optimal_mat <- normCost_mat*pref_vec[1]+normLiquidity_mat*pref_vec[2]
+  colnames(optimal_mat) <- resource_vec
+  rownames(optimal_mat)<- agreementCallType_vec
+  
+  #### Substitute ######
+  
+  newSettledCollaterals$resource <- PasteResource(newSettledCollaterals$asset,newSettledCollaterals$custodianAccount)
+  
+  settledAmount_mat <- SettledAmountVec2Mat(newSettledCollaterals,resource_vec,agreementCallType_vec)
+  newSettledAmount_mat <- settledAmount_mat
+  
+  settledQuantity_mat <- SettledQuantityVec2Mat(newSettledCollaterals,resource_vec,agreementCallType_vec)
+  newSettledQuantity_mat <- settledQuantity_mat
+  
+  # apply the movement constraint
+  # if fungible = FALSE, then apply operLimitAg_vec[i] on agreement[i]
+  # if fungible = TRUE, then apply operLimit on all agreements
+  
+  if(!fungible){
+    for(k in 1:agreementNum){
+      agreement <- agreement_vec[k]
+      # the index of variation or initial call type for this agreement
+      idx_vec <- which(SplitResource(agreementCallType_vec,"asset")==agreement)
+    
+      # initial first
+      if(length(idx_vec)==1){
+        i <- idx_vec
+        
+        resultTemp <- ReplaceWithinAgreementAndCallType(optimal_mat,i,resource_vec,newSettledAmount_mat,newSettledQuantity_mat,resource_df,haircut_mat,operLimitAg_vec[k])
+        newSettledAmount_mat <- resultTemp$newSettledAmount_mat
+        newSettledQuantity_mat <- resultTemp$newSettledQuantity_mat
+        resource_df <- resultTemp$resource_df
+        
+      } else if(length(idx_vec)==2){
+          idxTemp <- which(SplitResource(agreementCallType_vec[idx_vec],"custodianAccount")=="Initial")
+          i <- idx_vec[idxTemp]
+          
+          resultTemp <- ReplaceWithinAgreementAndCallType(optimal_mat,i,resource_vec,newSettledAmount_mat,newSettledQuantity_mat,resource_df,haircut_mat,operLimitAg_vec[k])
+          newSettledAmount_mat <- resultTemp$newSettledAmount_mat
+          newSettledQuantity_mat <- resultTemp$newSettledQuantity_mat
+          resource_df <- resultTemp$resource_df
+          
+          if(length(resultTemp$replacedNum) < operLimitAg_vec[k]){
+            # check variation
+            idxTemp <- which(SplitResource(agreementCallType_vec[idx_vec],"custodianAccount")=="Variation")
+            i <- idx_vec[idxTemp]
+            
+            resultTemp <- ReplaceWithinAgreementAndCallType(optimal_mat,i,resource_vec,newSettledAmount_mat,newSettledQuantity_mat,resource_df,haircut_mat,operLimitAg_vec[k]-resultTemp$replacedNum)
+            newSettledAmount_mat <- resultTemp$newSettledAmount_mat
+            newSettledQuantity_mat <- resultTemp$newSettledQuantity_mat
+            resource_df <- resultTemp$resource_df
+          }
+      }
+    }
+  } else{
+    # replace by order of the agreement-calltype
+    leftMovement <- operLimit
+    for(i in 1:agreementCallTypeNum){
+      resultTemp <- ReplaceWithinAgreementAndCallType(optimal_mat,i,resource_vec,newSettledAmount_mat,newSettledQuantity_mat,resource_df,haircut_mat,operLimitAg_vec[k])
+      newSettledAmount_mat <- resultTemp$newSettledAmount_mat
+      newSettledQuantity_mat <- resultTemp$newSettledQuantity_mat
+      resource_df <- resultTemp$resource_df
+      
+      leftMovement <- leftMovement - resultTemp$replacedNum
+      if(leftMovement==0){
+        break
+      }
+    }
+  }
+  
+  # initialize the callSelect_list and msSelect_list
+  callSelect_list  <- list()    
+  msSelect_list <- list()  
+  newAllocation_list <- ResultMat2List(newSettledQuantity_mat,agreementCallType_vec,resource_vec,newCallInfo_df,haircutC_mat,haircutFX_mat,costBasis_mat,resource_df,
+                                callSelect_list,msSelect_list)
+  # allocation changes
+  callChange_list <- list()
+  msChange_list <- list()
+  leftSettledQuantity_mat <- newSettledQuantity_mat-settledQuantity_mat
+  if(agreementCallTypeNum>1){
+    idxChange_vec <- apply(leftSettledQuantity_mat&matrix(1,nrow=agreementCallTypeNum,ncol=resourceNum),1,sum)
+    idxTemp <- which(idxChange_vec!=0)
+    leftSettledQuantity_mat <- leftSettledQuantity_mat[idxTemp,]
+    leftSettledQuantity_mat <- matrix(leftSettledQuantity_mat,nrow=length(idxTemp))
+    changeAllocation_list <- ResultMat2List(leftSettledQuantity_mat,callId_vec[idxTemp],resource_vec,newCallInfo_df,haircutC_mat,haircutFX_mat,costBasis_mat,resource_df,
+                                            callChange_list,msChange_list)
+  } else{
+    if(length(which(leftSettledQuantity_mat!=0)) == 1){
+      changeAllocation_list <- ResultMat2List(leftSettledQuantity_mat,callId_vec,resource_vec,newCallInfo_df,haircutC_mat,haircutFX_mat,costBasis_mat,resource_df,
+                                              callChange_list,msChange_list)
+    }
+  }
+  
+  
+  return(list(newAllocation_list=newAllocation_list,changeAllocation_list=changeAllocation_list))
+}
+
+
+#### OTHER FUNCTIONS ########
+# function to replace all settled collaterals that are not optimal within a agreement-callType
+ReplaceWithinAgreementAndCallType <- function(optimal_mat,callIdx,resource_vec,newSettledAmount_mat,newSettledQuantity_mat,resource_df,haircut_mat,operLimitAg){
+
+  replacedNum <- 0
+  
+  # indexes of assets with the smallest score
+  newIdx_vec <- which(optimal_mat[callIdx,]==min(optimal_mat[callIdx,]))
+  resourceTemp <- resource_vec[newIdx_vec]
+  idxAmountTemp <- which(newSettledAmount_mat[callIdx,]>0)
+  
+  # different scenarios
+  # Scenario 1, all settled collaterals are optimal resources
+  # then no reallocation is needed
+  
+  # Scenario 2, some or none of settled collaterals are optimal resources
+  # check for the settled collaterals that are not optimal
+  
+  idxIntersect <- intersect(resource_vec[idxAmountTemp],resourceTemp)
+  
+  if(length(idxIntersect) < length(idxAmountTemp)){ # scenario 2 
+    # find the ones that are not optimal 
+    replaceIdx_vec <- idxAmountTemp[which(is.na(match(resource_vec[idxAmountTemp],resourceTemp)))]
+    
+    # replace with the agreement with the movement constraint
+    # need to choose the most beneficial replacements within limit
+    # only choose the first operLimitAg to replace
+    if(length(replaceIdx_vec)>operLimitAg){
+      replaceIdx_vec <- replaceIdx_vec[1:operLimitAg]
+    }
+    
+    for(idx in replaceIdx_vec){
+      resourceSelect <- FindResourceToReplace(optimal_mat[callIdx,],newIdx_vec,idx,
+                                              resource_df,resource_vec)
+      # execute the subsitution in the matrix
+      idxResourceSelect <- which(resource_vec==resourceSelect)
+      resourceAmount <- newSettledAmount_mat[callIdx,idxResourceSelect]
+      # post haircut amount
+      resourceAmountCall <- resourceAmount*(1-haircut_mat[callIdx,idxResourceSelect])
+      
+      # check the sufficiency of the optimal resources
+      optimalResourceAmount_vec <- resource_df$minUnitValue[newIdx_vec]*resource_df$qtyMin[match(resource_vec[newIdx_vec],resource_df$id)]
+      # post haircut amount 
+      optimalResourceAmountCall_vec <- optimalResourceAmount_vec*(1-haircut_mat[callIdx,newIdx_vec])
+      idxTemp <- newIdx_vec[which(optimalResourceAmountCall_vec > resourceAmountCall)]
+      if(length(idxTemp)==0){
+        # insufficient
+        # check other possibilities? the other resourceSelect
+        # if no, then 1. skip OR 2. replace partial
+        # do nothing for now
+      } else {
+        idxNew <- idxTemp[1] # choose the first one
+        
+        # replace
+        # update the newSettledAmount_mat and resource_df
+        qtyMinNew <- IntegralUnitQuantity(resourceAmountCall,haircut_mat[callIdx,idxNew],resource_df$minUnitValue[idxNew])
+        
+        amountNew <- IntegralUnitAmount(resourceAmountCall,haircut_mat[callIdx,idxNew],resource_df$minUnitValue[idxNew])
+        
+        # update newSettledAmount_mat
+        newSettledAmount_mat[callIdx,idxNew] <- amountNew
+        newSettledAmount_mat[callIdx,idxResourceSelect] <- 0
+        
+        # update newSettledQuantity_mat
+        newSettledQuantity_mat[callIdx,idxNew] <- qtyMinNew
+        newSettledQuantity_mat[callIdx,idxResourceSelect] <- 0
+        
+        # update resource_df
+        # update $qtyMin 
+        resource_df$qtyMin[idxNew] <- resource_df$qtyMin[idxNew] - qtyMinNew
+        resource_df$qtyMin[idxResourceSelect] <- resource_df$qtyMin[idxResourceSelect] + newSettledQuantity_mat[callIdx,idxResourceSelect]
+        replacedNum <- replacedNum+1
+      }
+    }
+  }
+  return(list(newSettledAmount_mat=newSettledAmount_mat,newSettledQuantity_mat=newSettledQuantity_mat,resource_df=resource_df,replacedNum=replacedNum))
+}
+
+# function to calculate integral minumal units quantity
+IntegralUnitQuantity <- function(amount,haircut,minUnitValue){
+  integralUnitQuantity <- ceiling(amount/(1-haircut)/minUnitValue)
+  return(integralUnitQuantity)
+}
+
+# function to calculate integral units amount
+IntegralUnitAmount <- function(amount,haircut,minUnitValue){
+  integralUnitAmount <- (1-haircut)*minUnitValue*ceiling(amount/(1-haircut)/minUnitValue)
+  return(integralUnitAmount)
+}
+
+# function to select the asset to be substitute
+FindResourceToReplace <- function(optimal_vec,idxResourceTemp,idxAmountTemp,resource_df,resource_vec){
+  
+  # find the highest score from the existing resources
+  # if more than one, then choose the one with largest amount settled to start
+  idxSelect <- idxAmountTemp[which(optimal_vec[idxAmountTemp]==max(optimal_vec[idxAmountTemp]))]
+  amountSelect <- resource_df$minUnitValue[idxSelect]*resource_df$qtyMin[match(resource_vec[idxSelect],resource_df$id)]
+  if(length(idxSelect)==1){
+    resourceSelect <- resource_vec[idxSelect]
+  } else if(length(idxSelect)>1){
+    resourceSelect <- resource_vec[idxSelect[which.max(amountSelect)]]
+  }
+  return(resourceSelect)
+}
+
+# function to construct settled collateral amount into an allocation matrix
+SettledAmountVec2Mat <- function(settledCollaterals,resource_vec,callId_vec){
+  callNum <- length(callId_vec)
+  resourceNum <- length(resource_vec)
+  settledAmount_mat <- matrix(0,nrow=callNum,ncol=resourceNum,dimnames=list(callId_vec,resource_vec))
+  settledAmount_mat[cbind(match(settledCollaterals$newCallId,callId_vec),match(settledCollaterals$resource,resource_vec))] <- settledCollaterals$amount
+  return(settledAmount_mat)
+}
+
+# function to construct settled collateral quantity into an allocation matrix
+SettledQuantityVec2Mat <- function(settledCollaterals,resource_vec,callId_vec){
+  callNum <- length(callId_vec)
+  resourceNum <- length(resource_vec)
+  settledQuantity_mat <- matrix(0,nrow=callNum,ncol=resourceNum,dimnames=list(callId_vec,resource_vec))
+  settledQuantity_mat[cbind(match(settledCollaterals$newCallId,callId_vec),match(settledCollaterals$resource,resource_vec))] <- settledCollaterals$quantity
+  return(settledQuantity_mat)
+}
+
+# function to aggregate margin calls by agreement
+AggregateCallByAgreementAndCallType <- function(settledCollaterals,availAsset_df,callInfo_df){
+  # differentiate initial calls and variation calls 
+  # because they have different eligibility and haircut rules
+  
+  ## newSettledCollaterals
+  newSettledCollaterals <- aggregate(cbind(quantity,amount)~agreement+marginType+asset+custodianAccount,data=settledCollaterals,sum)
+  newSettledCollaterals$newCallId <- PasteResource(newSettledCollaterals$agreement,newSettledCollaterals$marginType)
+  
+  ## newAvailAsset_df
+  newAvailAsset_df <- availAsset_df
+  # change callId_vec to (agreementId---marginType)
+  agreements <- settledCollaterals$agreement[match(callId_vec,settledCollaterals$call)]
+  marginTypes <- settledCollaterals$marginType[match(callId_vec,settledCollaterals$call)]
+  agreementCallType_vec <- PasteResource(agreements,marginTypes)
+  
+  # add newId column to newAvailAsset_df
+  oriCallId_vec <- newAvailAsset_df$callId
+  newAvailAsset_df$callId <- agreementCallType_vec[match(newAvailAsset_df$callId,callId_vec)]
+  newAvailAsset_df <- unique(newAvailAsset_df)
+  
+  idxKeep_vec <- which(!duplicated(newAvailAsset_df))
+  newAvailAsset_df$oriCallId <- oriCallId_vec[idxKeep_vec]
+  
+  ## newCallInfo_df
+  newCallInfo_df <- callInfo_df
+  # add agreement id to newCallInfo_df
+  newCallInfo_df$newId <- agreementCallType_vec
+  # aggregate
+  temp_df <- aggregate(callAmount~newId,newCallInfo_df,sum)
+  # mock the other data
+  idxKeep_vec <- which(!duplicated(newCallInfo_df$newId))
+  newCallInfo_df <- newCallInfo_df[idxKeep_vec,]
+  newCallInfo_df$callAmount <-temp_df$callAmount[match(newCallInfo_df$newId,temp_df$newId)]
+
+  
+  return(list(newSettledCollaterals=newSettledCollaterals,newAvailAsset_df=newAvailAsset_df,newCallInfo_df=newCallInfo_df))
+}
+
+
+
