@@ -9,8 +9,10 @@ setwd("E:/ACUO/projects/acuo-allocation/")
 
 #### Sources Start #########
 source('src/substitution/reallocation.R')
+source('src/substitution/reallocationUseAlgo.R')
 source('src/substitution/ReallocationGeneralFunctions.R')
 source('src/coreAlgo.R')
+source('src/callLpSolve.R')
 source('src/allocationFunction.R')
 source('src/substitution/dbExecutionForLocalTests.R')
 source('src/functionsOfDBRequestByExecutingCypher.R')
@@ -26,6 +28,7 @@ BuildTestData()
 #### Input Prepare ###########
 
 settledCollaterals <- SettledCollaterals()
+settledCollaterals$resource <- PasteResource(settledCollaterals$asset,settledCollaterals$custodianAccount)
 
 clientId <- '999'
 pref_vec <- c(5.4,3.5)

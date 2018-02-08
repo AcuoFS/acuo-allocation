@@ -168,17 +168,17 @@ AggregateCallByAssetAgreementAndCallType <- function(settledCollaterals,availAss
   # because they have different eligibility and haircut rules
   callId_vec <- settledCollaterals$call
   ## newSettledCollaterals
-  newSettledCollaterals <- aggregate(cbind(quantity,amount)~asset+agreement+marginType+asset+custodianAccount,data=settledCollaterals,sum)
-  newSettledCollaterals$newCallId <- PasteNewCallId(newSettledCollaterals$asset,newSettledCollaterals$agreement,newSettledCollaterals$marginType,type="asset---agreement---callType")
+  newSettledCollaterals <- aggregate(cbind(quantity,amount)~resource+agreement+marginType+asset+custodianAccount,data=settledCollaterals,sum)
+  newSettledCollaterals$newCallId <- PasteNewCallId(newSettledCollaterals$resource,newSettledCollaterals$agreement,newSettledCollaterals$marginType,type="resource-_-agreement-_-callType")
   newSettledCollaterals$currency <- settledCollaterals$currency[match(newSettledCollaterals$asset,settledCollaterals$asset)]
     
   ## newAvailAsset_df
   newAvailAsset_df <- availAsset_df
   # change callId_vec to (agreementId---marginType)
-  assets <- settledCollaterals$asset[match(callId_vec,settledCollaterals$call)]
+  resources <- settledCollaterals$resource[match(callId_vec,settledCollaterals$call)]
   agreements <- settledCollaterals$agreement[match(callId_vec,settledCollaterals$call)]
   marginTypes <- settledCollaterals$marginType[match(callId_vec,settledCollaterals$call)]
-  agreementCallType_vec <-PasteNewCallId(assets,agreements,marginTypes,type="asset---agreement---callType")
+  agreementCallType_vec <-PasteNewCallId(resources,agreements,marginTypes,type="resource-_-agreement-_-callType")
   
   
   # add newId column to newAvailAsset_df
@@ -207,29 +207,29 @@ AggregateCallByAssetAgreementAndCallType <- function(settledCollaterals,availAss
   return(list(newSettledCollaterals=newSettledCollaterals,newAvailAsset_df=newAvailAsset_df,newCallInfo_df=newCallInfo_df))
 }
 
-# function to construct id: asset---agreement---callType
+# function to construct id: asset-_-agreement-_-callType
 PasteNewCallId <- function(assetId_vec,agreement_vec,callType_vec,type){
-  if(type=="agreement---callType"){
-    temp <- paste(agreement_vec,callType_vec,sep='---')
-  } else if(type=="asset---agreement---callType"){
-    temp <- paste(agreement_vec,callType_vec,sep='---')
-    temp <- paste(assetId_vec,temp,sep='---')
+  if(type=="agreement-_-callType"){
+    temp <- paste(agreement_vec,callType_vec,sep='-_-')
+  } else if(type=="resource-_-agreement-_-callType"){
+    temp <- paste(agreement_vec,callType_vec,sep='-_-')
+    temp <- paste(assetId_vec,temp,sep='-_-')
   }
   return(temp)
 }
 
-# function to split id: asset---agreement---callType
+# function to split id: asset-_-agreement-_-callType
 SplitNewCallId <- function(newCallId_vec,target,type){
-  if(type=="agreement---callType"){
-    newCallId_mat <- matrix(unlist(strsplit(newCallId_vec,'---')),nrow=2)
+  if(type=="agreement-_-callType"){
+    newCallId_mat <- matrix(unlist(strsplit(newCallId_vec,'-_-')),nrow=2)
     if(target=="agreement"){
       temp <- newCallId_mat[1,]
     } else if(target=="callType"){
       temp <- newCallId_mat[2,]
     }
-  } else if(type=="asset---agreement---callType"){
-    newCallId_mat <- matrix(unlist(strsplit(newCallId_vec,'---')),nrow=3)
-    if(target=="asset"){
+  } else if(type=="resource-_-agreement-_-callType"){
+    newCallId_mat <- matrix(unlist(strsplit(newCallId_vec,'-_-')),nrow=3)
+    if(target=="resource"){
       temp <- newCallId_mat[1,]
     } else if(target=="agreement"){
       temp <- newCallId_mat[2,]
@@ -322,6 +322,46 @@ OperationFunAgreement <- function(result,callInfo_df,method){
   }
   
   return(movements)
+}
+
+# function to construct important matrix
+AssetByCallInfoAgreement <- function(callId_vec,resource_vec,availAsset_df,newSettledCollaterals){
+  
+  resourceNum <- length(resource_vec)
+  callNum <- length(callId_vec)
+  availAsset_df <- availAsset_df[order(availAsset_df$callId),] # order the availAsset_df by callId_vec
+  
+  base_mat <- matrix(0,nrow=callNum,ncol=resourceNum, dimnames = list(callId_vec,resource_vec))
+  eli_mat <- base_mat
+  haircut_mat <- base_mat
+  haircutC_mat <- base_mat
+  haircutFX_mat <- base_mat
+  cost_mat <- base_mat
+  
+  # fill in matrixes with the data from availAsset_df
+  idxTempCallId_vec <- match(availAsset_df$callId,callId_vec)
+  idxTempResource_vec <- match(availAsset_df$assetCustacId,resource_vec)
+  
+  eli_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- 1
+  haircutC_mat[cbind(idxTempCallId_vec,idxTempResource_vec)] <- availAsset_df$haircut
+  haircutFX_mat[cbind(idxTempCallId_vec,idxTempResource_vec)] <- availAsset_df$FXHaircut
+  haircut_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- availAsset_df$haircut+availAsset_df$FXHaircut
+  
+  # cost calculation: difference between old and new, then to minimize
+  baseResourceOrder_vec <- match(SplitNewCallId(availAsset_df$callId,target="resource",type="resource-_-agreement-_-callType"),availAsset_df$assetCustacId)
+  baseAvailAsset <- availAsset_df[baseResourceOrder_vec,]
+  
+  cost_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- CostDefinition(baseAvailAsset)-CostDefinition(availAsset_df)
+  
+  
+  # convert the matrix format data to vector format
+  # thinking of keeping only eligible parts
+  eli_vec <- as.vector(t(eli_mat))
+  haircut_vec <- as.vector(t(haircut_mat))
+  cost_vec <- as.vector(t(cost_mat))
+  
+  output_list <- list(base_mat=base_mat,eli_mat=eli_mat,haircut_mat=haircut_mat,haircutC_mat=haircutC_mat,haircutFX_mat=haircutFX_mat,cost_mat=cost_mat)
+  return (output_list)
 }
 
 # function to group agreement-callType by agreement

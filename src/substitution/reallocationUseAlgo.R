@@ -15,6 +15,7 @@ Reallocation2 <- function(settledCollaterals,availAsset_df,callInfo_df,resource_
   aggregateInfo_list <- AggregateCallByAssetAgreementAndCallType(settledCollaterals,availAsset_df)
   
   newSettledCollaterals <- aggregateInfo_list$newSettledCollaterals
+  
   newAvailAsset_df <- aggregateInfo_list$newAvailAsset_df
   newCallInfo_df <- aggregateInfo_list$newCallInfo_df
   
@@ -23,7 +24,7 @@ Reallocation2 <- function(settledCollaterals,availAsset_df,callInfo_df,resource_
   agreement_vec <- unique(newSettledCollaterals$agreement)
   agreementNum <- length(agreement_vec)
   
-  availInfo_list <- AssetByCallInfo(agreementCallType_vec,resource_vec,newAvailAsset_df)
+  availInfo_list <- AssetByCallInfoAgreement(agreementCallType_vec,resource_vec,newAvailAsset_df,newSettledCollaterals)
   
   callAmount_mat <- matrix(rep(newCallInfo_df$callAmount,resourceNum),nrow=agreementCallTypeNum,byrow=F)
   unitValue_mat<- matrix(rep(resource_df$unitValue/resource_df$FXRate, agreementCallTypeNum),nrow=agreementCallTypeNum,byrow=T)
@@ -50,8 +51,6 @@ Reallocation2 <- function(settledCollaterals,availAsset_df,callInfo_df,resource_
   
   #### Substitute ######
   
-  newSettledCollaterals$resource <- PasteResource(newSettledCollaterals$asset,newSettledCollaterals$custodianAccount)
-  
   settledAmount_mat <- SettledAmountVec2Mat(newSettledCollaterals,resource_vec,agreementCallType_vec)
   newSettledAmount_mat <- settledAmount_mat
   
@@ -59,7 +58,7 @@ Reallocation2 <- function(settledCollaterals,availAsset_df,callInfo_df,resource_
   newSettledQuantity_mat <- settledQuantity_mat
   
   #### Use CoreAlgo to Reallocate Start #####
-  algoResult <- ReallocateUseCoreAlgo(newCallInfo_df, resource_df, availInfo_list,agreementCallType_vec,agreementCallTypeNum,
+  algoResult <- ReallocateUseCoreAlgo(newCallInfo_df, resource_df,newAvailAsset_df, availInfo_list,agreementCallType_vec,agreementCallTypeNum,
                                       timeLimit=10,pref_vec,operLimit,operLimitAg_vec,fungible,minMoveValue=100,
                                       ifNewAlloc=T)
   resourceOri_df <- resource_df
@@ -134,7 +133,7 @@ Reallocation2 <- function(settledCollaterals,availAsset_df,callInfo_df,resource_
 }
 
 #### Reuse coreAlgo Function #########
-ReallocateUseCoreAlgo <- function(newCallInfo_df, resource_df, availInfo_list,agreementCallType_vec,agreementCallTypeNum,
+ReallocateUseCoreAlgo <- function(newCallInfo_df, resource_df,newAvailAsset_df, availInfo_list,agreementCallType_vec,agreementCallTypeNum,
                                   timeLimit=10,pref_vec,operLimit,operLimitAg_vec,fungible,minMoveValue=100,
                                   ifNewAlloc=T){
   # replace newCallInfo_df id and msId
