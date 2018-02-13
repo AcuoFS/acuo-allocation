@@ -1,17 +1,26 @@
 
 #### Main Function-Interface of Java Start #######
 CallAllocation <- function(algoVersion,scenario,callId_vec,resource_vec,callInfo_df,availAsset_df,resource_df,
-                           pref_vec,operLimit,operLimitMs_vec,fungible,ifNewAlloc,allocated_list){
+                           pref_vec,operLimit,operLimitMs_vec,fungible,ifNewAlloc,allocated_list,inputLimit_vec,timeLimit,callOrderMethod,minMoveValue){
   #### Scenario Code Start #########
   # scenario = 1, Algo suggestion
   # scenario = 2, post settlement cash only
   # scenario = 3, post least liquid assets
   #### Scenario Code END ###########
   resource_vec <- as.character(resource_vec)
-  inputLimit_vec <- c(7,7,7,4); 
-  timeLimit=13; 
-  callOrderMethod=3
-  minMoveValue<- 1000;
+  if(missing(inputLimit_vec)){
+    inputLimit_vec <- c(7,7,7,4)
+  }
+  if(missing(timeLimit)){
+    timeLimit <- 13
+  }
+  if(missing(callOrderMethod)){
+    callOrderMethod <- 3
+  }
+  if(missing(minMoveValue)){
+    minMoveValue <- 1000
+  }
+
   # build scenario into the function
   #### Scenario: Algo suggestion: #####
   if(scenario==1){
