@@ -14,11 +14,13 @@ RETURN
          WHEN fx IS NOT NULL THEN fx.value
     END
     AS FXRate,
-		CASE WHEN type(r1)="FROM" THEN ccy.id 
+		CASE WHEN ccy.id = 'USD' THEN 'USD'
+		     WHEN type(r1)="FROM" THEN ccy.id 
          WHEN type(r1)="TO" THEN 'USD'
 	  END
 		AS from,
-		CASE WHEN type(r1)="FROM" THEN ccy.id 
+		CASE WHEN ccy.id = 'USD' THEN 'USD'
+		     WHEN type(r1)="FROM" THEN ccy.id 
          WHEN type(r1)="TO" THEN 'USD'
 	  END
 		AS to
