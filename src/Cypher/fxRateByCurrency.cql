@@ -20,8 +20,8 @@ RETURN
 	  END
 		AS from,
 		CASE WHEN ccy.id = 'USD' THEN 'USD'
-		     WHEN type(r1)="FROM" THEN ccy.id 
-         WHEN type(r1)="TO" THEN 'USD'
+		     WHEN type(r1)="TO" THEN ccy.id 
+         WHEN type(r1)="FROM" THEN 'USD'
 	  END
 		AS to
 		
