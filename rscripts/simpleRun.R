@@ -54,17 +54,20 @@ assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
 resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
 availAsset_df <- AvailAsset(availAsset_df)
 
-###### Manually add FXRate and venue for DEMO purposes ########
-# FX rate: value = 1 USD can change how much foreign currency
 
-if(is.na(all(assetInfo_df$FXRate))){
-  stop('FXRate contains NA! ')
-  ccy_vec <- c('USD', 'EUR', 'GBP', 'SGD', 'JPY', 'HKD', 'AUD', 'CNY', 'KRW', 'CAD', 'NOK', 'SEK', 'NZD')
-  FXRate_vec <- c(1,0.92,0.80,1.39,110.6,7.77,1.32,6.86,1112,1.34,8.68,9.02,1.42)
-  for(k in 1:length(assetInfo_df[,1])){
-    idxTemp <- which(assetInfo_df$currency[k] == ccy_vec)
-    assetInfo_df$FXRate[k] <- FXRate_vec[idxTemp]
-  }
+## FX rate conversion ##
+# keep the original fx rate in assetInfo$oriFXRate and callInfo$oriFXRate
+# fx used for calculation: 1 USD can change how much foreign currency
+
+assetInfo_df$oriFXRate <- assetInfo_df$FXRate
+if(!is.null(assetInfo_df$from)&&!is.null(assetInfo_df$to)){
+  idxTo <- which(assetInfo_df$to=="USD")
+  assetInfo_df$FXRate[idxTo] <- 1/assetInfo_df$FXRate[idxTo] 
+}
+callInfo_df$oriFXRate <- callInfo_df$FXRate
+if(!is.null(callInfo_df$from)&&!is.null(callInfo_df$to)){
+  idxTo <- which(callInfo_df$to=="USD")
+  callInfo_df$FXRate[idxTo] <- 1/callInfo_df$FXRate[idxTo] 
 }
 
 # venue: all SG

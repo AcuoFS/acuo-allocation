@@ -340,6 +340,7 @@ ConstructAllocDf <- function(resourceInfo_df,callInfo_df,haircutC_vec,haircutFX_
   call_vec <- rep(callInfo_df$id,length(cost_vec))
   
   assetFX_vec <- resourceInfo_df$FXRate
+  assetOriFX_vec <- resourceInfo_df$oriFXRate
   assetUnitValue_vec <- resourceInfo_df$unitValue/assetFX_vec
   
   assetAmountUSD_vec <- assetQuantity_vec*assetUnitValue_vec
@@ -350,7 +351,7 @@ ConstructAllocDf <- function(resourceInfo_df,callInfo_df,haircutC_vec,haircutFX_
   assetAmount_vec <- assetAmountUSD_vec*assetFX_vec
   assetNetAmount_vec <- assetNetAmountUSD_vec*assetFX_vec
   
-  alloc_df <- data.frame(assetId_vec,assetName_vec,assetNetAmount_vec,assetNetAmountUSD_vec,assetFX_vec,assetHaircut_vec,assetHaircutC_vec,assetHaircutFX_vec,assetAmount_vec,assetAmountUSD_vec,
+  alloc_df <- data.frame(assetId_vec,assetName_vec,assetNetAmount_vec,assetNetAmountUSD_vec,assetOriFX_vec,assetHaircut_vec,assetHaircutC_vec,assetHaircutFX_vec,assetAmount_vec,assetAmountUSD_vec,
                          assetCurrency_vec,assetQuantity_vec,assetCustodianAccount_vec,assetVenue_vec,marginType_vec,ms_vec,call_vec,assetCostFactor_vec,assetCost_vec)
   colnames(alloc_df)<- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Hc','Hfx','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType',
                          'marginStatement','marginCall','CostFactor','Cost')
@@ -636,7 +637,7 @@ ResourceInfo <- function(resource_vec,assetInfo_df,availAsset_df){
   ## asset id, name, currency, unitValue, minUnit, minUnitValue, FXRate
   assetId_vec <- SplitResource(resource_vec,'asset')
   custodianAccount_vec <- SplitResource(resource_vec,'custodianAccount')
-  idx1_vec <- match(c('id', 'name', 'unitValue', 'minUnit', 'minUnitValue','currency', 'FXRate'),names(assetInfo_df))
+  idx1_vec <- match(c('id', 'name', 'unitValue', 'minUnit', 'minUnitValue','currency', 'FXRate','oriFXRate'),names(assetInfo_df))
   resource_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),idx1_vec]
   
   ## add resource id, custodianAccount id, quantity, minQty, qtyRes
@@ -647,10 +648,10 @@ ResourceInfo <- function(resource_vec,assetInfo_df,availAsset_df){
   qtyMin_vec <- floor(qtyOri_vec/resource_df$minUnit) # interal minUnit quantity
   qtyRes_vec <- qtyOri_vec - qtyMin_vec*resource_df$minUnit # quantity left after integral minQty
   
-  resource_df <- cbind(resource_df[,1:3],qtyOri_vec,qtyMin_vec,qtyRes_vec,resource_df[,4:9],venue_vec)
+  resource_df <- cbind(resource_df[,1:3],qtyOri_vec,qtyMin_vec,qtyRes_vec,resource_df[,4:10],venue_vec)
   resource_df$id <- as.character(resource_df$id)
   
-  names(resource_df) <- c('id','assetId','assetName','qtyOri','qtyMin','qtyRes','unitValue', 'minUnit','minUnitValue','currency','FXRate',
+  names(resource_df) <- c('id','assetId','assetName','qtyOri','qtyMin','qtyRes','unitValue', 'minUnit','minUnitValue','currency','FXRate','oriFXRate',
                           'custodianAccount','venue')
   
   return(resource_df)
