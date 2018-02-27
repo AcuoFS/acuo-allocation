@@ -58,7 +58,7 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
   suffPerCall <- all(apply(eli_mat*(quantity_mat*minUnitValue_mat*(1-haircut_mat)),1,sum) > callAmount_mat[,1])
   suffAllCall <- sum(resource_df$qtyMin*minUnitValue_mat[1,]*(1-apply(haircut_mat,2,max)))>sum(callAmount_mat[,1])
   if(!(suffPerCall&suffAllCall)){
-    stop('ALERR2003: Asset inventory is insufficient!')
+    stop('ALERR2003: Asset inventory is insufficient')
   }
   #### CHECK WHETHER ASSET POOL IS SUFFICIENT END ############
   
@@ -210,7 +210,7 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
       if(callNum==1){
         rank_vec <- objParams_list$cost_mat*pref_vec[1]+objParams_list$liquidity_mat*pref_vec[2]
         callAmount <- callInfo_df$callAmount
-        solverSolution_vec <- AllocateByRank(resource_vec[idxEli_vec],callId,rank_vec,callAmount,quantity_vec[idxEli_vec],minUnitValue_vec[idxEli_vec],haircut_vec[idxEli_vec],operLimit)
+        solverSolution_vec <- AllocateByRank(resource_vec[idxEli_vec],callInfo_df$id,rank_vec,callAmount,quantity_vec[idxEli_vec],minUnitValue_vec[idxEli_vec],haircut_vec[idxEli_vec],operLimit)
       } else{ # Solver time out
         #### choose the best alternative
         solverSolution_vec <- lpGuessBasis_vec

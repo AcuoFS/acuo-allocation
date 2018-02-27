@@ -78,7 +78,7 @@ OperationFun <- function(result,callInfo_df,method){
     }
     
   } else{
-    stop('ALERR3005: Invalid OperationFun input method!')
+    stop('ALERR3005: Invalid OperationFun input method')
   }
   
   return(movements)
@@ -341,6 +341,7 @@ ConstructAllocDf <- function(resourceInfo_df,callInfo_df,haircutC_vec,haircutFX_
   call_vec <- rep(callInfo_df$id,length(cost_vec))
   
   assetFX_vec <- resourceInfo_df$FXRate
+  #oriAssetFX_vec <- resourceInfo_df$oriFXRate
   assetUnitValue_vec <- resourceInfo_df$unitValue/assetFX_vec
   
   assetAmountUSD_vec <- assetQuantity_vec*assetUnitValue_vec
@@ -897,19 +898,50 @@ AllocateByRank <- function(resource_vec,callId,rank_vec,callAmount,quantity_vec,
   # process
   # find the optimal resources within number of (operLimit) which are sufficient for the call
   solution_vec <- rep(0,length(resource_vec))
-  if(operLimit<2){ # operLimit=1
-    integralSuffQty_vec <- ceiling(callAmount/(1-haircut_vec)/minUnitValue_vec)
-    suffIdx_vec <- which(quantity_vec >= integralSuffQty_vec)
-    if(length(suffIdx_vec)==0){
-      errormsg <- paste('ALERR2004: It is not sufficient to allocate',floor(operLimit),'assets for',callId,'!')
-      stop(errormsg)
+  leftCallAmount <- callAmount
+  integralSuffQty_vec <- ceiling(callAmount/(1-haircut_vec)/minUnitValue_vec)
+  suffIdx_vec <- which(quantity_vec >= integralSuffQty_vec)
+  if(length(suffIdx_vec)>=1){
+    suffResource_vec <- resource_vec[suffIdx_vec]
+    tempIdx <- which.max(rank_vec[suffIdx_vec])
+    optimalResource <- suffResource_vec[tempIdx]
+    optimalIdx <- which(resource_vec==optimalResource)
+    quantity <- integralSuffQty_vec[optimalIdx]
+    solution_vec[optimalIdx] <- quantity
+  } else{
+    if(operLimit<=1){ # operLimit=1
+        errormsg <- paste('ALERR2004: It is not sufficient to allocate',floor(operLimit),'assets for',callId)
+        stop(errormsg)
     } else{
-      suffResource_vec <- resource_vec[suffIdx_vec]
-      tempIdx <- which.max(rank_vec[suffIdx_vec])
-      optimalResource <- suffResource_vec[tempIdx]
-      optimalIdx <- which(resource_vec==optimalResource)
-      quantity <- integralSuffQty_vec[optimalIdx]
-      solution_vec[optimalIdx] <- quantity
+      for(i in 1:operLimit){
+        amount_vec <- floor(quantity_vec)*(1-haircut_vec)*minUnitValue_vec
+        suffIdx_vec <- which(amount_vec >= callAmount)
+        if(length(suffIdx_vec)==0){
+          oriIdx_vec <- which(amount_vec==amount_vec[which.max(amount_vec)])
+          tempIdx <- which.max(rank_vec[oriIdx_vec])
+          optimalResource <- resource_vec[oriIdx_vec[tempIdx]]
+          optimalIdx <- which(resource_vec==optimalResource)
+          adjAmount <- quantity_vec[optimalIdx]*minUnitValue_vec[optimalIdx]*(1-haircut_vec[optimalIdx])
+          if(leftCallAmount>adjAmount){
+            quantity <- quantity_vec[optimalIdx]
+            solution_vec[optimalIdx] <- quantity
+            quantity_vec[optimalIdx] <- 0
+            amount_vec <- floor(quantity_vec)*(1-haircut_vec)*minUnitValue_vec
+            leftCallAmount <- leftCallAmount-adjAmount
+          } else{
+            quantity <- ceiling(leftCallAmount/(1-haircut_vec[optimalIdx])/minUnitValue_vec[optimalIdx])
+            solution_vec[optimalIdx] <- quantity
+            quantity_vec[optimalIdx] <- quantity_vec[optimalIdx] - quantity
+            amount_vec <- floor(quantity_vec)*(1-haircut_vec)*minUnitValue_vec
+            leftCallAmount <- leftCallAmount-adjAmount
+            break
+          }
+        }
+      }
+      if(leftCallAmount > 0){
+        errormsg <- paste('ALERR2004: It is not sufficient to allocate',floor(operLimit),'assets for',callId)
+        stop(errormsg)
+      }
     }
   }
   return(solution_vec)
@@ -1229,7 +1261,7 @@ SplitVarName <- function(varName_vec,target){
   } else if(target=='all'){
     return(varName_mat)
   } else{
-    stop('ALERR3001: Invalid varName_vec splitor!')
+    stop('ALERR3001: Invalid varName_vec splitor')
   }
 }
 

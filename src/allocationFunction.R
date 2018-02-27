@@ -8,16 +8,16 @@ CallAllocation <- function(algoVersion,scenario,callId_vec,resource_vec,callInfo
   # scenario = 3, post least liquid assets
   #### Scenario Code END ###########
   resource_vec <- as.character(resource_vec)
-  if(missing(inputLimit_vec)){
+  if(exists("inputLimit_vec")){
     inputLimit_vec <- c(7,7,7,4)
   }
-  if(missing(timeLimit)){
+  if(exists("timeLimit")){
     timeLimit <- 13
   }
-  if(missing(callOrderMethod)){
+  if(exists("callOrderMethod")){
     callOrderMethod <- 3
   }
-  if(missing(minMoveValue)){
+  if(exists("minMoveValue")){
     minMoveValue <- 1000
   }
 

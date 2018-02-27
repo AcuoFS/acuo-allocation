@@ -45,6 +45,7 @@ operLimit<- sum(operLimitMs_vec)
 fungible <- FALSE
 pref_vec <- c(5,5)
 
+save.image("E:/ACUO/projects/acuo-allocation/test/basicParams.RData")
 
 #### Input Prepare END #############
 
