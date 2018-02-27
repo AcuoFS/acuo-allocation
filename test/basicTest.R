@@ -49,7 +49,7 @@ save.image("E:/ACUO/projects/acuo-allocation/test/basicParams.RData")
 
 #### Input Prepare END #############
 
-result1 <- CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
-                          callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs_vec,fungible,
+result1 <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
+                          pref_vec,operLimit,operLimitMs_vec,fungible,
                           ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue)
 

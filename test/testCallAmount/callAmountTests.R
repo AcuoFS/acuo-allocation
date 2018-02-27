@@ -7,15 +7,15 @@ load("E:/ACUO/projects/acuo-allocation/test/basicParams.RData")
 
 testCallAmount0 <- function(){
   callInfo_df$callAmount <- 0
-  expect_error( CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
+  expect_error( CallAllocation(algoVersion,scenario=1,
                                callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs_vec,fungible,
                                ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue), "ALEER3004: There's no asset allocated to margin call mcusd11")
 }
 
 testCallAmount1 <- function(){
   callInfo_df$callAmount <- 1
-  result <- CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
-                               callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs_vec,fungible,
+  result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
+                               pref_vec,operLimit,operLimitMs_vec,fungible,
                                ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue)
   checkEquals(as.character(result$callOutput$mcusd11$Asset),'USD')
   checkEquals(result$callOutput$mcusd11$Quantity,1)
@@ -25,8 +25,8 @@ testCallAmount1 <- function(){
 
 testCallAmount5000 <- function(){
   callInfo_df$callAmount <- 5000
-  result <- CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
-                           callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs_vec,fungible,
+  result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
+                           pref_vec,operLimit,operLimitMs_vec,fungible,
                            ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue)
   checkEquals(as.character(result$callOutput$mcusd11$Asset),'USD')
   checkEquals(result$callOutput$mcusd11$Quantity,5000)
@@ -36,8 +36,8 @@ testCallAmount5000 <- function(){
 
 testCallAmount170000 <- function(){
   callInfo_df$callAmount <- 170000
-  expect_error( CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
-                               callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs_vec,fungible,
+  expect_error( CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
+                               pref_vec,operLimit,operLimitMs_vec,fungible,
                                ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue), "ALERR2004: It is not sufficient to allocate 2 assets for mcusd11")
 }
 testCallAmountRunTime <- function(){
@@ -48,8 +48,8 @@ testCallAmountRunTime <- function(){
   for(i in 1:length(callAmount_vec)){
     ptm <- proc.time()
     callInfo_df$callAmount <- callAmount_vec[i]
-    result <- CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
-                             callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs_vec,fungible,
+    result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
+                             pref_vec,operLimit,operLimitMs_vec,fungible,
                              ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue)
     temp <- proc.time() - ptm
     runTime_vec[i] <- temp[3]

@@ -26,8 +26,13 @@ source("src/callLpSolve.R")
 #### Sources END ###########
 
 #### Input Prepare Start ###########
-msId_vec <- c("d80460e2", "43737406", "1de00aa", "15e990a9", "a85d1e7b", "468ca537", "f2cc422d", 
-              "7a41ab52", "feda5493", "16817ec2", "60153f48", "e2c1305d", "f3522a91", "77f56e63", "eeade3bd", "63dc659c", "5c723b03", "b2b1865d", "2162e7b5", "a9ae84b1")
+msId_vec <- c("5fdf41b3",
+              "dbb2b888",
+              "df1ae048",
+              "26e1065e",
+              "9320959e",
+              "dbb2b888")
+
 callId_vec <- unlist(CallIdByMsId(msId_vec))
 #agreementId_vec <- c('a1','a34')
 #callId_vec <- unname(unlist(callIdByAgreementId(agreementId_vec)))
@@ -120,17 +125,17 @@ fungible <- FALSE
 
 # scenario 1: Algo Suggestion
 
-result1 <- CallAllocation(algoVersion,scenario=1,callId_vec,resource_vec,
+result1 <- CallAllocation(algoVersion,scenario=1,
                           callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs_vec,fungible,
                           ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue)
 
 # scenario 2: Post Settlement Currency
-result2 <- CallAllocation(algoVersion,scenario=2,callId_vec,resource_vec,
+result2 <- CallAllocation(algoVersion,scenario=2,
                           callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs_vec,fungible,
                           ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue)
 
 # scenario 3: post least liquid assets
-result3 <- CallAllocation(algoVersion,scenario=3,callId_vec,resource_vec,
+result3 <- CallAllocation(algoVersion,scenario=3,
                           callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs_vec,fungible,
                           ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue)
 scenarios[['Algo']] <- result1
