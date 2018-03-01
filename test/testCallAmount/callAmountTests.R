@@ -1,5 +1,6 @@
 
 library("XLConnect")
+library("testthat")
 
 # load basic parameters
 load("E:/ACUO/projects/acuo-allocation/test/basicParams.RData")

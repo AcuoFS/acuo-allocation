@@ -20,11 +20,20 @@ availAssetWorkbook <- loadWorkbook(availAssetPath)
 
 
 #### Input Prepare Start ###########
+inputLimit_vec <- c(7,7,7,4)
+timeLimit <- 1000
+callOrderMethod <- 3
+minMoveValue <- 0
+algoVersion <- 2
+fungible <- FALSE
+pref_vec <- c(5,5)
+
 # read data
 callInfo_df <- readWorksheet(callInfoWorkbook,sheet ="USD",startRow = 1,endRow = 2,header=TRUE)
 assetInfo_df <- readWorksheet(assetInfoWorkbook,sheet ="assets",header=TRUE)
-availAsset_df <- readWorksheet(availAssetWorkbook,sheet ="headers",header=TRUE)
+availAsset_df <- readWorksheet(availAssetWorkbook,sheet ="USD",startRow = 1,endRow = 4,header=TRUE)
 
+availAsset_df$callId <- callInfo_df$id
 assetCustacId_vec <- PasteResource(availAsset_df$assetId,availAsset_df$CustodianAccount)
 availAsset_df$assetCustacId <- assetCustacId_vec
 resource_vec <- unique(assetCustacId_vec)
@@ -32,18 +41,9 @@ resource_vec <- unique(assetCustacId_vec)
 resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
 availAsset_df <- AvailAsset(availAsset_df)
 
-inputLimit_vec <- c(7,7,7,4)
-timeLimit <- 1000
-callOrderMethod <- 3
-minMoveValue <- 0
-
-
-algoVersion <- 2
 msNum <- length(unique(callInfo_df$marginStatement))
 operLimitMs_vec <- rep(2,msNum)
 operLimit<- sum(operLimitMs_vec)
-fungible <- FALSE
-pref_vec <- c(5,5)
 
 save.image("E:/ACUO/projects/acuo-allocation/test/basicParams.RData")
 
