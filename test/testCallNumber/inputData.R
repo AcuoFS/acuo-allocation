@@ -1,6 +1,6 @@
 
 #### Sources Start #########
-setwd("E:/ACUO/projects/acuo-allocation/")
+setwd("")
 source("src/generalFunctions.R")
 source("src/allocationFunction.R")
 source("src/coreAlgo.R")
@@ -43,7 +43,7 @@ availAsset_df <- AvailAsset(availAsset_df)
 msNum <- length(unique(callInfo_df$marginStatement))
 operLimitMs_vec <- rep(2,msNum)
 operLimit<- sum(operLimitMs_vec)
-save.image("E:/ACUO/projects/acuo-allocation/test/testCallNumber/callNumber0.RData")
+save.image("test/testCallNumber/callNumber0.RData")
 
 # VM call number = 1
 callInfo_df <- usdCallInfo_df[1,]
@@ -54,7 +54,7 @@ availAsset_df <- AvailAsset(availAsset_df)
 msNum <- length(unique(callInfo_df$marginStatement))
 operLimitMs_vec <- rep(2,msNum)
 operLimit<- sum(operLimitMs_vec)
-save.image("E:/ACUO/projects/acuo-allocation/test/testCallNumber/callNumberVM1.RData")
+save.image("test/testCallNumber/callNumberVM1.RData")
 
 # VM call number = 2
 callInfo_df <- usdCallInfo_df[1:2,]
@@ -70,7 +70,7 @@ rm(tempAvailAsset_df)
 msNum <- length(unique(callInfo_df$marginStatement))
 operLimitMs_vec <- rep(2,msNum)
 operLimit<- sum(operLimitMs_vec)
-save.image("E:/ACUO/projects/acuo-allocation/test/testCallNumber/callNumberVM2.RData")
+save.image("test/testCallNumber/callNumberVM2.RData")
 
 # VM call number = 3
 callInfo_df <- usdCallInfo_df[1:3,]
@@ -86,7 +86,7 @@ rm(tempAvailAsset_df)
 msNum <- length(unique(callInfo_df$marginStatement))
 operLimitMs_vec <- rep(2,msNum)
 operLimit<- sum(operLimitMs_vec)
-save.image("E:/ACUO/projects/acuo-allocation/test/testCallNumber/callNumberVM3.RData")
+save.image("test/testCallNumber/callNumberVM3.RData")
 
 # VM call number = 6
 callInfo_df <- usdCallInfo_df[1:6,]
@@ -102,7 +102,7 @@ rm(tempAvailAsset_df)
 msNum <- length(unique(callInfo_df$marginStatement))
 operLimitMs_vec <- rep(2,msNum)
 operLimit<- sum(operLimitMs_vec)
-save.image("E:/ACUO/projects/acuo-allocation/test/testCallNumber/callNumberVM6.RData")
+save.image("test/testCallNumber/callNumberVM6.RData")
 
 # VM call number = 10
 callInfo_df <- usdCallInfo_df[1:10,]
@@ -118,7 +118,7 @@ rm(tempAvailAsset_df)
 msNum <- length(unique(callInfo_df$marginStatement))
 operLimitMs_vec <- rep(2,msNum)
 operLimit<- sum(operLimitMs_vec)
-save.image("E:/ACUO/projects/acuo-allocation/test/testCallNumber/callNumberVM10.RData")
+save.image("test/testCallNumber/callNumberVM10.RData")
 
 # VM call number = 15
 callInfo_df <- usdCallInfo_df[1:15,]
@@ -134,7 +134,7 @@ rm(tempAvailAsset_df)
 msNum <- length(unique(callInfo_df$marginStatement))
 operLimitMs_vec <- rep(2,msNum)
 operLimit<- sum(operLimitMs_vec)
-save.image("E:/ACUO/projects/acuo-allocation/test/testCallNumber/callNumberVM15.RData")
+save.image("test/testCallNumber/callNumberVM15.RData")
 
 # VM call number = 20
 callInfo_df <- usdCallInfo_df[1:20,]
@@ -150,7 +150,7 @@ rm(tempAvailAsset_df)
 msNum <- length(unique(callInfo_df$marginStatement))
 operLimitMs_vec <- rep(2,msNum)
 operLimit<- sum(operLimitMs_vec)
-save.image("E:/ACUO/projects/acuo-allocation/test/testCallNumber/callNumberVM20.RData")
+save.image("test/testCallNumber/callNumberVM20.RData")
 
 # Medium VM call number = 3
 callInfo_df <- usdCallInfo_df[41:43,]
@@ -166,7 +166,7 @@ rm(tempAvailAsset_df)
 msNum <- length(unique(callInfo_df$marginStatement))
 operLimitMs_vec <- rep(2,msNum)
 operLimit<- sum(operLimitMs_vec)
-save.image("E:/ACUO/projects/acuo-allocation/test/testCallNumber/callNumberMediumVM3.RData")
+save.image("test/testCallNumber/callNumberMediumVM3.RData")
 
 # VM call number = 1, IM call number = 1
 callInfo_df <- usdCallInfo_df[21:22,]
@@ -182,7 +182,7 @@ rm(tempAvailAsset_df)
 msNum <- length(unique(callInfo_df$marginStatement))
 operLimitMs_vec <- rep(2,msNum)
 operLimit<- sum(operLimitMs_vec)
-save.image("E:/ACUO/projects/acuo-allocation/test/testCallNumber/callNumberVM1IM1.RData")
+save.image("test/testCallNumber/callNumberVM1IM1.RData")
 
 # VM call number = 2, IM call number = 2
 callInfo_df <- usdCallInfo_df[21:24,]
@@ -198,7 +198,7 @@ rm(tempAvailAsset_df)
 msNum <- length(unique(callInfo_df$marginStatement))
 operLimitMs_vec <- rep(2,msNum)
 operLimit<- sum(operLimitMs_vec)
-save.image("E:/ACUO/projects/acuo-allocation/test/testCallNumber/callNumberVM2IM2.RData")
+save.image("test/testCallNumber/callNumberVM2IM2.RData")
 
 # VM call number = 3, IM call number = 3
 callInfo_df <- usdCallInfo_df[21:26,]
@@ -214,7 +214,7 @@ rm(tempAvailAsset_df)
 msNum <- length(unique(callInfo_df$marginStatement))
 operLimitMs_vec <- rep(2,msNum)
 operLimit<- sum(operLimitMs_vec)
-save.image("E:/ACUO/projects/acuo-allocation/test/testCallNumber/callNumberVM3IM3.RData")
+save.image("test/testCallNumber/callNumberVM3IM3.RData")
 
 # VM call number = 6, IM call number = 6
 callInfo_df <- usdCallInfo_df[21:32,]
@@ -230,7 +230,7 @@ rm(tempAvailAsset_df)
 msNum <- length(unique(callInfo_df$marginStatement))
 operLimitMs_vec <- rep(2,msNum)
 operLimit<- sum(operLimitMs_vec)
-save.image("E:/ACUO/projects/acuo-allocation/test/testCallNumber/callNumberVM6IM6.RData")
+save.image("test/testCallNumber/callNumberVM6IM6.RData")
 
 # VM call number = 10, IM call number = 10
 callInfo_df <- usdCallInfo_df[21:40,]
@@ -246,10 +246,10 @@ rm(tempAvailAsset_df)
 msNum <- length(unique(callInfo_df$marginStatement))
 operLimitMs_vec <- rep(2,msNum)
 operLimit<- sum(operLimitMs_vec)
-save.image("E:/ACUO/projects/acuo-allocation/test/testCallNumber/callNumberVM10IM10.RData")
+save.image("test/testCallNumber/callNumberVM10IM10.RData")
 
-# VM call number = 15, IM call number = 15
-callInfo_df <- usdCallInfo_df[c(21:40,61:70),]
+# Medium VM call number = 2, Medium IM call number = 1
+callInfo_df <- usdCallInfo_df[c(60:62),]
 availAsset_df <- usdAvailAsset_df[-(1:length(usdAvailAsset_df$callId)),]
 for(i in 1:length(callInfo_df$id)){
   tempAvailAsset_df <- usdAvailAsset_df[which(usdAvailAsset_df$callType==callInfo_df$marginType[i]),]
@@ -262,23 +262,8 @@ rm(tempAvailAsset_df)
 msNum <- length(unique(callInfo_df$marginStatement))
 operLimitMs_vec <- rep(2,msNum)
 operLimit<- sum(operLimitMs_vec)
-save.image("E:/ACUO/projects/acuo-allocation/test/testCallNumber/callNumberVM15IM15.RData")
+save.image("test/testCallNumber/callNumberMediumVM2IM1.RData")
 
-# VM call number = 20, IM call number = 20
-callInfo_df <- usdCallInfo_df[c(21:40,61:80),]
-availAsset_df <- usdAvailAsset_df[-(1:length(usdAvailAsset_df$callId)),]
-for(i in 1:length(callInfo_df$id)){
-  tempAvailAsset_df <- usdAvailAsset_df[which(usdAvailAsset_df$callType==callInfo_df$marginType[i]),]
-  tempAvailAsset_df <- tempAvailAsset_df[1:3,]
-  tempAvailAsset_df$callId <- callInfo_df$id[i]
-  availAsset_df <- rbind(availAsset_df,tempAvailAsset_df)
-}
-availAsset_df <- AvailAsset(availAsset_df)
-rm(tempAvailAsset_df)
-msNum <- length(unique(callInfo_df$marginStatement))
-operLimitMs_vec <- rep(2,msNum)
-operLimit<- sum(operLimitMs_vec)
-save.image("E:/ACUO/projects/acuo-allocation/test/testCallNumber/callNumberVM20IM20.RData")
 
 #### Input Prepare END #############
 
