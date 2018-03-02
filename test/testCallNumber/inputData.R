@@ -32,12 +32,12 @@ usdAvailAsset_df <- readWorksheet(availAssetWorkbook,sheet ="USD",header=TRUE)
 
 assetCustacId_vec <- PasteResource(usdAvailAsset_df$assetId,usdAvailAsset_df$CustodianAccount)
 usdAvailAsset_df$assetCustacId <- assetCustacId_vec
-resource_vec <- unique(assetCustacId_vec)
-resource_df <- ResourceInfo(resource_vec,assetInfo_df,usdAvailAsset_df)
 
 # VM call number = 0
 callInfo_df <- usdCallInfo_df[-(1:length(usdCallInfo_df$id)),]
 availAsset_df <- usdAvailAsset_df[1:3,]
+resource_vec <- unique(availAsset_df$assetCustacId)
+resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
 availAsset_df <- AvailAsset(availAsset_df)
 msNum <- length(unique(callInfo_df$marginStatement))
 operLimitMs_vec <- rep(2,msNum)
@@ -46,9 +46,11 @@ save.image("test/testCallNumber/callNumber0.RData")
 
 # VM call number = 1
 callInfo_df <- usdCallInfo_df[1,]
-availAsset_df <- availAsset_df[which(usdAvailAsset_df$callType==callInfo_df$marginType),]
+availAsset_df <- usdAvailAsset_df[which(usdAvailAsset_df$callType==callInfo_df$marginType),]
 availAsset_df <- availAsset_df[1:3,]
 availAsset_df$callId <- callInfo_df$id
+resource_vec <- unique(availAsset_df$assetCustacId)
+resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
 availAsset_df <- AvailAsset(availAsset_df)
 msNum <- length(unique(callInfo_df$marginStatement))
 operLimitMs_vec <- rep(2,msNum)
@@ -64,6 +66,8 @@ for(i in 1:length(callInfo_df$id)){
   tempAvailAsset_df$callId <- callInfo_df$id[i]
   availAsset_df <- rbind(availAsset_df,tempAvailAsset_df)
 }
+resource_vec <- unique(availAsset_df$assetCustacId)
+resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
 availAsset_df <- AvailAsset(availAsset_df)
 rm(tempAvailAsset_df)
 msNum <- length(unique(callInfo_df$marginStatement))
@@ -80,6 +84,8 @@ for(i in 1:length(callInfo_df$id)){
   tempAvailAsset_df$callId <- callInfo_df$id[i]
   availAsset_df <- rbind(availAsset_df,tempAvailAsset_df)
 }
+resource_vec <- unique(availAsset_df$assetCustacId)
+resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
 availAsset_df <- AvailAsset(availAsset_df)
 rm(tempAvailAsset_df)
 msNum <- length(unique(callInfo_df$marginStatement))
@@ -96,6 +102,8 @@ for(i in 1:length(callInfo_df$id)){
   tempAvailAsset_df$callId <- callInfo_df$id[i]
   availAsset_df <- rbind(availAsset_df,tempAvailAsset_df)
 }
+resource_vec <- unique(availAsset_df$assetCustacId)
+resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
 availAsset_df <- AvailAsset(availAsset_df)
 rm(tempAvailAsset_df)
 msNum <- length(unique(callInfo_df$marginStatement))
@@ -112,6 +120,8 @@ for(i in 1:length(callInfo_df$id)){
   tempAvailAsset_df$callId <- callInfo_df$id[i]
   availAsset_df <- rbind(availAsset_df,tempAvailAsset_df)
 }
+resource_vec <- unique(availAsset_df$assetCustacId)
+resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
 availAsset_df <- AvailAsset(availAsset_df)
 rm(tempAvailAsset_df)
 msNum <- length(unique(callInfo_df$marginStatement))
@@ -128,6 +138,8 @@ for(i in 1:length(callInfo_df$id)){
   tempAvailAsset_df$callId <- callInfo_df$id[i]
   availAsset_df <- rbind(availAsset_df,tempAvailAsset_df)
 }
+resource_vec <- unique(availAsset_df$assetCustacId)
+resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
 availAsset_df <- AvailAsset(availAsset_df)
 rm(tempAvailAsset_df)
 msNum <- length(unique(callInfo_df$marginStatement))
@@ -144,6 +156,8 @@ for(i in 1:length(callInfo_df$id)){
   tempAvailAsset_df$callId <- callInfo_df$id[i]
   availAsset_df <- rbind(availAsset_df,tempAvailAsset_df)
 }
+resource_vec <- unique(availAsset_df$assetCustacId)
+resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
 availAsset_df <- AvailAsset(availAsset_df)
 rm(tempAvailAsset_df)
 msNum <- length(unique(callInfo_df$marginStatement))
@@ -160,6 +174,8 @@ for(i in 1:length(callInfo_df$id)){
   tempAvailAsset_df$callId <- callInfo_df$id[i]
   availAsset_df <- rbind(availAsset_df,tempAvailAsset_df)
 }
+resource_vec <- unique(availAsset_df$assetCustacId)
+resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
 availAsset_df <- AvailAsset(availAsset_df)
 rm(tempAvailAsset_df)
 msNum <- length(unique(callInfo_df$marginStatement))
@@ -176,6 +192,8 @@ for(i in 1:length(callInfo_df$id)){
   tempAvailAsset_df$callId <- callInfo_df$id[i]
   availAsset_df <- rbind(availAsset_df,tempAvailAsset_df)
 }
+resource_vec <- unique(availAsset_df$assetCustacId)
+resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
 availAsset_df <- AvailAsset(availAsset_df)
 rm(tempAvailAsset_df)
 msNum <- length(unique(callInfo_df$marginStatement))
@@ -192,6 +210,8 @@ for(i in 1:length(callInfo_df$id)){
   tempAvailAsset_df$callId <- callInfo_df$id[i]
   availAsset_df <- rbind(availAsset_df,tempAvailAsset_df)
 }
+resource_vec <- unique(availAsset_df$assetCustacId)
+resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
 availAsset_df <- AvailAsset(availAsset_df)
 rm(tempAvailAsset_df)
 msNum <- length(unique(callInfo_df$marginStatement))
@@ -208,6 +228,8 @@ for(i in 1:length(callInfo_df$id)){
   tempAvailAsset_df$callId <- callInfo_df$id[i]
   availAsset_df <- rbind(availAsset_df,tempAvailAsset_df)
 }
+resource_vec <- unique(availAsset_df$assetCustacId)
+resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
 availAsset_df <- AvailAsset(availAsset_df)
 rm(tempAvailAsset_df)
 msNum <- length(unique(callInfo_df$marginStatement))
@@ -224,6 +246,8 @@ for(i in 1:length(callInfo_df$id)){
   tempAvailAsset_df$callId <- callInfo_df$id[i]
   availAsset_df <- rbind(availAsset_df,tempAvailAsset_df)
 }
+resource_vec <- unique(availAsset_df$assetCustacId)
+resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
 availAsset_df <- AvailAsset(availAsset_df)
 rm(tempAvailAsset_df)
 msNum <- length(unique(callInfo_df$marginStatement))
@@ -240,6 +264,8 @@ for(i in 1:length(callInfo_df$id)){
   tempAvailAsset_df$callId <- callInfo_df$id[i]
   availAsset_df <- rbind(availAsset_df,tempAvailAsset_df)
 }
+resource_vec <- unique(availAsset_df$assetCustacId)
+resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
 availAsset_df <- AvailAsset(availAsset_df)
 rm(tempAvailAsset_df)
 msNum <- length(unique(callInfo_df$marginStatement))
@@ -256,6 +282,8 @@ for(i in 1:length(callInfo_df$id)){
   tempAvailAsset_df$callId <- callInfo_df$id[i]
   availAsset_df <- rbind(availAsset_df,tempAvailAsset_df)
 }
+resource_vec <- unique(availAsset_df$assetCustacId)
+resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
 availAsset_df <- AvailAsset(availAsset_df)
 rm(tempAvailAsset_df)
 msNum <- length(unique(callInfo_df$marginStatement))
