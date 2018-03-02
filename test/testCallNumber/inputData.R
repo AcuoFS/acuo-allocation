@@ -1,6 +1,5 @@
 
 #### Sources Start #########
-setwd("")
 source("src/generalFunctions.R")
 source("src/allocationFunction.R")
 source("src/coreAlgo.R")

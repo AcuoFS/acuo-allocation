@@ -1,5 +1,9 @@
 
 library("testthat")
+source("src/allocationFunction.R")
+source("src/coreAlgo.R")
+source("src/callLpSolve.R")
+source("src/generalFunctions.R")
 
 testCallNumber0 <- function(){
   load("test/testCallNumber/callNumber0.RData")
