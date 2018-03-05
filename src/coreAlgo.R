@@ -205,8 +205,10 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
     
     #### Exception Start ####
     errStatus <- c(2,5,6,7,10,13)
-    
-    if(is.element(solverStatus,errStatus)){
+    if(solverStatus==2){
+      errormsg <- paste("The model constructed by margin calls",paste(callId_vec,collapse = " "),"is infeasible")
+      stop(errormsg)
+    } else if(is.element(solverStatus,errStatus)){
       if(callNum==1){
         rank_vec <- objParams_list$cost_mat*pref_vec[1]+objParams_list$liquidity_mat*pref_vec[2]
         callAmount <- callInfo_df$callAmount

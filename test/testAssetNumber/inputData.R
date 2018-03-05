@@ -26,7 +26,7 @@ pref_vec <- c(5,5)
 fungible <- FALSE
 
 # read data
-usdCallInfo_df <- readWorksheet(callInfoWorkbook,sheet ="USD",startRow = 1,endRow = 100,header=TRUE)
+usdCallInfo_df <- readWorksheet(callInfoWorkbook,sheet ="USD",startRow = 1,endRow = 200,header=TRUE)
 assetInfo_df <- readWorksheet(assetInfoWorkbook,sheet ="assets",header=TRUE)
 usdAvailAsset_df <- readWorksheet(availAssetWorkbook,sheet ="USD",header=TRUE)
 
@@ -312,6 +312,26 @@ msNum <- length(unique(callInfo_df$marginStatement))
 operLimitMs_vec <- rep(2,msNum)
 operLimit<- sum(operLimitMs_vec)
 save.image("test/testAssetNumber/callNumberMedium6AssetNumber30.RData")
+
+# call number large = 3, asset number = 30
+callInfo_df <- usdCallInfo_df[100:102,]
+availAsset_df <- usdAvailAsset_df[-(1:length(usdAvailAsset_df$callId)),]
+for(i in 1:length(callInfo_df$id)){
+  tempAvailAsset_df <- usdAvailAsset_df[which(usdAvailAsset_df$callType==callInfo_df$marginType[i]),]
+  if(length(tempAvailAsset_df[,1])>30){
+    tempAvailAsset_df <- tempAvailAsset_df[1:30,]
+  }
+  tempAvailAsset_df$callId <- callInfo_df$id[i]
+  availAsset_df <- rbind(availAsset_df,tempAvailAsset_df)
+}
+resource_vec <- unique(availAsset_df$assetCustacId)
+resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
+availAsset_df <- AvailAsset(availAsset_df)
+rm(tempAvailAsset_df)
+msNum <- length(unique(callInfo_df$marginStatement))
+operLimitMs_vec <- rep(2,msNum)
+operLimit<- sum(operLimitMs_vec)
+save.image("test/testAssetNumber/callNumberLarge3AssetNumber30.RData")
 
 
 
