@@ -166,16 +166,7 @@ testMediumCallNumber6AssetNumber30 <- function(){
 
 testLargeCallNumber3AssetNumber30 <- function(){
   load("test/testAssetNumber/callNumberLarge3AssetNumber30.RData")
-  result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
-                           pref_vec,operLimit,operLimitMs_vec,fungible,
-                           ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue)
-  checkEquals(as.character(result$callOutput$mcusd531$Asset),'DE0001108603')
-  checkEquals(as.character(result$callOutput$mcusd512$Asset),'GBP')
-  checkEquals(as.character(result$callOutput$mcusd521$Asset),'FR0000570897')
-  checkEquals(result$callOutput$mcusd531$Quantity,4729652)
-  checkEquals(result$callOutput$mcusd522$Quantity,44211.96)
-  checkEquals(result$callOutput$mcusd532$Quantity,39266.31)
-  checkEquals(result$solverStatus,-1)
-  checkEquals(round(result$resultAnalysis$dailyCost,2),round(1698.689,2))
-  checkEquals(result$resultAnalysis$movements,6)
+  expect_error(CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
+                              pref_vec,operLimit,operLimitMs_vec,fungible,
+                              ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue),"The model constructed by margin calls mcusd811 mcusd812 is infeasible")
 }
