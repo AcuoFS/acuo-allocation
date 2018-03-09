@@ -19,7 +19,7 @@ availAssetWorkbook <- loadWorkbook(availAssetPath)
 
 #### Input Prepare Start ###########
 inputLimit_vec <- c(7,7,7,4)
-timeLimit <- 3600
+timeLimit <- 10
 callOrderMethod <- 3
 minMoveValue <- 0
 algoVersion <- 2
