@@ -371,7 +371,7 @@ ResultMat2List <- function(result_mat,callId_vec,resource_vec,callInfo_df, hairc
     # the allocated indexes: 
     idx_vec <- which(result_mat[i,]!=0) 
     if(length(idx_vec)==0){
-      errormsg <- paste("ALEER3004: There's no asset allocated to margin call",callId_vec[i])
+      errormsg <- paste("ALERR3004: There's no asset allocated to margin call",callId_vec[i])
       stop(errormsg)
     }
     
