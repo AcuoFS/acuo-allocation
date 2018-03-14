@@ -1,9 +1,7 @@
 
 #### Sources Start #########
+setwd("E:/ACUO/projects/acuo-allocation/")
 source("src/generalFunctions.R")
-source("src/allocationFunction.R")
-source("src/coreAlgo.R")
-source("src/callLpSolve.R")
 library("XLConnect")
 
 #### Sources END ###########
