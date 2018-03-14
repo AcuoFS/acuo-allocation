@@ -1,0 +1,19 @@
+library('RUnit')
+setwd("E://ACUO/projects/acuo-allocation/")
+test.suite1 = defineTestSuite("example",
+                             dirs = file.path("test/testObjectives"),
+                             testFileRegexp = 'objectivesTests.R')
+test.suite2 = defineTestSuite("example",
+                              dirs = file.path("test/testObjectives"),
+                              testFileRegexp = 'objectivesTests2.R')
+test.suite3 = defineTestSuite("example",
+                              dirs = file.path("test/testObjectives"),
+                              testFileRegexp = 'objectivesTests3.R')
+
+test.result1 <- runTestSuite(test.suite1)
+test.result2 <- runTestSuite(test.suite2)
+test.result3 <- runTestSuite(test.suite3)
+
+printTextProtocol(test.result1)
+printTextProtocol(test.result2)
+printTextProtocol(test.result3)
