@@ -176,7 +176,7 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
     lpEpsd <- 1e-9
     lpEpsint <- 1e-9
     lpTimeout <- timeLimit
-    bbRule <-  c("pseudononint","autoorder","greedy", "dynamic","rcostfixing")
+    bbRule <-  c("pseudononint","autoorder","greedy", "dynamic","rcostfixing","branchreverse")
     #bbRule <- c("pseudononint", "greedy", "dynamic","rcostfixing") # default
     lpScale <- c("geometric","quadratic","equilibrate", "integers")
     lpImprove <- c("solution","dualfeas","thetagap")

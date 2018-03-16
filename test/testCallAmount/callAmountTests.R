@@ -1,16 +1,19 @@
 
-library("XLConnect")
+source("src/generalFunctions.R")
+source("src/allocationFunction.R")
+source("src/coreAlgo.R")
+source("src/callLpSolve.R")
 library("testthat")
+library("XLConnect")
 
 # load basic parameters
 load("E:/ACUO/projects/acuo-allocation/test/basicParams.RData")
-
 
 testCallAmount0 <- function(){
   callInfo_df$callAmount <- 0
   expect_error( CallAllocation(algoVersion,scenario=1,
                                callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs_vec,fungible,
-                               ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue), "ALEER3004: There's no asset allocated to margin call mcusd11")
+                               ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue), "ALERR3004: There's no asset allocated to margin call mcusd11")
 }
 
 testCallAmount1 <- function(){
@@ -39,7 +42,7 @@ testCallAmount170000 <- function(){
   callInfo_df$callAmount <- 170000
   expect_error( CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
                                pref_vec,operLimit,operLimitMs_vec,fungible,
-                               ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue), "ALERR2004: It is not sufficient to allocate 2 assets for mcusd11")
+                               ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue), "ALERR2005: The model constructed by margin calls mcusd11 is infeasible")
 }
 testCallAmountRunTime <- function(){
   filePath <- "test/testCallAmount/callAmountPerformance.xlsx"
