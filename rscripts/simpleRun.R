@@ -53,10 +53,6 @@ resource_vec <- unique(assetCustacId_vec)
 assetId_vec <- unique(availAsset_df$assetId)
 assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
 
-resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
-availAsset_df <- AvailAsset(availAsset_df)
-
-
 ## FX rate conversion ##
 # keep the original fx rate in assetInfo$oriFXRate and callInfo$oriFXRate
 # fx used for calculation: 1 USD can change how much foreign currency
@@ -71,6 +67,10 @@ if(!is.null(callInfo_df$from)&&!is.null(callInfo_df$to)){
   idxTo <- which(callInfo_df$to=="USD")
   callInfo_df$FXRate[idxTo] <- 1/callInfo_df$FXRate[idxTo] 
 }
+
+# resource info, availAsset info
+resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
+availAsset_df <- AvailAsset(availAsset_df)
 
 # venue: all SG
 venue_vec <- rep('SG',length(availAsset_df[,1]))
