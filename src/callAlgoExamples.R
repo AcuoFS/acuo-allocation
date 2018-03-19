@@ -38,6 +38,8 @@ callId_vec <- unlist(CallIdByMsId(msId_vec))
 #callId_vec <- unname(unlist(callIdByAgreementId(agreementId_vec)))
 clientId = '999';
 pref_vec = c(5.4,3.5);
+operLimitMs <- 2 
+fungible <- FALSE
 
 #### callInfo_df
 callInfo_df <- CallInfoByCallId(callId_vec)
@@ -119,9 +121,8 @@ availAsset_df <- AvailAsset(availAsset_df)
 scenarios <- list()
 algoVersion <- 2
 msNum <- length(unique(callInfo_df$marginStatement))
-operLimitMs_vec <- rep(2,msNum)
+operLimitMs_vec <- rep(operLimitMs,msNum)
 operLimit<- sum(operLimitMs_vec)
-fungible <- FALSE
 
 # scenario 1: Algo Suggestion
 

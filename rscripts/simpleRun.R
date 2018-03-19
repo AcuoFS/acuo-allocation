@@ -22,6 +22,8 @@ if(length(unlist(assetInfoByAssetId))==0){
 
 callId_vec <- callIds
 pref_vec <- pref
+operLimitMs <- 2 
+fungible <- FALSE
 callInfo_df <- callInfoByCallId
 callInfo_df$callAmount <- abs(as.numeric(callInfo_df$callAmount)) # make sure the callAmount is non-negative
 
@@ -81,9 +83,8 @@ availAsset_df$venue <- venue_vec
 ## CALL THE ALLOCATION FUNCTION ###########
 algoVersion <- 2
 msNum <- length(unique(callInfo_df$marginStatement))
-operLimitMs_vec <- rep(2,msNum)
+operLimitMs_vec <- rep(operLimitMs,msNum)
 operLimit<- sum(operLimitMs_vec)
-fungible <- FALSE
 
 
 callId_vec <- unlist(callId_vec)
