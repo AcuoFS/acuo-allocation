@@ -44,20 +44,21 @@ testCallAmount170000 <- function(){
                                pref_vec,operLimit,operLimitMs_vec,fungible,
                                ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue), "ALERR2005: The model constructed by margin calls mcusd11 is infeasible")
 }
+
 testCallAmountRunTime <- function(){
   filePath <- "test/testCallAmount/callAmountPerformance.xlsx"
   callAmount_vec <- 5000*(1:33)
   runTime_vec <- rep(0,length(callAmount_vec))
   writeWorksheetToFile(filePath,data=cbind("CallAmount","RunTime"),sheet='Results',startRow=1,startCol=1,header=F)
   for(i in 1:length(callAmount_vec)){
-    ptm <- proc.time()
     callInfo_df$callAmount <- callAmount_vec[i]
+    ptm <- proc.time()
     result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
                              pref_vec,operLimit,operLimitMs_vec,fungible,
                              ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue)
     temp <- proc.time() - ptm
     runTime_vec[i] <- temp[3]
-    
+
     output <- cbind(callAmount_vec[i],runTime_vec[i])
     writeWorksheetToFile(filePath,data=output,sheet='Results',startRow=i+1,startCol=1,header=F)
   }

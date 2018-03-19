@@ -110,8 +110,8 @@ testCallNumber20AssetNumberS10M35L5 <- function(){
                                         ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue),"ALERR2005: The model constructed by margin calls mcusd841 mcusd842 is infeasible")
   temp <- proc.time() - ptm
   runTime <- temp[3]
-  output <- cbind("callNumber20AssetNumberS10M35L5.RData",runTime)
-  writeWorksheetToFile(filePath,data=output,sheet='Results',startRow=length(worksheet[,1])+2,startCol=1,header=F)
+  #output <- cbind("callNumber20AssetNumberS10M35L5.RData",runTime)
+  #writeWorksheetToFile(filePath,data=output,sheet='Results',startRow=length(worksheet[,1])+2,startCol=1,header=F)
   save.image("test/testAssetAmount/callNumber20AssetNumberS10M35L5Result.RData")
 }
 

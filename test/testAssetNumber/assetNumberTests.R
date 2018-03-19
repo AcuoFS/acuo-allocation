@@ -5,11 +5,20 @@ source("src/coreAlgo.R")
 source("src/callLpSolve.R")
 source("src/generalFunctions.R")
 
+filePath <- "test/testAssetNumber/assetNumberPerformance.xlsx"
+
 testCallNumber1AssetNumber1 <- function(){
-  load("test/testAssetNumber/callNumber1AssetNumber1.RData")
+  load("test/testAssetNumber/callNumber1AssetNumber1.RData")  
+  worksheet <- readWorksheetFromFile(filePath,sheet="Results")
+  ptm <- proc.time()
   result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
                            pref_vec,operLimit,operLimitMs_vec,fungible,
                            ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue)
+  temp <- proc.time() - ptm
+  runTime <- temp[3]
+  output <- cbind("callNumber1AssetNumber1.RData",length(callInfo_df$id),length(resource_df$id),timeLimit,runTime)
+  writeWorksheetToFile(filePath,data=output,sheet='Results',startRow=length(worksheet[,1])+2,startCol=1,header=F)
+  
   checkEquals(as.character(result$callOutput$mcusd211$Asset),'SGD')
   checkEquals(result$callOutput$mcusd211$Quantity,7196.2)
   checkEquals(result$solverStatus,-1)
@@ -18,9 +27,16 @@ testCallNumber1AssetNumber1 <- function(){
 
 testCallNumber1AssetNumber3 <- function(){
   load("test/testAssetNumber/callNumber1AssetNumber3.RData")
+  worksheet <- readWorksheetFromFile(filePath,sheet="Results")
+  ptm <- proc.time()
   result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
                            pref_vec,operLimit,operLimitMs_vec,fungible,
                            ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue)
+  temp <- proc.time() - ptm
+  runTime <- temp[3]
+  output <- cbind("callNumber1AssetNumber3.RData",length(callInfo_df$id),length(resource_df$id),timeLimit,runTime)
+  writeWorksheetToFile(filePath,data=output,sheet='Results',startRow=length(worksheet[,1])+2,startCol=1,header=F)
+  
   checkEquals(as.character(result$callOutput$mcusd211$Asset),'USD')
   checkEquals(result$callOutput$mcusd211$Quantity,5000)
   checkEquals(result$solverStatus,-1)
@@ -28,10 +44,17 @@ testCallNumber1AssetNumber3 <- function(){
 }
 
 testCallNumber1AssetNumber6 <- function(){
-  load("test/testAssetNumber/callNumber1AssetNumber6.RData")
+  load("test/testAssetNumber/callNumber1AssetNumber6.RData")  
+  worksheet <- readWorksheetFromFile(filePath,sheet="Results")
+  ptm <- proc.time()
   result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
                            pref_vec,operLimit,operLimitMs_vec,fungible,
                            ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue)
+  temp <- proc.time() - ptm
+  runTime <- temp[3]
+  output <- cbind("callNumber1AssetNumber6.RData",length(callInfo_df$id),length(resource_df$id),timeLimit,runTime)
+  writeWorksheetToFile(filePath,data=output,sheet='Results',startRow=length(worksheet[,1])+2,startCol=1,header=F)
+  
   checkEquals(as.character(result$callOutput$mcusd211$Asset),'GBP')
   checkEquals(result$callOutput$mcusd211$Quantity,3926.64)
   checkEquals(result$solverStatus,-1)
@@ -39,10 +62,17 @@ testCallNumber1AssetNumber6 <- function(){
 }
 
 testCallNumber1AssetNumber10 <- function(){
-  load("test/testAssetNumber/callNumber1AssetNumber10.RData")
+  load("test/testAssetNumber/callNumber1AssetNumber10.RData")  
+  worksheet <- readWorksheetFromFile(filePath,sheet="Results")
+  ptm <- proc.time()
   result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
                            pref_vec,operLimit,operLimitMs_vec,fungible,
                            ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue)
+  temp <- proc.time() - ptm
+  runTime <- temp[3]
+  output <- cbind("callNumber1AssetNumber10.RData",length(callInfo_df$id),length(resource_df$id),timeLimit,runTime)
+  writeWorksheetToFile(filePath,data=output,sheet='Results',startRow=length(worksheet[,1])+2,startCol=1,header=F)
+  
   # pref=c(5,5); haircut_usd=0,haircut_gbp=0.08; dailyCost_usd = 20, dailyCost_GBP = 21.74
   # Algo choose GBP
   checkEquals(as.character(result$callOutput$mcusd211$Asset),'GBP')
@@ -52,10 +82,17 @@ testCallNumber1AssetNumber10 <- function(){
 }
 
 testCallNumber1AssetNumber30 <- function(){
-  load("test/testAssetNumber/callNumber1AssetNumber30.RData")
+  load("test/testAssetNumber/callNumber1AssetNumber30.RData")  
+  worksheet <- readWorksheetFromFile(filePath,sheet="Results")
+  ptm <- proc.time()
   result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
                            pref_vec,operLimit,operLimitMs_vec,fungible,
                            ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue)
+  temp <- proc.time() - ptm
+  runTime <- temp[3]
+  output <- cbind("callNumber1AssetNumber30.RData",length(callInfo_df$id),length(resource_df$id),timeLimit,runTime)
+  writeWorksheetToFile(filePath,data=output,sheet='Results',startRow=length(worksheet[,1])+2,startCol=1,header=F)
+  
   # pref=c(5,5); haircut_usd=0,haircut_FR0000570905=0.14; dailyCost_usd = 20, dailyCost_FR0000570905 = 34.88
   # Algo choose FR0000570905
   checkEquals(as.character(result$callOutput$mcusd211$Asset),'FR0000570905')
@@ -65,10 +102,17 @@ testCallNumber1AssetNumber30 <- function(){
 }
 
 testCallNumber3AssetNumber3 <- function(){
-  load("test/testAssetNumber/callNumber3AssetNumber3.RData")
+  load("test/testAssetNumber/callNumber3AssetNumber3.RData")  
+  worksheet <- readWorksheetFromFile(filePath,sheet="Results")
+  ptm <- proc.time()
   result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
                            pref_vec,operLimit,operLimitMs_vec,fungible,
                            ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue)
+  temp <- proc.time() - ptm
+  runTime <- temp[3]
+  output <- cbind("callNumber3AssetNumber3.RData",length(callInfo_df$id),length(resource_df$id),timeLimit,runTime)
+  writeWorksheetToFile(filePath,data=output,sheet='Results',startRow=length(worksheet[,1])+2,startCol=1,header=F)
+  
   checkEquals(as.character(result$callOutput$mcusd201$Asset),'USD')
   checkEquals(as.character(result$callOutput$mcusd211$Asset),'USD')
   checkEquals(as.character(result$callOutput$mcusd212$Asset),'USD')
@@ -80,9 +124,16 @@ testCallNumber3AssetNumber3 <- function(){
 
 testCallNumber3AssetNumber6 <- function(){
   load("test/testAssetNumber/callNumber3AssetNumber6.RData")
+  worksheet <- readWorksheetFromFile(filePath,sheet="Results")
+  ptm <- proc.time()
   result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
                            pref_vec,operLimit,operLimitMs_vec,fungible,
                            ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue)
+  temp <- proc.time() - ptm
+  runTime <- temp[3]
+  output <- cbind("callNumber3AssetNumber6.RData",length(callInfo_df$id),length(resource_df$id),timeLimit,runTime)
+  writeWorksheetToFile(filePath,data=output,sheet='Results',startRow=length(worksheet[,1])+2,startCol=1,header=F)
+  
   checkEquals(as.character(result$callOutput$mcusd211$Asset),'GBP')
   checkEquals(as.character(result$callOutput$mcusd212$Asset),'GBP')
   checkEquals(as.character(result$callOutput$mcusd201$Asset),'GBP')
@@ -94,9 +145,16 @@ testCallNumber3AssetNumber6 <- function(){
 
 testCallNumber3AssetNumber20 <- function(){
   load("test/testAssetNumber/callNumber3AssetNumber20.RData")
+  worksheet <- readWorksheetFromFile(filePath,sheet="Results")
+  ptm <- proc.time()
   result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
                            pref_vec,operLimit,operLimitMs_vec,fungible,
                            ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue)
+  temp <- proc.time() - ptm
+  runTime <- temp[3]
+  output <- cbind("callNumber3AssetNumber20.RData",length(callInfo_df$id),length(resource_df$id),timeLimit,runTime)
+  writeWorksheetToFile(filePath,data=output,sheet='Results',startRow=length(worksheet[,1])+2,startCol=1,header=F)
+  
   checkEquals(as.character(result$callOutput$mcusd211$Asset),'GBP')
   checkEquals(as.character(result$callOutput$mcusd212$Asset),'GBP')
   checkEquals(as.character(result$callOutput$mcusd201$Asset),'GBP')
@@ -108,9 +166,16 @@ testCallNumber3AssetNumber20 <- function(){
 
 testCallNumber3AssetNumber30 <- function(){
   load("test/testAssetNumber/callNumber3AssetNumber30.RData")
+  worksheet <- readWorksheetFromFile(filePath,sheet="Results")
+  ptm <- proc.time()
   result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
                            pref_vec,operLimit,operLimitMs_vec,fungible,
                            ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue)
+  temp <- proc.time() - ptm
+  runTime <- temp[3]
+  output <- cbind("callNumber3AssetNumber30.RData",length(callInfo_df$id),length(resource_df$id),timeLimit,runTime)
+  writeWorksheetToFile(filePath,data=output,sheet='Results',startRow=length(worksheet[,1])+2,startCol=1,header=F)
+  
   checkEquals(as.character(result$callOutput$mcusd211$Asset),'FR0000570905')
   checkEquals(as.character(result$callOutput$mcusd212$Asset),'GBP')
   checkEquals(as.character(result$callOutput$mcusd201$Asset),'GBP')
@@ -122,9 +187,16 @@ testCallNumber3AssetNumber30 <- function(){
 
 testMediumCallNumber3AssetNumber10 <- function(){
   load("test/testAssetNumber/callNumberMedium3AssetNumber10.RData")
+  worksheet <- readWorksheetFromFile(filePath,sheet="Results")
+  ptm <- proc.time()
   result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
                            pref_vec,operLimit,operLimitMs_vec,fungible,
                            ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue)
+  temp <- proc.time() - ptm
+  runTime <- temp[3]
+  output <- cbind("callNumberMedium3AssetNumber10.RData",length(callInfo_df$id),length(resource_df$id),timeLimit,runTime)
+  writeWorksheetToFile(filePath,data=output,sheet='Results',startRow=length(worksheet[,1])+2,startCol=1,header=F)
+  
   checkEquals(as.character(result$callOutput$mcusd511$Asset),'GBP')
   checkEquals(as.character(result$callOutput$mcusd512$Asset),'EUR')
   checkEquals(result$callOutput$mcusd511$Quantity,39266.31)
@@ -136,9 +208,16 @@ testMediumCallNumber3AssetNumber10 <- function(){
 
 testMediumCallNumber3AssetNumber30 <- function(){
   load("test/testAssetNumber/callNumberMedium3AssetNumber30.RData")
+  worksheet <- readWorksheetFromFile(filePath,sheet="Results")
+  ptm <- proc.time()
   result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
                            pref_vec,operLimit,operLimitMs_vec,fungible,
                            ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue)
+  temp <- proc.time() - ptm
+  runTime <- temp[3]
+  output <- cbind("callNumberMedium3AssetNumber30.RData",length(callInfo_df$id),length(resource_df$id),timeLimit,runTime)
+  writeWorksheetToFile(filePath,data=output,sheet='Results',startRow=length(worksheet[,1])+2,startCol=1,header=F)
+  
   checkEquals(as.character(result$callOutput$mcusd511$Asset),'FR0000570905')
   checkEquals(as.character(result$callOutput$mcusd512$Asset),'GBP')
   checkEquals(result$callOutput$mcusd511$Quantity,189187)
@@ -150,9 +229,16 @@ testMediumCallNumber3AssetNumber30 <- function(){
 
 testMediumCallNumber6AssetNumber30 <- function(){
   load("test/testAssetNumber/callNumberMedium6AssetNumber30.RData")
+  worksheet <- readWorksheetFromFile(filePath,sheet="Results")
+  ptm <- proc.time()
   result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
                            pref_vec,operLimit,operLimitMs_vec,fungible,
                            ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue)
+  temp <- proc.time() - ptm
+  runTime <- temp[3]
+  output <- cbind("callNumberMedium6AssetNumber30.RData",length(callInfo_df$id),length(resource_df$id),timeLimit,runTime)
+  writeWorksheetToFile(filePath,data=output,sheet='Results',startRow=length(worksheet[,1])+2,startCol=1,header=F)
+  
   checkEquals(as.character(result$callOutput$mcusd531$Asset),'DE0001108603')
   checkEquals(as.character(result$callOutput$mcusd512$Asset),'GBP')
   checkEquals(as.character(result$callOutput$mcusd521$Asset),'FR0000570897')
