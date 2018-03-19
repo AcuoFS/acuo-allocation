@@ -59,13 +59,13 @@ assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
 
 assetInfo_df$oriFXRate <- assetInfo_df$FXRate
 if(!is.null(assetInfo_df$from)&&!is.null(assetInfo_df$to)){
-  idxTo <- which(assetInfo_df$to=="USD")
-  assetInfo_df$FXRate[idxTo] <- 1/assetInfo_df$FXRate[idxTo] 
+  idxFrom <- which(assetInfo_df$from=="USD")
+  assetInfo_df$FXRate[idxFrom] <- 1/assetInfo_df$FXRate[idxFrom] 
 }
 callInfo_df$oriFXRate <- callInfo_df$FXRate
 if(!is.null(callInfo_df$from)&&!is.null(callInfo_df$to)){
-  idxTo <- which(callInfo_df$to=="USD")
-  callInfo_df$FXRate[idxTo] <- 1/callInfo_df$FXRate[idxTo] 
+  idxFrom <- which(callInfo_df$from=="USD")
+  callInfo_df$FXRate[idxFrom] <- 1/callInfo_df$FXRate[idxFrom] 
 }
 
 # resource info, availAsset info
