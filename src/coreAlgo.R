@@ -121,6 +121,10 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
     names(fObj_vec) <- varName_vec
     
     #### CONSTRAINTS
+    
+    oriQuantity_vec <- quantity_vec
+    quantity_vec <- quantity_vec - 1
+    
     fCon2_list <- QtyConst(varName_vec,varNum,resource_vec,resource_df$qtyMin)
     fCon3_list <- MarginConst(varName_vec,varNum,minUnitValue_vec,haircut_vec,callInfo_df$id,callInfo_df$callAmount)
     if(ifNewAlloc){
@@ -155,6 +159,8 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
     lpKind_vec <- rep('semi-continuous',varNum2)
     lpType_vec <- rep('real',varNum2)
     lpType_vec[which(minUnitValue_vec>=1)] <- 'integer'
+    print("integer index:")
+    print(which(minUnitValue_vec>=1))
     lpType_vec[(varNum+1):varNum2] <- 'integer'
     lpLowerBound_vec <- c(minMoveQty_vec,rep(0,varNum2-varNum))
     
@@ -219,6 +225,8 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
       }
     }
     #### Exception END ######
+    
+    quantity_vec <- oriQuantity_vec
     
     #### Adjust & Convert the Solver Result Start ######
     solverSolution_vec <- AdjustResultVec(solverSolution_vec,varNum,varName_vec,fCon4_list$fCon4_mat,
