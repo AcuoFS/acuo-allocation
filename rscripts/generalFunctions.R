@@ -351,9 +351,9 @@ ConstructAllocDf <- function(resourceInfo_df,callInfo_df,haircutC_vec,haircutFX_
   assetAmount_vec <- assetAmountUSD_vec*assetFX_vec
   assetNetAmount_vec <- assetNetAmountUSD_vec*assetFX_vec
   
-  alloc_df <- data.frame(assetId_vec,assetName_vec,assetNetAmount_vec,assetNetAmountUSD_vec,assetOriFX_vec,assetHaircut_vec,assetHaircutC_vec,assetHaircutFX_vec,assetAmount_vec,assetAmountUSD_vec,
+  alloc_df <- data.frame(assetId_vec,assetName_vec,assetNetAmount_vec,assetNetAmountUSD_vec,assetOriFX_vec,assetFX_vec,assetHaircut_vec,assetHaircutC_vec,assetHaircutFX_vec,assetAmount_vec,assetAmountUSD_vec,
                          assetCurrency_vec,assetQuantity_vec,assetCustodianAccount_vec,assetVenue_vec,marginType_vec,ms_vec,call_vec,assetCostFactor_vec,assetCost_vec)
-  colnames(alloc_df)<- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Hc','Hfx','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType',
+  colnames(alloc_df)<- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','FXRatePerUSD','Haircut','Hc','Hfx','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType',
                          'marginStatement','marginCall','CostFactor','Cost')
   rownames(alloc_df)<- 1:length(alloc_df[,1])
   return(alloc_df)

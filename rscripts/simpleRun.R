@@ -27,9 +27,6 @@ fungible <- FALSE
 callInfo_df <- callInfoByCallId
 callInfo_df$callAmount <- abs(as.numeric(callInfo_df$callAmount)) # make sure the callAmount is non-negative
 
-callInfo_df$callAmountOri <- callInfo_df$callAmount # call amount in principal currency
-callInfo_df$callAmount <- callInfo_df$callAmount/callInfo_df$FXRate # call amount in USD
-
 #print(callInfo_df)
 
 availAsset_df <- availAssetByCallIdAndClientId
@@ -59,14 +56,16 @@ assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
 
 assetInfo_df$oriFXRate <- assetInfo_df$FXRate
 if(!is.null(assetInfo_df$from)&&!is.null(assetInfo_df$to)){
-  idxFrom <- which(assetInfo_df$from=="USD")
-  assetInfo_df$FXRate[idxFrom] <- 1/assetInfo_df$FXRate[idxFrom] 
+  idxTo <- which(assetInfo_df$to=="USD")
+  assetInfo_df$FXRate[idxTo] <- 1/assetInfo_df$FXRate[idxTo] 
 }
 callInfo_df$oriFXRate <- callInfo_df$FXRate
 if(!is.null(callInfo_df$from)&&!is.null(callInfo_df$to)){
-  idxFrom <- which(callInfo_df$from=="USD")
-  callInfo_df$FXRate[idxFrom] <- 1/callInfo_df$FXRate[idxFrom] 
+  idxTo <- which(callInfo_df$to=="USD")
+  callInfo_df$FXRate[idxTo] <- 1/callInfo_df$FXRate[idxTo] 
 }
+callInfo_df$callAmountOri <- callInfo_df$callAmount # call amount in principal currency
+callInfo_df$callAmount <- callInfo_df$callAmount/callInfo_df$FXRate # call amount in USD
 
 # resource info, availAsset info
 resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
