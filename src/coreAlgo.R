@@ -159,8 +159,6 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
     lpKind_vec <- rep('semi-continuous',varNum2)
     lpType_vec <- rep('real',varNum2)
     lpType_vec[which(minUnitValue_vec>=1)] <- 'integer'
-    print("integer index:")
-    print(which(minUnitValue_vec>=1))
     lpType_vec[(varNum+1):varNum2] <- 'integer'
     lpLowerBound_vec <- c(minMoveQty_vec,rep(0,varNum2-varNum))
     
