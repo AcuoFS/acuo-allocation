@@ -24,7 +24,7 @@ testCallAmount1 <- function(){
   checkEquals(as.character(result$callOutput$mcusd11$Asset),'USD')
   checkEquals(result$callOutput$mcusd11$Quantity,1)
   checkEquals(result$solverStatus,-1)
-  checkEquals(result$resultAnalysis$dailyCost,0.004)
+  checkEquals(result$resultAnalysis$dailyCost,0.0001)
 }
 
 testCallAmount5000 <- function(){
@@ -35,7 +35,7 @@ testCallAmount5000 <- function(){
   checkEquals(as.character(result$callOutput$mcusd11$Asset),'USD')
   checkEquals(result$callOutput$mcusd11$Quantity,5000)
   checkEquals(result$solverStatus,-1)
-  checkEquals(result$resultAnalysis$dailyCost,20)
+  checkEquals(result$resultAnalysis$dailyCost,0.5)
 }
 
 testCallAmount170000 <- function(){

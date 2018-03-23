@@ -1,10 +1,7 @@
 
 #### Sources Start #########
 setwd("E:/ACUO/projects/acuo-allocation/")
-source("src/allocationFunction.R")
-source("src/coreAlgo.R")
 source("src/generalFunctions.R")
-source("src/callLpSolve.R")
 
 library("XLConnect")
 
@@ -48,8 +45,8 @@ operLimit<- sum(operLimitMs_vec)
 save.image("E:/ACUO/projects/acuo-allocation/test/basicParams.RData")
 
 #### Input Prepare END #############
-
-result1 <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
-                          pref_vec,operLimit,operLimitMs_vec,fungible,
-                          ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue)
+# source("src/allocationFunction.R")
+# result1 <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
+#                          pref_vec,operLimit,operLimitMs_vec,fungible,
+#                          ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue)
 

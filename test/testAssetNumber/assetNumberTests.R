@@ -22,7 +22,7 @@ testCallNumber1AssetNumber1 <- function(){
   checkEquals(as.character(result$callOutput$mcusd211$Asset),'SGD')
   checkEquals(result$callOutput$mcusd211$Quantity,7196.2)
   checkEquals(result$solverStatus,-1)
-  checkEquals(round(result$resultAnalysis$dailyCost,2),round(21.73914,2))
+  checkEquals(round(result$resultAnalysis$dailyCost,2),round(1.086957,2))
 }
 
 testCallNumber1AssetNumber3 <- function(){
@@ -40,7 +40,7 @@ testCallNumber1AssetNumber3 <- function(){
   checkEquals(as.character(result$callOutput$mcusd211$Asset),'USD')
   checkEquals(result$callOutput$mcusd211$Quantity,5000)
   checkEquals(result$solverStatus,-1)
-  checkEquals(result$resultAnalysis$dailyCost,20)
+  checkEquals(result$resultAnalysis$dailyCost,1)
 }
 
 testCallNumber1AssetNumber6 <- function(){
@@ -58,7 +58,7 @@ testCallNumber1AssetNumber6 <- function(){
   checkEquals(as.character(result$callOutput$mcusd211$Asset),'GBP')
   checkEquals(result$callOutput$mcusd211$Quantity,3926.64)
   checkEquals(result$solverStatus,-1)
-  checkEquals(round(result$resultAnalysis$dailyCost,2),round(21.73918,2))
+  checkEquals(round(result$resultAnalysis$dailyCost,2),round(1.086959,2))
 }
 
 testCallNumber1AssetNumber10 <- function(){
@@ -75,10 +75,10 @@ testCallNumber1AssetNumber10 <- function(){
   
   # pref=c(5,5); haircut_usd=0,haircut_gbp=0.08; dailyCost_usd = 20, dailyCost_GBP = 21.74
   # Algo choose GBP
-  checkEquals(as.character(result$callOutput$mcusd211$Asset),'GBP')
-  checkEquals(result$callOutput$mcusd211$Quantity,3926.64)
+  checkEquals(as.character(result$callOutput$mcusd211$Asset),'GB0030883606')
+  checkEquals(result$callOutput$mcusd211$Quantity,415230)
   checkEquals(result$solverStatus,-1)
-  checkEquals(round(result$resultAnalysis$dailyCost,2),round(21.73918,2))
+  checkEquals(round(result$resultAnalysis$dailyCost,2),round(0.6321841,2))
 }
 
 testCallNumber1AssetNumber30 <- function(){
@@ -98,7 +98,7 @@ testCallNumber1AssetNumber30 <- function(){
   checkEquals(as.character(result$callOutput$mcusd211$Asset),'FR0000570905')
   checkEquals(result$callOutput$mcusd211$Quantity,18919)
   checkEquals(result$solverStatus,-1)
-  checkEquals(round(result$resultAnalysis$dailyCost,2),round(34.88445,2))
+  checkEquals(round(result$resultAnalysis$dailyCost,2),round(0.6395482,2))
 }
 
 testCallNumber3AssetNumber3 <- function(){
@@ -119,7 +119,7 @@ testCallNumber3AssetNumber3 <- function(){
   checkEquals(result$callOutput$mcusd211$Quantity,5000)
   checkEquals(result$callOutput$mcusd212$Quantity,5000)
   checkEquals(result$solverStatus,-1)
-  checkEquals(result$resultAnalysis$dailyCost,60)
+  checkEquals(result$resultAnalysis$dailyCost,3)
 }
 
 testCallNumber3AssetNumber6 <- function(){
@@ -140,7 +140,7 @@ testCallNumber3AssetNumber6 <- function(){
   checkEquals(result$callOutput$mcusd211$Quantity,3926.64)
   checkEquals(result$callOutput$mcusd212$Quantity,3926.64)
   checkEquals(result$solverStatus,-1)
-  checkEquals(round(result$resultAnalysis$dailyCost,2),round(65.21755,2))
+  checkEquals(round(result$resultAnalysis$dailyCost,2),round(3.260878,2))
 }
 
 testCallNumber3AssetNumber20 <- function(){
@@ -155,13 +155,13 @@ testCallNumber3AssetNumber20 <- function(){
   output <- cbind("callNumber3AssetNumber20.RData",length(callInfo_df$id),length(resource_df$id),timeLimit,runTime)
   writeWorksheetToFile(filePath,data=output,sheet='Results',startRow=length(worksheet[,1])+2,startCol=1,header=F)
   
-  checkEquals(as.character(result$callOutput$mcusd211$Asset),'GBP')
+  checkEquals(as.character(result$callOutput$mcusd211$Asset),'FR0000570905')
   checkEquals(as.character(result$callOutput$mcusd212$Asset),'GBP')
   checkEquals(as.character(result$callOutput$mcusd201$Asset),'GBP')
-  checkEquals(result$callOutput$mcusd211$Quantity,3926.64)
+  checkEquals(result$callOutput$mcusd211$Quantity,18919)
   checkEquals(result$callOutput$mcusd212$Quantity,3926.64)
   checkEquals(result$solverStatus,-1)
-  checkEquals(round(result$resultAnalysis$dailyCost,2),round(65.21755,2))
+  checkEquals(round(result$resultAnalysis$dailyCost,2),round(2.813467,2))
 }
 
 testCallNumber3AssetNumber30 <- function(){
@@ -182,7 +182,7 @@ testCallNumber3AssetNumber30 <- function(){
   checkEquals(result$callOutput$mcusd211$Quantity,18919)
   checkEquals(result$callOutput$mcusd212$Quantity,3926.64)
   checkEquals(result$solverStatus,-1)
-  checkEquals(round(result$resultAnalysis$dailyCost,2),round(78.36282,2))
+  checkEquals(round(result$resultAnalysis$dailyCost,2),round(2.813467,2))
 }
 
 testMediumCallNumber3AssetNumber10 <- function(){
@@ -197,12 +197,12 @@ testMediumCallNumber3AssetNumber10 <- function(){
   output <- cbind("callNumberMedium3AssetNumber10.RData",length(callInfo_df$id),length(resource_df$id),timeLimit,runTime)
   writeWorksheetToFile(filePath,data=output,sheet='Results',startRow=length(worksheet[,1])+2,startCol=1,header=F)
   
-  checkEquals(as.character(result$callOutput$mcusd511$Asset),'GBP')
-  checkEquals(as.character(result$callOutput$mcusd512$Asset),'EUR')
-  checkEquals(result$callOutput$mcusd511$Quantity,39266.31)
-  checkEquals(result$callOutput$mcusd512$Quantity,44211.96)
+  checkEquals(as.character(result$callOutput$mcusd511$Asset),'FR0000570905')
+  checkEquals(as.character(result$callOutput$mcusd512$Asset),'GBP')
+  checkEquals(result$callOutput$mcusd511$Quantity,189187)
+  checkEquals(result$callOutput$mcusd512$Quantity,39266.31)
   checkEquals(result$solverStatus,-1)
-  checkEquals(result$resultAnalysis$dailyCost,652.174)
+  checkEquals(round(result$resultAnalysis$dailyCost,2),round(28.13451,2))
   checkEquals(result$resultAnalysis$movements,3)
 }
 
@@ -223,7 +223,7 @@ testMediumCallNumber3AssetNumber30 <- function(){
   checkEquals(result$callOutput$mcusd511$Quantity,189187)
   checkEquals(result$callOutput$mcusd501$Quantity,44211.96)
   checkEquals(result$solverStatus,-1)
-  checkEquals(round(result$resultAnalysis$dailyCost,2),round(783.6216,2))
+  checkEquals(round(result$resultAnalysis$dailyCost,2),round(28.13451,2))
   checkEquals(result$resultAnalysis$movements,3)
 }
 
@@ -239,14 +239,14 @@ testMediumCallNumber6AssetNumber30 <- function(){
   output <- cbind("callNumberMedium6AssetNumber30.RData",length(callInfo_df$id),length(resource_df$id),timeLimit,runTime)
   writeWorksheetToFile(filePath,data=output,sheet='Results',startRow=length(worksheet[,1])+2,startCol=1,header=F)
   
-  checkEquals(as.character(result$callOutput$mcusd531$Asset),'DE0001108603')
   checkEquals(as.character(result$callOutput$mcusd512$Asset),'GBP')
   checkEquals(as.character(result$callOutput$mcusd521$Asset),'FR0000570897')
+  checkEquals(as.character(result$callOutput$mcusd531$Asset),'DE0001108603')
   checkEquals(result$callOutput$mcusd531$Quantity,4729652)
   checkEquals(result$callOutput$mcusd522$Quantity,44211.96)
   checkEquals(result$callOutput$mcusd532$Quantity,39266.31)
   checkEquals(result$solverStatus,-1)
-  checkEquals(round(result$resultAnalysis$dailyCost,2),round(1698.689,2))
+  checkEquals(round(result$resultAnalysis$dailyCost,2),round(51.79481,2))
   checkEquals(result$resultAnalysis$movements,6)
 }
 

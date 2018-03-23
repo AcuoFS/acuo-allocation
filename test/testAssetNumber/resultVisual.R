@@ -2,6 +2,7 @@
 
 library("XLConnect")
 
+setwd("E://ACUO/projects/acuo-allocation/")
 filePath <- "test/testAssetNumber/assetNumberPerformance.xlsx"
 
 worksheet <- readWorksheetFromFile(filePath,sheet="Results")
