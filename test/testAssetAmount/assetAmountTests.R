@@ -13,7 +13,7 @@ testCallNumber1AssetNumberM50 <- function(){
   checkEquals(as.character(result$callOutput$mcusd511$Asset),'FR0000578601')
   checkEquals(result$callOutput$mcusd511$Quantity,196025)
   checkEquals(result$solverStatus,-1)
-  checkEquals(round(result$resultAnalysis$dailyCost,2),round(6.626537,2))
+  checkEquals(round(result$resultAnalysis$dailyCost,2),round(361.4474,2))
   save.image("test/testAssetAmount/callNumber1AssetNumberM50Result.RData")
 }
 
@@ -27,8 +27,7 @@ testCallNumber3AssetNumberM50 <- function(){
   checkEquals(result$callOutput$mcusd511$Quantity,196025)
   checkEquals(result$callOutput$mcusd512$Quantity,39266.31)
   checkEquals(result$solverStatus,-1)
-  checkEquals(round(result$resultAnalysis$dailyCost,2),round(28.36567,2))
-  save.image("test/testAssetAmount/callNumber3AssetNumberM50Result.RData")
+  checkEquals(round(result$resultAnalysis$dailyCost,2),round(796.2301,2))
 }
 
 testCallNumber6AssetNumberM50 <- function(){
@@ -42,7 +41,7 @@ testCallNumber6AssetNumberM50 <- function(){
   checkEquals(result$callOutput$mcusd511$Quantity,196025)
   checkEquals(result$callOutput$mcusd532$Quantity,39266.31)
   checkEquals(result$solverStatus,-1)
-  checkEquals(round(result$resultAnalysis$dailyCost,2),round(52.48828,2))
+  checkEquals(round(result$resultAnalysis$dailyCost,3),round(1736.515,3))
   save.image("test/testAssetAmount/callNumber6AssetNumberM50Result.RData")
 }
 
@@ -62,7 +61,7 @@ testCallNumber3AssetNumberS20M20L10 <- function(){
   checkEquals(as.character(result$callOutput$mcusd511$Asset),'FR0000578601')
   checkEquals(result$callOutput$mcusd511$Quantity,196025)
   checkEquals(result$solverStatus,-1)
-  checkEquals(round(result$resultAnalysis$dailyCost,2),round(28.36567,2))
+  checkEquals(round(result$resultAnalysis$dailyCost,2),round(796.2301,2))
   save.image("test/testAssetAmount/callNumber3AssetNumberS20M20L10Result.RData")
 }
 
@@ -76,7 +75,7 @@ testCallNumber6AssetNumberS20M20L10 <- function(){
   checkEquals(result$callOutput$mcusd512$Quantity,39266.31)
   checkEquals(result$callOutput$mcusd521$Quantity, 196025)
   checkEquals(result$solverStatus,-1)
-  checkEquals(round(result$resultAnalysis$dailyCost,2),round(52.48828,2))
+  checkEquals(round(result$resultAnalysis$dailyCost,3),round(1736.515,3))
   save.image("test/testAssetAmount/callNumber6AssetNumberS20M20L10Result.RData")
 }
 
@@ -89,7 +88,7 @@ testCallNumber3AssetNumberS10M35L5 <- function(){
   checkEquals(as.character(result$callOutput$mcusd512$Asset),'EUR')
   checkEquals(result$callOutput$mcusd501$Quantity,44211.96)
   checkEquals(result$solverStatus,-1)
-  checkEquals(round(result$resultAnalysis$dailyCost,2),round(28.36567,2))
+  checkEquals(round(result$resultAnalysis$dailyCost,2),round(796.2301,2))
   save.image("test/testAssetAmount/callNumber3AssetNumberS10M35L5Result.RData")
 }
 
@@ -104,7 +103,7 @@ testCallNumber6AssetNumberS10M35L5 <- function(){
   checkEquals(result$callOutput$mcusd512$Quantity,44211.96)
   checkEquals(result$callOutput$mcusd521$Quantity, 196025)
   checkEquals(result$solverStatus,-1)
-  checkEquals(round(result$resultAnalysis$dailyCost,2),round(52.48828,2))
+  checkEquals(round(result$resultAnalysis$dailyCost,3),round(1736.515,3))
   save.image("test/testAssetAmount/callNumber6AssetNumberS10M35L5Result.RData")
 }
 
@@ -117,7 +116,7 @@ testCallNumber3AssetNumberS10M32L5SL3 <- function(){
   checkEquals(as.character(result$callOutput$mcusd511$Asset),'FR0000578601')
   checkEquals(result$callOutput$mcusd512$Quantity,71961.96)
   checkEquals(result$solverStatus,-1)
-  checkEquals(round(result$resultAnalysis$dailyCost,2),round(28.36567,2))
+  checkEquals(round(result$resultAnalysis$dailyCost,2),round(796.2301,2))
   save.image("test/testAssetAmount/callNumber3AssetNumberS10M32L5SL3Result.RData")
 }
 
@@ -132,6 +131,6 @@ testCallNumber6AssetNumberS10M32L5SL3 <- function(){
   checkEquals(result$callOutput$mcusd512$Quantity,71961.96)
   checkEquals(result$callOutput$mcusd521$Quantity, 196025)
   checkEquals(result$solverStatus,-1)
-  checkEquals(round(result$resultAnalysis$dailyCost,3),round(52.48828,3))
+  checkEquals(round(result$resultAnalysis$dailyCost,3),round(1736.515,3))
   save.image("test/testAssetAmount/callNumber6AssetNumberS10M32L5SL3Result.RData")
 }

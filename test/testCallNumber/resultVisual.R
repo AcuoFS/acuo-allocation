@@ -11,5 +11,3 @@ runTime <- as.numeric(worksheet$runTime)
 
 plot(x=callNumber,y=runTime,type='p',
      xlab='Call Number ',ylab='Algo Run Time (sec)')
-model <- lm(runTime ~ callNumber)
-abline(model$coefficients)

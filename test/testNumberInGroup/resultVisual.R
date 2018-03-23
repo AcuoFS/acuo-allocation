@@ -2,7 +2,6 @@
 
 library("XLConnect")
 
-setwd("E://ACUO/projects/acuo-allocation/")
 filePath <- "test/testNumberInGroup/numberInGroupPerformance.xlsx"
 
 worksheet <- readWorksheetFromFile(filePath,sheet="Results")

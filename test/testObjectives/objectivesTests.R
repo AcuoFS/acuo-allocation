@@ -36,7 +36,7 @@ testCallNumber10AssetNumberS20M20L10Pref1 <- function(){
 testCallNumber10AssetNumberS20M20L10Pref2 <- function(){
   load("test/testAssetAmount/callNumber10AssetNumberS20M20L10.RData")
   pref_vec <- pref2
-  timeLimit <- 100
+  timeLimit <- 10
   worksheet <- readWorksheetFromFile(filePath,sheet="Results")
   ptm <- proc.time()
   result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
