@@ -1,4 +1,4 @@
-MATCH (a:Asset)
+MATCH (a:Asset)<-[:VALUATED]-(:Valuation)-[:LATEST]->(value:AssetValue)
 WHERE a.id IN {assetId}
 
 WITH *
@@ -17,7 +17,7 @@ RETURN  a.id AS id,
 		a.ACUOCategory AS ACUOCategory,
 		a.rating AS rating,
 		a.currency AS currency,
-		a.parValue AS unitValue,
+    a.minUnit*value.unitValue AS minUnitValue,
 		a.minUnit AS minUnit,
 		a.minUnitValue AS minUnitValue,
 		CASE WHEN a.currency = 'USD' THEN 1

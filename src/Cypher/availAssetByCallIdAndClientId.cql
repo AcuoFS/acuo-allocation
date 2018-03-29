@@ -11,14 +11,17 @@ WITH *
 MATCH (e)-[:HAS]-(acc:TradingAccount)
 WHERE (acc)-[:ACCESSES]->(ca)
 
+WITH *
+MATCH (a)<-[:VALUATED]-(:Valuation)-[:LATEST]->(value:AssetValue)
+
 
 RETURN DISTINCT
     mc.id AS callId,
     a.id AS assetId,
     h.availableQuantity AS quantity,
-    a.parValue AS unitValue,
+    value.unitValue AS unitValue,
     a.minUnit AS minUnit,
-    a.minUnitValue AS minUnitValue,
+    a.minUnit*value.unitValue AS minUnitValue,
     a.currency AS currency,
     ca.id AS CustodianAccount,
     cu.countryShortName AS venue,
