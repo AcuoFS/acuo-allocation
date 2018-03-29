@@ -17,9 +17,9 @@ RETURN  a.id AS id,
 		a.ACUOCategory AS ACUOCategory,
 		a.rating AS rating,
 		a.currency AS currency,
-    a.minUnit*value.unitValue AS minUnitValue,
+    value.unitValue AS unitValue,
 		a.minUnit AS minUnit,
-		a.minUnitValue AS minUnitValue,
+    a.minUnit*value.unitValue AS minUnitValue,
 		CASE WHEN a.currency = 'USD' THEN 1
          WHEN type(r1)="FROM" THEN fx.value 
          WHEN type(r1)="TO" THEN 1/fx.value 
