@@ -233,6 +233,7 @@ testCallNumber10AssetNumberS20M35L5IntegerOri <- function(){
   save(resultList,runTime,file="test/testIntegerRatio/callNumber10AssetNumberS10M35L5IntegerOriResultList.RData")
   result <- resultList[[1]]
 }
+
 testCallNumber10AssetNumberS10M32L5SL3Integer0 <- function(){
   load("test/testAssetAmount/callNumber10AssetNumberS10M32L5SL3.RData")
   

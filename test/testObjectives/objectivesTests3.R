@@ -88,7 +88,7 @@ testCallNumber10AssetNumberS10M35L5Pref4 <- function(){
 
 testCallNumber10AssetNumberS10M35L5Pref5 <- function(){
   load("test/testAssetAmount/callNumber10AssetNumberS10M35L5.RData")
-  pref_vec <- pref5s
+  pref_vec <- pref5
   timeLimit <- 10
   worksheet <- readWorksheetFromFile(filePath,sheet="Results")
   ptm <- proc.time()
