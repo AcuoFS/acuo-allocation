@@ -9,16 +9,16 @@ CallAllocation <- function(algoVersion,scenario,callInfo_df,availAsset_df,resour
   #### Scenario Code END ###########
   callId_vec <- as.character(callInfo_df$id)
   resource_vec <- as.character(resource_df$id)
-  if(!exists("inputLimit_vec")){
+  if(!exists("inputLimit_vec") || missing("inputLimit_vec")){
     inputLimit_vec <- c(7,7,7,4)
   }
-  if(!exists("timeLimit")){
+  if(!exists("timeLimit") || missing("timeLimit")){
     timeLimit <- 13
   }
-  if(!exists("callOrderMethod")){
+  if(!exists("callOrderMethod") || missing("callOrderMethod")){
     callOrderMethod <- 3
   }
-  if(!exists("minMoveValue")){
+  if(!exists("minMoveValue") || missing("minMoveValue")){
     minMoveValue <- 1000
   }
 
@@ -231,12 +231,14 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
       }
       #### Run CoreAlgo END ########################
       
-      msOutputGroup_list <- resultGroup_list$msOutput_list
-      callOutputGroup_list <- resultGroup_list$callOutput_list
+      # select the better result
+      finalGroupResult <- ResultSelect(resultPre, resultGroup_list,availAssetOri_df,availAsset_df,resourceOri_df,resource_df,callInfo_df,pref_vec)
+      msOutputGroup_list <- finalGroupResult$msOutput_list
+      callOutputGroup_list <- finalGroupResult$callOutput_list
       
-      solverStatus <- resultGroup_list$solverStatus
-      solverObjValue <- resultGroup_list$solverObjValue
-      checkCallGroup_mat <- resultGroup_list$checkCall_mat
+      solverStatus <- finalGroupResult$solverStatus
+      solverObjValue <- finalGroupResult$solverObjValue
+      checkCallGroup_mat <- finalGroupResult$checkCall_mat
       
       # update the resource_df quantity, rounding
       quantityUsed_vec <- UsedQtyFromResultList(callOutputGroup_list,resource_vec,callId_vec)
@@ -251,45 +253,9 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
       }
   }
   
-  #### Result Analysis Output Start #####################
-  
-  availInfo_list <- AssetByCallInfo(callId_vec,resource_vec,availAsset_df)
-  
-  eli_mat <- availInfo_list$eli_mat; 
-  eli_vec <-  as.vector(t(eli_mat)) 
-  idxEli_vec <- which(eli_vec==1)     
-  
-  cost_mat <- availInfo_list$cost_mat
-  cost_vec <- as.vector(t(cost_mat))[idxEli_vec]
-  
-  varInfo_list <- VarInfo(eli_vec,callInfo_df,resource_vec,callId_vec)
-  varName_vec <- varInfo_list$varName_vec; 
-  varNum <- varInfo_list$varNum
-  varAmount_vec <- ResultList2AmountVec(callOutput_list,callId_vec,varName_vec[1:varNum])
-  
-  #### Costs
-  dailyCost <- CostFun(varAmount_vec,cost_vec)
-  monthlyCost <- dailyCost*30
-  dailyCost <- dailyCost
-  monthlyCost <- monthlyCost
-  
-  #### Movements
-  varAmount_mat <- VarVec2mat(varAmount_vec[1:varNum],varName_vec[1:varNum],callId_vec,resource_vec)
-  movements <- OperationFun(varAmount_mat,callInfo_df,'matrix')
-  
-  #### Liquidity
-  availInfoOri_list <- AssetByCallInfo(callId_vec,resourceOri_vec,availAssetOri_df)
-  liquidity_vec <- apply((1-availInfoOri_list$haircut_mat)^2,2,min)
-  
-  qtyLeft <- resourceOri_df$qtyMin
-  idx_vec <- match(resource_df$id,resourceOri_df$id)
-  qtyLeft[idx_vec] <- resource_df$qtyMin
-  
-  reservedLiquidityRatio <- LiquidFun(qtyLeft,resourceOri_df$qtyMin,liquidity_vec,resourceOri_df$minUnitValue/resourceOri_df$FXRate)
-  
-  resultAnalysis <- list(dailyCost=dailyCost,monthlyCost=monthlyCost,movements=movements,reservedLiquidityRatio=reservedLiquidityRatio)
-  #### Result Analysis Output END #########################
-  
+  #### Result Analysis
+  resultAnalysis <- ResultAnalysis(availAssetOri_df,availAsset_df,resourceOri_df,resource_df,callInfo_df,callOutput_list)
+
   ############ ITERATE THE GROUP, RUN THE ALGO END #########################
   
   return(list(#msOutput=msOutput_list,

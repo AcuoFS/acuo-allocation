@@ -78,7 +78,7 @@ OperationFun <- function(result,callInfo_df,method){
     }
     
   } else{
-    stop('ALERR3005: Invalid OperationFun input method!')
+    stop('ALERR3005: Invalid OperationFun input method')
   }
   
   return(movements)
@@ -145,6 +145,7 @@ CheckResultVec <- function(result_mat,quantityTotal_vec,callId_vec,callAmount_ve
       result_mat[k,idxNeg_vec] <-0 # set to 0 first, then check the other two criteria
     }
   }
+  
   # whether meet the constraint
   
   
@@ -370,7 +371,7 @@ ResultMat2List <- function(result_mat,callId_vec,resource_vec,callInfo_df, hairc
     # the allocated indexes: 
     idx_vec <- which(result_mat[i,]!=0) 
     if(length(idx_vec)==0){
-      errormsg <- paste("ALEER3004: There's no asset allocated to margin call",callId_vec[i])
+      errormsg <- paste("ALERR3004: There's no asset allocated to margin call",callId_vec[i])
       stop(errormsg)
     }
     
@@ -596,6 +597,22 @@ OrderCallId <- function(callOrderMethod,callInfo_df){
       idxCurrent <- idxCurrent+length(idxTemp_vec)
     }
     callInfo_df<- newCallInfo_df
+  }else if(callOrderMethod==4){ # by margin statement, call amount in margin statement, increasing
+    msAggrCall_df <- aggregate(callAmount~marginStatement,data=callInfo_df,sum)
+    msAggrCall_df <- msAggrCall_df[order(msAggrCall_df$callAmount,decreasing=F),]
+    tempMs_vec <- msAggrCall_df$marginStatement
+    newCallInfo_df <- callInfo_df
+    idxCurrent <- 0
+    for(i in 1:length(tempMs_vec)){
+      idxTemp_vec <- which(tempMs_vec[i]==callInfo_df$marginStatement)
+      tempCallInfo_df <- callInfo_df[idxTemp_vec,]
+      tempCallInfo_df <- tempCallInfo_df[order(tempCallInfo_df$callAmount,decreasing=F),]
+      idxNewTemp_vec <- idxCurrent+1:length(idxTemp_vec)
+      newCallInfo_df[idxNewTemp_vec,] <- tempCallInfo_df
+      
+      idxCurrent <- idxCurrent+length(idxTemp_vec)
+    }
+    callInfo_df<- newCallInfo_df
   }
   return(callInfo_df)
 }
@@ -628,6 +645,83 @@ GroupCallIdByMs <- function(callLimit,msLimit,callInfo_df,callId_vec){
     groupCallId_list[[msGroupNum]]<- tempCall_vec
   }
   return(groupCallId_list)
+}
+
+ResultSelect <- function(result1, result2,availAssetOri_df,availAsset_df,resourceOri_df,resource_df,callInfo_df,pref_vec){
+  callId_vec <- callInfo_df$id
+  resource_vec <- resource_df$id
+  callOutput1 <- result1$callOutput
+  callOutput2 <- result2$callOutput
+  
+  # update the resource_df quantity, rounding
+  quantityUsed1_vec <- UsedQtyFromResultList(callOutput1,resource_vec,callId_vec)
+  quantityUsed2_vec <- UsedQtyFromResultList(callOutput2,resource_vec,callId_vec)
+  qtyMin1 <- round(resource_df$qtyMin - quantityUsed1_vec/resource_df$minUnit,4)
+  qtyMin2 <- round(resource_df$qtyMin - quantityUsed2_vec/resource_df$minUnit,4)
+  resource1_df <- resource_df
+  resource1_df$qtyMin <- qtyMin1
+  resource2_df <- resource_df
+  resource2_df$qtyMin <- qtyMin2
+  resultAnalysis1 <- ResultAnalysis(availAssetOri_df,availAsset_df,resourceOri_df,resource1_df,callInfo_df,callOutput1)
+  resultAnalysis2 <- ResultAnalysis(availAssetOri_df,availAsset_df,resourceOri_df,resource2_df,callInfo_df,callOutput2)
+  
+  # compare and select
+  cost1 <- resultAnalysis1$dailyCost
+  cost2 <- resultAnalysis2$dailyCost
+  liquidity1 <- resultAnalysis1$reservedLiquidityRatio
+  liquidity2 <- resultAnalysis2$reservedLiquidityRatio
+  movement1 <- resultAnalysis1$movements
+  movement2 <- resultAnalysis2$movements
+  
+  if(cost1 <= cost2 && liquidity1 >= liquidity2){
+    finalResult <- result1
+  }else if(pref_vec[1]>=pref_vec[2] && cost1 <= cost2){
+    finalResult <- result1
+  }else if(pref_vec[1]>=pref_vec[2] && liquidity1 >= liquidity2){
+    finalResult <- result1
+  }else{
+    finalResult <- result2
+  }
+  return(finalResult)
+}
+
+ResultAnalysis <- function(availAssetOri_df,availAsset_df,resourceOri_df,resource_df,callInfo_df,callOutput_list){
+  callId_vec <- callInfo_df$id
+  resource_vec <- resource_df$id
+  resourceOri_vec <- resourceOri_df$id
+  
+  availInfo_list <- AssetByCallInfo(callId_vec,resource_vec,availAsset_df)
+  eli_mat <- availInfo_list$eli_mat;
+  eli_vec <-  as.vector(t(eli_mat))
+  idxEli_vec <- which(eli_vec==1)
+  cost_mat <- availInfo_list$cost_mat
+  cost_vec <- as.vector(t(cost_mat))[idxEli_vec]
+  
+  varInfo_list <- VarInfo(eli_vec,callInfo_df,resource_vec,callId_vec)
+  varName_vec <- varInfo_list$varName_vec;
+  varNum <- varInfo_list$varNum
+  varAmount_vec <- ResultList2AmountVec(callOutput_list,callId_vec,varName_vec[1:varNum])
+  
+  #### Costs
+  dailyCost <- CostFun(varAmount_vec,cost_vec)
+  monthlyCost <- dailyCost*30
+  dailyCost <- dailyCost
+  monthlyCost <- monthlyCost
+  
+  #### Movements
+  varAmount_mat <- VarVec2mat(varAmount_vec[1:varNum],varName_vec[1:varNum],callId_vec,resource_vec)
+  movements <- OperationFun(varAmount_mat,callInfo_df,'matrix')
+  
+  #### Liquidity
+  availInfoOri_list <- AssetByCallInfo(callId_vec,resourceOri_vec,availAssetOri_df)
+  liquidity_vec <- apply((1-availInfoOri_list$haircut_mat)^2,2,min)
+  qtyLeft <- resourceOri_df$qtyMin
+  idx_vec <- match(resource_df$id,resourceOri_df$id)
+  qtyLeft[idx_vec] <- resource_df$qtyMin
+  reservedLiquidityRatio <- LiquidFun(qtyLeft,resourceOri_df$qtyMin,liquidity_vec,resourceOri_df$minUnitValue/resourceOri_df$FXRate)
+  
+  resultAnalysis <- list(dailyCost=dailyCost,monthlyCost=monthlyCost,movements=movements,reservedLiquidityRatio=reservedLiquidityRatio)
+  return(resultAnalysis=resultAnalysis)
 }
 
 #### infoFunctions #### 
@@ -897,19 +991,50 @@ AllocateByRank <- function(resource_vec,callId,rank_vec,callAmount,quantity_vec,
   # process
   # find the optimal resources within number of (operLimit) which are sufficient for the call
   solution_vec <- rep(0,length(resource_vec))
-  if(operLimit<2){ # operLimit=1
-    integralSuffQty_vec <- ceiling(callAmount/(1-haircut_vec)/minUnitValue_vec)
-    suffIdx_vec <- which(quantity_vec >= integralSuffQty_vec)
-    if(length(suffIdx_vec)==0){
-      errormsg <- paste('ALERR2004: It is not sufficient to allocate',floor(operLimit),'assets for',callId,'!')
+  leftCallAmount <- callAmount
+  integralSuffQty_vec <- ceiling(callAmount/(1-haircut_vec)/minUnitValue_vec)
+  suffIdx_vec <- which(quantity_vec >= integralSuffQty_vec)
+  if(length(suffIdx_vec)>=1){
+    suffResource_vec <- resource_vec[suffIdx_vec]
+    tempIdx <- which.max(rank_vec[suffIdx_vec])
+    optimalResource <- suffResource_vec[tempIdx]
+    optimalIdx <- which(resource_vec==optimalResource)
+    quantity <- integralSuffQty_vec[optimalIdx]
+    solution_vec[optimalIdx] <- quantity
+  } else{
+    if(operLimit<=1){ # operLimit=1
+      errormsg <- paste('ALERR2004: It is not sufficient to allocate',floor(operLimit),'assets for',callId)
       stop(errormsg)
     } else{
-      suffResource_vec <- resource_vec[suffIdx_vec]
-      tempIdx <- which.max(rank_vec[suffIdx_vec])
-      optimalResource <- suffResource_vec[tempIdx]
-      optimalIdx <- which(resource_vec==optimalResource)
-      quantity <- integralSuffQty_vec[optimalIdx]
-      solution_vec[optimalIdx] <- quantity
+      for(i in 1:operLimit){
+        amount_vec <- floor(quantity_vec)*(1-haircut_vec)*minUnitValue_vec
+        suffIdx_vec <- which(amount_vec >= callAmount)
+        if(length(suffIdx_vec)==0){
+          oriIdx_vec <- which(amount_vec==amount_vec[which.max(amount_vec)])
+          tempIdx <- which.max(rank_vec[oriIdx_vec])
+          optimalResource <- resource_vec[oriIdx_vec[tempIdx]]
+          optimalIdx <- which(resource_vec==optimalResource)
+          adjAmount <- quantity_vec[optimalIdx]*minUnitValue_vec[optimalIdx]*(1-haircut_vec[optimalIdx])
+          if(leftCallAmount>adjAmount){
+            quantity <- quantity_vec[optimalIdx]
+            solution_vec[optimalIdx] <- quantity
+            quantity_vec[optimalIdx] <- 0
+            amount_vec <- floor(quantity_vec)*(1-haircut_vec)*minUnitValue_vec
+            leftCallAmount <- leftCallAmount-adjAmount
+          } else{
+            quantity <- ceiling(leftCallAmount/(1-haircut_vec[optimalIdx])/minUnitValue_vec[optimalIdx])
+            solution_vec[optimalIdx] <- quantity
+            quantity_vec[optimalIdx] <- quantity_vec[optimalIdx] - quantity
+            amount_vec <- floor(quantity_vec)*(1-haircut_vec)*minUnitValue_vec
+            leftCallAmount <- leftCallAmount-adjAmount
+            break
+          }
+        }
+      }
+      if(leftCallAmount > 0){
+        errormsg <- paste('ALERR2004: It is not sufficient to allocate',floor(operLimit),'assets for',callId)
+        stop(errormsg)
+      }
     }
   }
   return(solution_vec)
@@ -1229,7 +1354,7 @@ SplitVarName <- function(varName_vec,target){
   } else if(target=='all'){
     return(varName_mat)
   } else{
-    stop('ALERR3001: Invalid varName_vec splitor!')
+    stop('ALERR3001: Invalid varName_vec splitor')
   }
 }
 

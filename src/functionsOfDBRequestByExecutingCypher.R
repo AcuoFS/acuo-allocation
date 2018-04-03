@@ -8,7 +8,9 @@ neo4jQAUrl <- "http://10.0.1.5:7474/db/data"
 
 callInfoByCallIdCypherPath <- "https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/callInfoByCallId.cql"
 availAssetByCallIdAndClientIdCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/availAssetByCallIdAndClientId.cql'
-assetInfoByAssetIdCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/assetInfoByAssetId.cql'
+#assetInfoByAssetIdCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/assetInfoByAssetId.cql'
+assetInfoByAssetIdCypherPath <- 'src/Cypher/assetInfoByAssetId.cql'
+
 eliAssetByClientIdCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/eliAssetByClientId.cql'
 resAssetByClientIdCypherPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/resAssetByClientId.cql'
 callIdByAgreementIdPath <- 'https://raw.githubusercontent.com/AcuoFS/acuo-allocation/develop/src/Cypher/callIdByAgreementId.cql'
@@ -57,7 +59,7 @@ CallIdByAgreementId <- function(agreementId){
 
 CallIdByMsId <- function(msId){
   msId <- c(msId,'nonexist')
-  ExecuteCypher(path=callIdByMsIdPath,msId=msId)
+  return(ExecuteCypher(path=callIdByMsIdPath,msId=msId))
 }
 
 FxRateByCurrency <- function(currency){
