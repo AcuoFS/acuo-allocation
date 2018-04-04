@@ -5,10 +5,10 @@ source("src/coreAlgo.R")
 source("src/callLpSolve.R")
 source("src/generalFunctions.R")
 
-filePath <- "test/testAssetNumber/assetNumberPerformance.xlsx"
+filePath <- "testAssetNumber/assetNumberPerformance.xlsx"
 
 testCallNumber1AssetNumber1 <- function(){
-  load("test/testAssetNumber/callNumber1AssetNumber1.RData")  
+  load("testAssetNumber/callNumber1AssetNumber1.RData")  
   worksheet <- readWorksheetFromFile(filePath,sheet="Results")
   ptm <- proc.time()
   result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
@@ -26,7 +26,7 @@ testCallNumber1AssetNumber1 <- function(){
 }
 
 testCallNumber1AssetNumber3 <- function(){
-  load("test/testAssetNumber/callNumber1AssetNumber3.RData")
+  load("testAssetNumber/callNumber1AssetNumber3.RData")
   worksheet <- readWorksheetFromFile(filePath,sheet="Results")
   ptm <- proc.time()
   result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
@@ -44,7 +44,7 @@ testCallNumber1AssetNumber3 <- function(){
 }
 
 testCallNumber1AssetNumber6 <- function(){
-  load("test/testAssetNumber/callNumber1AssetNumber6.RData")  
+  load("testAssetNumber/callNumber1AssetNumber6.RData")  
   worksheet <- readWorksheetFromFile(filePath,sheet="Results")
   ptm <- proc.time()
   result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
@@ -62,7 +62,7 @@ testCallNumber1AssetNumber6 <- function(){
 }
 
 testCallNumber1AssetNumber10 <- function(){
-  load("test/testAssetNumber/callNumber1AssetNumber10.RData")  
+  load("testAssetNumber/callNumber1AssetNumber10.RData")  
   worksheet <- readWorksheetFromFile(filePath,sheet="Results")
   ptm <- proc.time()
   result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
@@ -82,7 +82,7 @@ testCallNumber1AssetNumber10 <- function(){
 }
 
 testCallNumber1AssetNumber30 <- function(){
-  load("test/testAssetNumber/callNumber1AssetNumber30.RData")  
+  load("testAssetNumber/callNumber1AssetNumber30.RData")  
   worksheet <- readWorksheetFromFile(filePath,sheet="Results")
   ptm <- proc.time()
   result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
@@ -102,7 +102,7 @@ testCallNumber1AssetNumber30 <- function(){
 }
 
 testCallNumber3AssetNumber3 <- function(){
-  load("test/testAssetNumber/callNumber3AssetNumber3.RData")  
+  load("testAssetNumber/callNumber3AssetNumber3.RData")  
   worksheet <- readWorksheetFromFile(filePath,sheet="Results")
   ptm <- proc.time()
   result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
@@ -123,7 +123,7 @@ testCallNumber3AssetNumber3 <- function(){
 }
 
 testCallNumber3AssetNumber6 <- function(){
-  load("test/testAssetNumber/callNumber3AssetNumber6.RData")
+  load("testAssetNumber/callNumber3AssetNumber6.RData")
   worksheet <- readWorksheetFromFile(filePath,sheet="Results")
   ptm <- proc.time()
   result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
@@ -144,7 +144,7 @@ testCallNumber3AssetNumber6 <- function(){
 }
 
 testCallNumber3AssetNumber20 <- function(){
-  load("test/testAssetNumber/callNumber3AssetNumber20.RData")
+  load("testAssetNumber/callNumber3AssetNumber20.RData")
   worksheet <- readWorksheetFromFile(filePath,sheet="Results")
   ptm <- proc.time()
   result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
@@ -165,7 +165,7 @@ testCallNumber3AssetNumber20 <- function(){
 }
 
 testCallNumber3AssetNumber30 <- function(){
-  load("test/testAssetNumber/callNumber3AssetNumber30.RData")
+  load("testAssetNumber/callNumber3AssetNumber30.RData")
   worksheet <- readWorksheetFromFile(filePath,sheet="Results")
   ptm <- proc.time()
   result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
@@ -186,7 +186,7 @@ testCallNumber3AssetNumber30 <- function(){
 }
 
 testMediumCallNumber3AssetNumber10 <- function(){
-  load("test/testAssetNumber/callNumberMedium3AssetNumber10.RData")
+  load("testAssetNumber/callNumberMedium3AssetNumber10.RData")
   worksheet <- readWorksheetFromFile(filePath,sheet="Results")
   ptm <- proc.time()
   result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
@@ -207,7 +207,7 @@ testMediumCallNumber3AssetNumber10 <- function(){
 }
 
 testMediumCallNumber3AssetNumber30 <- function(){
-  load("test/testAssetNumber/callNumberMedium3AssetNumber30.RData")
+  load("testAssetNumber/callNumberMedium3AssetNumber30.RData")
   worksheet <- readWorksheetFromFile(filePath,sheet="Results")
   ptm <- proc.time()
   result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
@@ -228,7 +228,7 @@ testMediumCallNumber3AssetNumber30 <- function(){
 }
 
 testMediumCallNumber6AssetNumber30 <- function(){
-  load("test/testAssetNumber/callNumberMedium6AssetNumber30.RData")
+  load("testAssetNumber/callNumberMedium6AssetNumber30.RData")
   worksheet <- readWorksheetFromFile(filePath,sheet="Results")
   ptm <- proc.time()
   result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
@@ -251,7 +251,7 @@ testMediumCallNumber6AssetNumber30 <- function(){
 }
 
 testLargeCallNumber3AssetNumber30 <- function(){
-  load("test/testAssetNumber/callNumberLarge3AssetNumber30.RData")
+  load("testAssetNumber/callNumberLarge3AssetNumber30.RData")
   expect_error(CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
                               pref_vec,operLimit,operLimitMs_vec,fungible,
                               ifNewAlloc=T,list(),inputLimit_vec,timeLimit,callOrderMethod,minMoveValue),"The model constructed by margin calls mcusd811 mcusd812 is infeasible")

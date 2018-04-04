@@ -6,10 +6,18 @@ source("src/callLpSolve.R")
 library("testthat")
 library("XLConnect")
 
-filePath <- "test/testAssetAmount/assetAmountPerformance.xlsx"
+filePath <- "testAssetAmount/assetAmountPerformance.xlsx"
+loadFolder <- "testAssetAmount"
+saveFolder <- "testAssetAmount"
+
+file1 <- "callNumber10AssetNumberS20M20L10"
+file2 <- "callNumber10AssetNumberS10M35L5"
 
 testCallNumber10AssetNumberS20M20L10 <- function(){
-  load("test/testAssetAmount/callNumber10AssetNumberS20M20L10.RData")
+  loadFile <- "callNumber10AssetNumberS20M20L10.RData"
+  loadPath <- paste(loadFolder,loadFile,sep = '/')
+  load(loadPath)
+  
   resultList <- list()
   runTime <- rep(0,5)
   for(i in 1:5){
@@ -26,7 +34,10 @@ testCallNumber10AssetNumberS20M20L10 <- function(){
     output <- cbind("callNumber10AssetNumberS20M20L10.RData",timeLimit,runTime[i],analysis$dailyCost,analysis$reservedLiquidityRatio,analysis$movements)
     writeWorksheetToFile(filePath,data=output,sheet='Results',startRow=length(worksheet[,1])+2,startCol=1,header=F)
   }
-  save(resultList,runTime,file="test/testAssetAmount/callNumber10AssetNumberS20M20L10ResultList.RData")
+  saveFile <- "callNumber10AssetNumberS20M20L10ResultList.RData"
+  savePath <- paste(saveFolder,saveFile,sep = '/')
+  save(resultList,runTime,file=savePath)
+  
   result <- resultList[[1]]
   checkEquals(as.character(result$callOutput$mcusd811$Asset),'GB0030883267')
   checkEquals(as.character(result$callOutput$mcusd821$Asset),'GB0030883267')
@@ -43,7 +54,7 @@ testCallNumber10AssetNumberS20M20L10 <- function(){
 }
 
 testCallNumber20AssetNumberS20M20L10 <- function(){
-  load("test/testAssetAmount/callNumber20AssetNumberS20M20L10.RData")
+  load("testAssetAmount/callNumber20AssetNumberS20M20L10.RData")
   worksheet <- readWorksheetFromFile(filePath,sheet="Results")
   ptm <- proc.time()
   result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
@@ -54,11 +65,11 @@ testCallNumber20AssetNumberS20M20L10 <- function(){
   analysis <- result$resultAnalysis
   output <- cbind("callNumber20AssetNumberS20M20L10.RData",timeLimit,runTime,analysis$dailyCost,analysis$reservedLiquidityRatio,analysis$movements)
   writeWorksheetToFile(filePath,data=output,sheet='Results',startRow=length(worksheet[,1])+2,startCol=1,header=F)
-  save.image("test/testAssetAmount/callNumber10AssetNumberS20M20L10Result.RData")
+  save.image("testAssetAmount/callNumber10AssetNumberS20M20L10Result.RData")
 }
 
 testCallNumber10AssetNumberS20M35L5 <- function(){
-  load("test/testAssetAmount/callNumber10AssetNumberS10M35L5.RData")
+  load("testAssetAmount/callNumber10AssetNumberS10M35L5.RData")
   resultList <- list()
   runTime <- rep(0,5)
   for(i in 1:5){
@@ -76,7 +87,7 @@ testCallNumber10AssetNumberS20M35L5 <- function(){
     worksheet <- readWorksheetFromFile(filePath,sheet="Results")
     writeWorksheetToFile(filePath,data=output,sheet='Results',startRow=length(worksheet[,1])+2,startCol=1,header=F)
   }
-  save(resultList,runTime,file="test/testAssetAmount/callNumber10AssetNumberS10M35L5ResultList.RData")
+  save(resultList,runTime,file="testAssetAmount/callNumber10AssetNumberS10M35L5ResultList.RData")
   result <- resultList[[1]]
   checkEquals(as.character(result$callOutput$mcusd811$Asset),'GB0030883606')
   checkEquals(as.character(result$callOutput$mcusd821$Asset),'GB0030883606')
@@ -93,7 +104,7 @@ testCallNumber10AssetNumberS20M35L5 <- function(){
 }
 
 testCallNumber20AssetNumberS10M35L5 <- function(){
-  load("test/testAssetAmount/callNumber20AssetNumberS10M35L5.RData")
+  load("testAssetAmount/callNumber20AssetNumberS10M35L5.RData")
   worksheet <- readWorksheetFromFile(filePath,sheet="Results")
   ptm <- proc.time()
   expect_error(result <- CallAllocation(algoVersion,scenario=1,callInfo_df,availAsset_df,resource_df,
@@ -103,11 +114,11 @@ testCallNumber20AssetNumberS10M35L5 <- function(){
   runTime <- temp[3]
   #output <- cbind("callNumber20AssetNumberS10M35L5.RData",runTime)
   #writeWorksheetToFile(filePath,data=output,sheet='Results',startRow=length(worksheet[,1])+2,startCol=1,header=F)
-  #save.image("test/testAssetAmount/callNumber20AssetNumberS10M35L5Result.RData")
+  #save.image("testAssetAmount/callNumber20AssetNumberS10M35L5Result.RData")
 }
 
 testCallNumber10AssetNumberS10M32L5SL3 <- function(){
-  load("test/testAssetAmount/callNumber10AssetNumberS10M32L5SL3.RData")
+  load("testAssetAmount/callNumber10AssetNumberS10M32L5SL3.RData")
   resultList <- list()
   runTime <- rep(0,5)
   for(i in 1:5){
@@ -125,7 +136,7 @@ testCallNumber10AssetNumberS10M32L5SL3 <- function(){
     worksheet <- readWorksheetFromFile(filePath,sheet="Results")
     writeWorksheetToFile(filePath,data=output,sheet='Results',startRow=length(worksheet[,1])+2,startCol=1,header=F)
   }
-  save(resultList,runTime,file="test/testAssetAmount/callNumber10AssetNumberS10M32L5SL3ResultList.RData")
+  save(resultList,runTime,file="testAssetAmount/callNumber10AssetNumberS10M32L5SL3ResultList.RData")
   result <- resultList[[1]]
   checkEquals(as.character(result$callOutput$mcusd811$Asset),'GB0030883713')
   checkEquals(as.character(result$callOutput$mcusd812$Asset),'SGD')
@@ -144,7 +155,7 @@ testCallNumber10AssetNumberS10M32L5SL3 <- function(){
 }
 
 testCallNumber20AssetNumberS10M32L5SL3 <- function(){
-  load("test/testAssetAmount/callNumber20AssetNumberS10M32L5SL3.RData")
+  load("testAssetAmount/callNumber20AssetNumberS10M32L5SL3.RData")
   resultList <- list()
   runTime <- rep(0,5)
   for(i in 1:5){
@@ -162,7 +173,7 @@ testCallNumber20AssetNumberS10M32L5SL3 <- function(){
     worksheet <- readWorksheetFromFile(filePath,sheet="Results")
     writeWorksheetToFile(filePath,data=output,sheet='Results',startRow=length(worksheet[,1])+2,startCol=1,header=F)
   }
-  save(resultList,runTime,file = "test/testAssetAmount/callNumber20AssetNumberS10M32L5SL3ResultList.RData")
+  save(resultList,runTime,file = "testAssetAmount/callNumber20AssetNumberS10M32L5SL3ResultList.RData")
   result <- resultList[[1]]
   checkEquals(as.character(result$callOutput$mcusd811$Asset),'GB0030883713')
   checkEquals(as.character(result$callOutput$mcusd812$Asset),'SGD')

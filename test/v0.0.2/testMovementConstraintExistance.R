@@ -1,8 +1,8 @@
 library('RUnit')
-setwd("E://ACUO/projects/acuo-allocation/")
+setwd("E://ACUO/projects/acuo-allocation/test/v0.0.2")
 
 test.suite = defineTestSuite("example",
-                             dirs = file.path("test/testMovementConstraintExistence/"),
+                             dirs = file.path("testMovementConstraintExistence/"),
                              testFileRegexp = 'movementConstraintExistenceTests.R')
 
 test.result <- runTestSuite(test.suite)

@@ -1,4 +1,4 @@
-options(stringsAsFactors = FALSE)
+options(stringsAsFactors = FALSE)  
 
 if(length(unlist(callIds))==0){
   stop('Empty callIds input!')
