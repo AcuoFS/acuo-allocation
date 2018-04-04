@@ -65,7 +65,7 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
   
   # set control options
   lp.control(lpModel,presolve=presolve,epsd=epsd,timeout=timeout,bb.rule=bbRule,epsint=epsint,
-             scaling=scaling,improve=improve,verbose='important',negrange=-1e-6)
+             scaling=scaling,improve=improve,verbose='severe',negrange=-1e-6)
   
   # solve the problem
   resultStatus <- solve(lpModel)  
