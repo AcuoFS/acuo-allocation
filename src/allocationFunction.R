@@ -9,16 +9,16 @@ CallAllocation <- function(algoVersion,scenario,callInfo_df,availAsset_df,resour
   #### Scenario Code END ###########
   callId_vec <- as.character(callInfo_df$id)
   resource_vec <- as.character(resource_df$id)
-  if(!exists("inputLimit_vec") || missing("inputLimit_vec")){
+  if(missing(inputLimit_vec)){
     inputLimit_vec <- c(7,7,7,4)
   }
-  if(!exists("timeLimit") || missing("timeLimit")){
+  if(missing(timeLimit)){
     timeLimit <- 13
   }
-  if(!exists("callOrderMethod") || missing("callOrderMethod")){
+  if(missing(callOrderMethod)){
     callOrderMethod <- 3
   }
-  if(!exists("minMoveValue") || missing("minMoveValue")){
+  if(missing(minMoveValue)){
     minMoveValue <- 1000
   }
 
