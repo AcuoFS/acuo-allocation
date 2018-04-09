@@ -757,6 +757,10 @@ AvailAsset <- function(availAsset_df){
   idx_vec <- match(c("callId","assetCustacId","internalCost", "opptCost", "yield", "haircut","FXHaircut","externalCost","interestRate"),names(availAsset_df))
   new_df <- availAsset_df[,idx_vec]
   
+  # venue: all SG
+  venue_vec <- rep('SG',length(availAsset_df[,1]))
+  availAsset_df$venue <- venue_vec
+  
   return(new_df)
 }
 
@@ -793,6 +797,33 @@ AssetByCallInfo <- function(callId_vec,resource_vec,availAsset_df){
   return (output_list)
 }
 
+AssetInfoFxConversion <- function(assetInfo_df){
+  # keep the original fx rate in assetInfo$oriFXRate
+  # fx used for calculation: 1 USD can change how much foreign currency
+  
+  assetInfo_df$oriFXRate <- assetInfo_df$FXRate
+  if(!is.null(assetInfo_df$from)&&!is.null(assetInfo_df$to)){
+    idxTo <- which(assetInfo_df$to=="USD")
+    assetInfo_df$FXRate[idxTo] <- 1/assetInfo_df$FXRate[idxTo]
+  }
+  return(assetInfo_df)
+}
+
+CallInfoFxConversion <- function(callInfo_df){
+  # keep the original fx rate in callInfo$oriFXRate
+  # fx used for calculation: 1 USD can change how much foreign currency
+
+  callInfo_df$oriCallAmount <- callInfo_df$callAmount # call amount in principal currency
+  
+  callInfo_df$oriFXRate <- callInfo_df$FXRate
+  if(!is.null(callInfo_df$from)&&!is.null(callInfo_df$to)){
+    idxTo <- which(callInfo_df$to=="USD")
+    callInfo_df$FXRate[idxTo] <- 1/callInfo_df$FXRate[idxTo]
+  }
+  
+  callInfo_df$callAmount <- callInfo_df$callAmount/callInfo_df$FXRate # call amount in USD
+  return(callInfo_df)
+}
 
 #### modelFunction #### 
 QtyConst <- function(varName_vec,varNum,resource_vec,quantityTotal_vec){

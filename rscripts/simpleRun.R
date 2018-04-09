@@ -25,18 +25,19 @@ pref_vec <- pref
 operLimitMs <- 2
 fungible <- FALSE
 callInfo_df <- callInfoByCallId
-callInfo_df$callAmount <- abs(as.numeric(callInfo_df$callAmount)) # make sure the callAmount is non-negative
+availAsset_df <- availAssetByCallIdAndClientId
+assetInfo_df <- assetInfoByAssetId
+
 
 #print(callInfo_df)
 
-availAsset_df <- availAssetByCallIdAndClientId
+
 availAsset_df <- availAsset_df[order(availAsset_df$callId),]
 availAsset_df$quantity[which(availAsset_df$quantity<0)] <- 0 ### dont allow negative quantity, temp
 
-assetInfo_df <- assetInfoByAssetId
 
 # remove assets that have 0 unitValue from assetInfo_df and avalAsset_df
-assetInfo_df <- assetInfoByAssetId;
+
 rmIdxAsset <- which(assetInfo_df$unitValue==0)
 if(length(rmIdxAsset)>0){
   rmIdxAvail <- which(availAsset_df$assetId %in% assetInfo_df$id[rmIdxAsset])
@@ -44,45 +45,25 @@ if(length(rmIdxAsset)>0){
   assetInfo_df <- assetInfo_df[-rmIdxAsset,]
 }
 
-###### 3 lines added fot testing purposes, comment them after tests ##################
-# changing the asset quantity and adding new custodian account to make the optimal assets insufficient,
-# so that the allocation function will call the lpSolver.
-# availAsset_df$quantity <- availAsset_df$quantity/5
-# availAsset_df <- rbind(availAsset_df,availAsset_df)
-# availAsset_df$CustodianAccount[1:length(availAsset_df[,1])/2] <- 'custodianAccountTest'
-######## end #############################################################################
 
 assetCustacId_vec <- PasteResource(availAsset_df$assetId,availAsset_df$CustodianAccount)
 availAsset_df$assetCustacId <- assetCustacId_vec
 resource_vec <- unique(assetCustacId_vec)
 
 assetId_vec <- unique(availAsset_df$assetId)
-assetInfo_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),]
 
-## FX rate conversion ##
-# keep the original fx rate in assetInfo$oriFXRate and callInfo$oriFXRate
-# fx used for calculation: 1 USD can change how much foreign currency
+# assetInfo
+assetInfo_df <- AssetInfoFxConversion(assetInfo)
 
-assetInfo_df$oriFXRate <- assetInfo_df$FXRate
-if(!is.null(assetInfo_df$from)&&!is.null(assetInfo_df$to)){
-  idxTo <- which(assetInfo_df$to=="USD")
-  assetInfo_df$FXRate[idxTo] <- 1/assetInfo_df$FXRate[idxTo]
-}
-callInfo_df$oriFXRate <- callInfo_df$FXRate
-if(!is.null(callInfo_df$from)&&!is.null(callInfo_df$to)){
-  idxTo <- which(callInfo_df$to=="USD")
-  callInfo_df$FXRate[idxTo] <- 1/callInfo_df$FXRate[idxTo]
-}
-callInfo_df$callAmountOri <- callInfo_df$callAmount # call amount in principal currency
-callInfo_df$callAmount <- callInfo_df$callAmount/callInfo_df$FXRate # call amount in USD
+# callInfo
+callInfo_df <- CallInfoFxConversion(callInfo)
 
-# resource info, availAsset info
+# resource info
 resource_df <- ResourceInfo(resource_vec,assetInfo_df,availAsset_df)
+
+#availAsset info
 availAsset_df <- AvailAsset(availAsset_df)
 
-# venue: all SG
-venue_vec <- rep('SG',length(availAsset_df[,1]))
-availAsset_df$venue <- venue_vec
 #print(availAsset_df)
 ###### END ####################################
 
@@ -95,7 +76,6 @@ operLimitMs_vec <- rep(operLimitMs,msNum)
 operLimit<- sum(operLimitMs_vec)
 
 
-callId_vec <- unlist(callId_vec)
 result <- CallAllocation(algoVersion,scenario=1,
                           callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs_vec,fungible,
                           ifNewAlloc=T,list())
