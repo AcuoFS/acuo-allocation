@@ -10,18 +10,22 @@ OPTIONAL match (fxrate)<-[:OF]-(fx)
 where (fxrate)-[:LAST]->(fx)
 
 RETURN  a.id AS id,
-		a.idType AS idType,
 		a.name AS name,
-		a.type AS type,
-		a.ICADCode AS ICADCode,
-		a.ACUOCategory AS ACUOCategory,
 		a.rating AS rating,
 		a.currency AS currency,
     value.unitValue AS unitValue,
 		a.minUnit AS minUnit,
-    a.minUnit*value.unitValue AS minUnitValue,
+		value.yield AS yield,
 		CASE WHEN a.currency = 'USD' THEN 1
-         WHEN type(r1)="FROM" THEN fx.value 
-         WHEN type(r1)="TO" THEN 1/fx.value 
+		     WHEN a.currency <> 'USD THEN fx.value
 	  END
-		AS FXRate
+		AS FXRate,
+		CASE WHEN type(r1)="FROM" THEN ccy.id
+         WHEN type(r1)="TO" THEN usd.id
+	  END
+	  AS from,
+	  CASE WHEN type(r1)="FROM" THEN usd.id
+         WHEN type(r1)="TO" THEN ccy.id
+	  END
+	  AS to
+		

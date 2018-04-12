@@ -731,7 +731,11 @@ ResourceInfo <- function(resource_vec,assetInfo_df,availAsset_df){
   ## asset id, name, currency, unitValue, minUnit, minUnitValue, FXRate
   assetId_vec <- SplitResource(resource_vec,'asset')
   custodianAccount_vec <- SplitResource(resource_vec,'custodianAccount')
-  idx1_vec <- match(c('id', 'name', 'unitValue', 'minUnit', 'minUnitValue','currency', 'FXRate'),names(assetInfo_df))
+  # derive minUnitValue
+  minUnitValue_vec <- assetInfo_df$unitValue*assetInfo_df$minUnit
+  assetInfo_df$minUnitValue <- minUnitValue_vec
+  # keep 10 columns
+  idx1_vec <- match(c('id', 'name', 'unitValue', 'minUnit', 'minUnitValue','currency','yield', 'FXRate'),names(assetInfo_df))
   resource_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),idx1_vec]
   
   ## add resource id, custodianAccount id, quantity, minQty, qtyRes
@@ -742,20 +746,22 @@ ResourceInfo <- function(resource_vec,assetInfo_df,availAsset_df){
   qtyMin_vec <- floor(qtyOri_vec/resource_df$minUnit) # interal minUnit quantity
   qtyRes_vec <- qtyOri_vec - qtyMin_vec*resource_df$minUnit # quantity left after integral minQty
   
-  resource_df <- cbind(resource_df[,1:3],qtyOri_vec,qtyMin_vec,qtyRes_vec,resource_df[,4:9],venue_vec)
+  resource_df <- cbind(resource_df[,1:3],qtyOri_vec,qtyMin_vec,qtyRes_vec,resource_df[,4:10],venue_vec)
   resource_df$id <- as.character(resource_df$id)
   
-  names(resource_df) <- c('id','assetId','assetName','qtyOri','qtyMin','qtyRes','unitValue', 'minUnit','minUnitValue','currency','FXRate',
+  names(resource_df) <- c('id','assetId','assetName','qtyOri','qtyMin','qtyRes','unitValue', 'minUnit','minUnitValue','currency','yield','FXRate',
                           'custodianAccount','venue')
   
   return(resource_df)
 }
 
 AvailAsset <- function(availAsset_df){
-  ## keep useful columns
-  ## "callId","assetCustacId","internalCost", "opptCost", "yield", "haircut","FXHaircut","externalCost","interestRate"
-  idx_vec <- match(c("callId","assetCustacId","internalCost", "opptCost", "yield", "haircut","FXHaircut","externalCost","interestRate"),names(availAsset_df))
+  ## keep 8 columns
+  idx_vec <- match(c("callId","assetCustacId","internalCost", "opptCost", "haircut","FXHaircut","externalCost","interestRate"),names(availAsset_df))
   new_df <- availAsset_df[,idx_vec]
+  
+  # add 1 column for the simplicity of calculation later: yield
+  new_df$yield <- resource_df$yield[match(new_df$assetCustacId,resource_df$id)]
   
   return(new_df)
 }
@@ -793,6 +799,33 @@ AssetByCallInfo <- function(callId_vec,resource_vec,availAsset_df){
   return (output_list)
 }
 
+AssetInfoFxConversion <- function(assetInfo_df){
+  # keep the original fx rate in assetInfo$oriFXRate
+  # fx used for calculation: 1 USD can change how much foreign currency
+  
+  assetInfo_df$oriFXRate <- assetInfo_df$FXRate
+  if(!is.null(assetInfo_df$from)&&!is.null(assetInfo_df$to)){
+    idxTo <- which(assetInfo_df$to=="USD")
+    assetInfo_df$FXRate[idxTo] <- 1/assetInfo_df$FXRate[idxTo]
+  }
+  return(assetInfo_df)
+}
+
+CallInfoFxConversion <- function(callInfo_df){
+  # keep the original fx rate in callInfo$oriFXRate
+  # fx used for calculation: 1 USD can change how much foreign currency
+  
+  callInfo_df$oriCallAmount <- callInfo_df$callAmount # call amount in principal currency
+  
+  callInfo_df$oriFXRate <- callInfo_df$FXRate
+  if(!is.null(callInfo_df$from)&&!is.null(callInfo_df$to)){
+    idxTo <- which(callInfo_df$to=="USD")
+    callInfo_df$FXRate[idxTo] <- 1/callInfo_df$FXRate[idxTo]
+  }
+  
+  callInfo_df$callAmount <- callInfo_df$callAmount/callInfo_df$FXRate # call amount in USD
+  return(callInfo_df)
+}
 
 #### modelFunction #### 
 QtyConst <- function(varName_vec,varNum,resource_vec,quantityTotal_vec){

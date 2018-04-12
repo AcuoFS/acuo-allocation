@@ -27,7 +27,6 @@ RETURN DISTINCT
     cu.countryShortName AS venue,
     h.internalCost AS internalCost,
     h.opptCost AS opptCost,
-    a.yield AS yield,
     rule.haircut AS haircut,
     rule.FXHaircut AS FXHaircut,
     rule.externalCost AS externalCost,
