@@ -53,11 +53,10 @@ callInfo_df <- CallInfoFxConversion(callInfo_df)
 #}
 
 #### availAsset_df ####
-if(length(unlist(availAsset_df))==0){
+oriAvailAsset_df <- AvailAssetByCallIdAndClientId(callId_vec,clientId) # available asset for the margin call
+if(length(unlist(oriAvailAsset_df))==0){
   stop('Empty availAsset_df input!')
 }
-availAsset_df <- AvailAssetByCallIdAndClientId(callId_vec,clientId) # available asset for the margin call
-
 #### assetInfo ####
 assetId_vec <- unique(availAsset_df$assetId)
 assetInfo_df <- AssetInfoByAssetId(assetId_vec)
@@ -67,7 +66,7 @@ if(length(unlist(assetInfo_df))==0){
 assetInfo_df <- AssetInfoFxConversion(assetInfo_df)
 
 #### resource_df and availAsset_df ####
-info_list <- ResourceInfoAndAvailAsset(assetInfo_df,availAsset_df)
+info_list <- ResourceInfoAndAvailAsset(assetInfo_df,oriAvailAsset_df)
 resource_df <- info_list$resource_df
 availAsset_df <- info_list$availAsset_df
 

@@ -341,7 +341,7 @@ ConstructAllocDf <- function(resourceInfo_df,callInfo_df,haircutC_vec,haircutFX_
   call_vec <- rep(callInfo_df$id,length(cost_vec))
   
   assetFX_vec <- resourceInfo_df$FXRate
-  #oriAssetFX_vec <- resourceInfo_df$oriFXRate
+  assetOriFX_vec <- resourceInfo_df$oriFXRate
   assetUnitValue_vec <- resourceInfo_df$unitValue/assetFX_vec
   
   assetAmountUSD_vec <- assetQuantity_vec*assetUnitValue_vec
@@ -352,9 +352,9 @@ ConstructAllocDf <- function(resourceInfo_df,callInfo_df,haircutC_vec,haircutFX_
   assetAmount_vec <- assetAmountUSD_vec*assetFX_vec
   assetNetAmount_vec <- assetNetAmountUSD_vec*assetFX_vec
   
-  alloc_df <- data.frame(assetId_vec,assetName_vec,assetNetAmount_vec,assetNetAmountUSD_vec,assetFX_vec,assetHaircut_vec,assetHaircutC_vec,assetHaircutFX_vec,assetAmount_vec,assetAmountUSD_vec,
+  alloc_df <- data.frame(assetId_vec,assetName_vec,assetNetAmount_vec,assetNetAmountUSD_vec,assetOriFX_vec,assetFX_vec,assetHaircut_vec,assetHaircutC_vec,assetHaircutFX_vec,assetAmount_vec,assetAmountUSD_vec,
                          assetCurrency_vec,assetQuantity_vec,assetCustodianAccount_vec,assetVenue_vec,marginType_vec,ms_vec,call_vec,assetCostFactor_vec,assetCost_vec)
-  colnames(alloc_df)<- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','Haircut','Hc','Hfx','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType',
+  colnames(alloc_df)<- c('Asset','Name','NetAmount','NetAmount(USD)','FXRate','FXRatePerUSD','Haircut','Hc','Hfx','Amount','Amount(USD)','Currency','Quantity','CustodianAccount','venue','marginType',
                          'marginStatement','marginCall','CostFactor','Cost')
   rownames(alloc_df)<- 1:length(alloc_df[,1])
   return(alloc_df)
@@ -740,8 +740,8 @@ ResourceInfoAndAvailAsset <- function(assetInfo_df,availAsset_df){
   # derive minUnitValue
   minUnitValue_vec <- assetInfo_df$unitValue*assetInfo_df$minUnit
   assetInfo_df$minUnitValue <- minUnitValue_vec
-  # keep 10 columns
-  idx1_vec <- match(c('id', 'name', 'unitValue', 'minUnit', 'minUnitValue','currency','yield', 'FXRate'),names(assetInfo_df))
+  # keep 11 columns
+  idx1_vec <- match(c('id', 'name', 'unitValue', 'minUnit', 'minUnitValue','currency','yield', 'FXRate','oriFXRate'),names(assetInfo_df))
   resource_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),idx1_vec]
   
   ## add 5 columns: resource id, custodianAccount id, quantity, minQty, qtyRes
@@ -752,10 +752,10 @@ ResourceInfoAndAvailAsset <- function(assetInfo_df,availAsset_df){
   qtyMin_vec <- floor(qtyOri_vec/resource_df$minUnit) # interal minUnit quantity
   qtyRes_vec <- qtyOri_vec - qtyMin_vec*resource_df$minUnit # quantity left after integral minQty
   
-  resource_df <- cbind(resource_df[,1:3],qtyOri_vec,qtyMin_vec,qtyRes_vec,resource_df[,4:10],venue_vec)
+  resource_df <- cbind(resource_df[,1:3],qtyOri_vec,qtyMin_vec,qtyRes_vec,resource_df[,4:11],venue_vec)
   resource_df$id <- as.character(resource_df$id)
   
-  names(resource_df) <- c('id','assetId','assetName','qtyOri','qtyMin','qtyRes','unitValue', 'minUnit','minUnitValue','currency','yield','FXRate',
+  names(resource_df) <- c('id','assetId','assetName','qtyOri','qtyMin','qtyRes','unitValue', 'minUnit','minUnitValue','currency','yield','FXRate','oriFXRate',
                           'custodianAccount','venue')
   
   ## clean up availAsset_df
@@ -1039,8 +1039,8 @@ AllocateByRank <- function(resource_vec,callId,rank_vec,callAmount,quantity_vec,
     solution_vec[optimalIdx] <- quantity
   } else{
     if(operLimit<=1){ # operLimit=1
-        errormsg <- paste('ALERR2004: It is not sufficient to allocate',floor(operLimit),'assets for',callId)
-        stop(errormsg)
+      errormsg <- paste('ALERR2004: It is not sufficient to allocate',floor(operLimit),'assets for',callId)
+      stop(errormsg)
     } else{
       for(i in 1:operLimit){
         amount_vec <- floor(quantity_vec)*(1-haircut_vec)*minUnitValue_vec
@@ -1134,11 +1134,11 @@ ConstructModelObj <- function(callAmount_mat,minUnitValue_mat,haircut_mat,costBa
   normLiquidity_vec <- as.vector(t(normLiquidity_mat))
   normOperation_mat <- operation_mat*9+1
   normOperation_vec <- as.vector(t(normOperation_mat))
-
+  
   objParams_list <- list(cost_vec=normCost_vec,cost_mat=normCost_mat,
                          liquidity_vec=normLiquidity_vec,liquidity_mat=normLiquidity_mat,
                          operation_vec=normOperation_vec,operation_mat=normOperation_mat)
-
+  
   return(objParams_list)
 }
 

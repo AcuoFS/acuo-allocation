@@ -725,16 +725,26 @@ ResultAnalysis <- function(availAssetOri_df,availAsset_df,resourceOri_df,resourc
 }
 
 #### infoFunctions #### 
-ResourceInfo <- function(resource_vec,assetInfo_df,availAsset_df){
-  ## better retrieve from DB
-  ## keep useful columns from assetInfo
-  ## asset id, name, currency, unitValue, minUnit, minUnitValue, FXRate
+ResourceInfoAndAvailAsset <- function(assetInfo_df,availAsset_df){
+  # order by call id 
+  availAsset_df <- availAsset_df[order(availAsset_df$callId),]
+  # remove assets with negative amount
+  availAsset_df$quantity[which(availAsset_df$quantity<0)] <- 0 # avoid negative amount
+  # construct the resourceId
+  availAsset_df$assetCustacId <- PasteResource(availAsset_df$assetId,availAsset_df$CustodianAccount)
+  resource_vec <- unique(assetCustacId_vec)
+  
+  ## construct resource_df
   assetId_vec <- SplitResource(resource_vec,'asset')
   custodianAccount_vec <- SplitResource(resource_vec,'custodianAccount')
-  idx1_vec <- match(c('id', 'name', 'unitValue', 'minUnit', 'minUnitValue','currency', 'FXRate','oriFXRate'),names(assetInfo_df))
+  # derive minUnitValue
+  minUnitValue_vec <- assetInfo_df$unitValue*assetInfo_df$minUnit
+  assetInfo_df$minUnitValue <- minUnitValue_vec
+  # keep 11 columns
+  idx1_vec <- match(c('id', 'name', 'unitValue', 'minUnit', 'minUnitValue','currency','yield', 'FXRate','oriFXRate'),names(assetInfo_df))
   resource_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),idx1_vec]
   
-  ## add resource id, custodianAccount id, quantity, minQty, qtyRes
+  ## add 5 columns: resource id, custodianAccount id, quantity, minQty, qtyRes
   resource_df <- cbind(id=resource_vec,resource_df,custodianAccount_vec)
   idx2_vec <- match(resource_vec, availAsset_df$assetCustacId)
   venue_vec <- availAsset_df$venue[idx2_vec] 
@@ -742,26 +752,21 @@ ResourceInfo <- function(resource_vec,assetInfo_df,availAsset_df){
   qtyMin_vec <- floor(qtyOri_vec/resource_df$minUnit) # interal minUnit quantity
   qtyRes_vec <- qtyOri_vec - qtyMin_vec*resource_df$minUnit # quantity left after integral minQty
   
-  resource_df <- cbind(resource_df[,1:3],qtyOri_vec,qtyMin_vec,qtyRes_vec,resource_df[,4:10],venue_vec)
+  resource_df <- cbind(resource_df[,1:3],qtyOri_vec,qtyMin_vec,qtyRes_vec,resource_df[,4:11],venue_vec)
   resource_df$id <- as.character(resource_df$id)
   
-  names(resource_df) <- c('id','assetId','assetName','qtyOri','qtyMin','qtyRes','unitValue', 'minUnit','minUnitValue','currency','FXRate','oriFXRate',
+  names(resource_df) <- c('id','assetId','assetName','qtyOri','qtyMin','qtyRes','unitValue', 'minUnit','minUnitValue','currency','yield','FXRate','oriFXRate',
                           'custodianAccount','venue')
   
-  return(resource_df)
-}
-
-AvailAsset <- function(availAsset_df){
-  ## keep useful columns
-  ## "callId","assetCustacId","internalCost", "opptCost", "yield", "haircut","FXHaircut","externalCost","interestRate"
-  idx_vec <- match(c("callId","assetCustacId","internalCost", "opptCost", "yield", "haircut","FXHaircut","externalCost","interestRate"),names(availAsset_df))
-  new_df <- availAsset_df[,idx_vec]
+  ## clean up availAsset_df
+  ## keep 8 columns
+  idx_vec <- match(c("callId","assetCustacId","internalCost", "opptCost", "haircut","FXHaircut","externalCost","interestRate"),names(availAsset_df))
+  newAvailAsset_df <- availAsset_df[,idx_vec]
   
-  # venue: all SG
-  venue_vec <- rep('SG',length(availAsset_df[,1]))
-  availAsset_df$venue <- venue_vec
+  # add 1 column for the simplicity of calculation later: yield
+  newAvailAsset_df$yield <- resource_df$yield[match(newAvailAsset_df$assetCustacId,resource_df$id)]
   
-  return(new_df)
+  return(list(resource_df=resource_df,availAsset_df=newAvailAsset_df))
 }
 
 AssetByCallInfo <- function(callId_vec,resource_vec,availAsset_df){
@@ -812,7 +817,7 @@ AssetInfoFxConversion <- function(assetInfo_df){
 CallInfoFxConversion <- function(callInfo_df){
   # keep the original fx rate in callInfo$oriFXRate
   # fx used for calculation: 1 USD can change how much foreign currency
-
+  
   callInfo_df$oriCallAmount <- callInfo_df$callAmount # call amount in principal currency
   
   callInfo_df$oriFXRate <- callInfo_df$FXRate
