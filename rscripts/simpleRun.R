@@ -30,11 +30,18 @@ callInfo_df <- callInfoByCallId
 assetInfo_df <- assetInfoByAssetId
 availAsset_df <- availAssetByCallIdAndClientId
 
-#### data processing ####
-# remove assets that have 0 unitValue from assetInfo_df and avalAsset_df
+#### remove unexpected data ####
+# remove assets that have 0 unitValue from assetInfo_df and availAsset_df
 rmIdxAsset <- which(assetInfo_df$unitValue==0)
 if(length(rmIdxAsset)>0){
   rmIdxAvail <- which(availAsset_df$assetId %in% assetInfo_df$id[rmIdxAsset])
+  availAsset_df <- availAsset_df[-rmIdxAvail,]
+  assetInfo_df <- assetInfo_df[-rmIdxAsset,]
+}
+# remove assets that have 0 or less quantity from assetInfo_df and availAsset_df
+rmIdxAvail <- which(availAsset_df$quantity<=0)
+if(length(rmIdxAvail)>0){
+  rmIdxAsset <- which(assetInfo_df$id %in% availAsset_df$assetId[rmIdxAvail])
   availAsset_df <- availAsset_df[-rmIdxAvail,]
   assetInfo_df <- assetInfo_df[-rmIdxAsset,]
 }
