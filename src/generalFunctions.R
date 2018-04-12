@@ -732,7 +732,7 @@ ResourceInfoAndAvailAsset <- function(assetInfo_df,availAsset_df){
   availAsset_df$quantity[which(availAsset_df$quantity<0)] <- 0 # avoid negative amount
   # construct the resourceId
   availAsset_df$assetCustacId <- PasteResource(availAsset_df$assetId,availAsset_df$CustodianAccount)
-  resource_vec <- unique(assetCustacId_vec)
+  resource_vec <- unique(availAsset_df$assetCustacId)
   
   ## construct resource_df
   assetId_vec <- SplitResource(resource_vec,'asset')

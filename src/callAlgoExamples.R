@@ -58,7 +58,7 @@ if(length(unlist(oriAvailAsset_df))==0){
   stop('Empty availAsset_df input!')
 }
 #### assetInfo ####
-assetId_vec <- unique(availAsset_df$assetId)
+assetId_vec <- unique(oriAvailAsset_df$assetId)
 assetInfo_df <- AssetInfoByAssetId(assetId_vec)
 if(length(unlist(assetInfo_df))==0){
   stop('Empty assetInfo_df input!')
