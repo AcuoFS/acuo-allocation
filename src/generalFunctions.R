@@ -725,10 +725,16 @@ ResultAnalysis <- function(availAssetOri_df,availAsset_df,resourceOri_df,resourc
 }
 
 #### infoFunctions #### 
-ResourceInfo <- function(resource_vec,assetInfo_df,availAsset_df){
-  ## better retrieve from DB
-  ## keep useful columns from assetInfo
-  ## asset id, name, currency, unitValue, minUnit, minUnitValue, FXRate
+ResourceInfoAndAvailAsset <- function(assetInfo_df,availAsset_df){
+  # order by call id 
+  availAsset_df <- availAsset_df[order(availAsset_df$callId),]
+  # remove assets with negative amount
+  availAsset_df$quantity[which(availAsset_df$quantity<0)] <- 0 # avoid negative amount
+  # construct the resourceId
+  availAsset_df$assetCustacId <- PasteResource(availAsset_df$assetId,availAsset_df$CustodianAccount)
+  resource_vec <- unique(assetCustacId_vec)
+  
+  ## construct resource_df
   assetId_vec <- SplitResource(resource_vec,'asset')
   custodianAccount_vec <- SplitResource(resource_vec,'custodianAccount')
   # derive minUnitValue
@@ -738,7 +744,7 @@ ResourceInfo <- function(resource_vec,assetInfo_df,availAsset_df){
   idx1_vec <- match(c('id', 'name', 'unitValue', 'minUnit', 'minUnitValue','currency','yield', 'FXRate'),names(assetInfo_df))
   resource_df <- assetInfo_df[match(assetId_vec,assetInfo_df$id),idx1_vec]
   
-  ## add resource id, custodianAccount id, quantity, minQty, qtyRes
+  ## add 5 columns: resource id, custodianAccount id, quantity, minQty, qtyRes
   resource_df <- cbind(id=resource_vec,resource_df,custodianAccount_vec)
   idx2_vec <- match(resource_vec, availAsset_df$assetCustacId)
   venue_vec <- availAsset_df$venue[idx2_vec] 
@@ -752,18 +758,15 @@ ResourceInfo <- function(resource_vec,assetInfo_df,availAsset_df){
   names(resource_df) <- c('id','assetId','assetName','qtyOri','qtyMin','qtyRes','unitValue', 'minUnit','minUnitValue','currency','yield','FXRate',
                           'custodianAccount','venue')
   
-  return(resource_df)
-}
-
-AvailAsset <- function(availAsset_df){
+  ## clean up availAsset_df
   ## keep 8 columns
   idx_vec <- match(c("callId","assetCustacId","internalCost", "opptCost", "haircut","FXHaircut","externalCost","interestRate"),names(availAsset_df))
-  new_df <- availAsset_df[,idx_vec]
+  newAvailAsset_df <- availAsset_df[,idx_vec]
   
   # add 1 column for the simplicity of calculation later: yield
-  new_df$yield <- resource_df$yield[match(new_df$assetCustacId,resource_df$id)]
+  newAvailAsset_df$yield <- resource_df$yield[match(newAvailAsset_df$assetCustacId,resource_df$id)]
   
-  return(new_df)
+  return(list(resource_df=resource_df,availAsset_df=newAvailAsset_df))
 }
 
 AssetByCallInfo <- function(callId_vec,resource_vec,availAsset_df){

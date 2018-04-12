@@ -16,17 +16,17 @@ RETURN  mc.id AS id,
 		mc.currency AS currency,
 		mc.callDate AS callDate,
 		mc.direction AS direction,
-		CASE WHEN a.currency = 'USD' THEN 1
-         WHEN a.currency <> 'USD THEN fx.value
-	  END
+		CASE WHEN mc.currency = 'USD' THEN 1
+		     WHEN mc.currency <> 'USD' THEN fx.value
+		END
 		AS FXRate,
-		CASE WHEN type(r1)="FROM" THEN ccy.id
-         WHEN type(r1)="TO" THEN usd.id
-	  END
-	  AS from,
-	  CASE WHEN type(r1)="FROM" THEN usd.id
-         WHEN type(r1)="TO" THEN ccy.id
-	  END
-	  AS to
-		
-		
+		CASE WHEN mc.currency = 'USD' THEN 'USD'
+		     WHEN type(r1)='FROM' THEN ccy.id
+		     WHEN type(r1)='TO' THEN usd.id
+		END
+		AS from,
+		CASE WHEN mc.currency = 'USD' THEN 'USD'
+		     WHEN type(r1)='FROM' THEN usd.id
+		     WHEN type(r1)='TO' THEN ccy.id
+		END
+		AS to
