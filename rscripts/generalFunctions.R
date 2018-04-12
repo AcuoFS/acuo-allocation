@@ -727,7 +727,7 @@ ResultAnalysis <- function(availAssetOri_df,availAsset_df,resourceOri_df,resourc
 #### infoFunctions #### 
 ResourceInfoAndAvailAsset <- function(assetInfo_df,availAsset_df){
   # order by call id 
-  availAsset_df <- availAsset_df[order(availAsset_df$callId),]
+  availAsset_df <- availAsset_df[order(availAsset_df[,1],availAsset_df[,2]),]
   # remove assets with negative amount
   availAsset_df$quantity[which(availAsset_df$quantity<0)] <- 0 # avoid negative amount
   # construct the resourceId

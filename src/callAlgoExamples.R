@@ -26,12 +26,9 @@ source("src/callLpSolve.R")
 #### Sources END ###########
 
 #### Input Prepare Start ###########
-msId_vec <- c(    "d2aa365d",
-                  "ed3f6dde",
-                  "5572a8e4",
-                  "a4ca47c0")
+msId_vec <- c(    "a504007a")
 
-callId_vec <- unlist(CallIdByMsId(msId_vec))
+callId_vec <- unlist(CallIdByMsId(msId_vec))[1]
 #agreementId_vec <- c('a1','a34')
 #callId_vec <- unname(unlist(callIdByAgreementId(agreementId_vec)))
 clientId = '999';
@@ -63,7 +60,26 @@ assetInfo_df <- AssetInfoByAssetId(assetId_vec)
 if(length(unlist(assetInfo_df))==0){
   stop('Empty assetInfo_df input!')
 }
+assetInfo_df<-assetInfo_df[order(assetInfo_df$id),]
 assetInfo_df <- AssetInfoFxConversion(assetInfo_df)
+print(assetInfo_df)
+
+#### remove unexpected data ####
+# remove assets that have 0 unitValue from assetInfo_df and oriAvailAsset_df
+rmIdxAsset <- which(assetInfo_df$unitValue==0)
+if(length(rmIdxAsset)>0){
+  rmIdxAvail <- which(oriAvailAsset_df$assetId %in% assetInfo_df$id[rmIdxAsset])
+  oriAvailAsset_df <- oriAvailAsset_df[-rmIdxAvail,]
+  assetInfo_df <- assetInfo_df[-rmIdxAsset,]
+}
+# remove assets that have 0 or less quantity from assetInfo_df and oriAvailAsset_df
+rmIdxAvail <- which(oriAvailAsset_df$quantity<=0)
+if(length(rmIdxAvail)>0){
+  rmIdxAsset <- which(assetInfo_df$id %in% oriAvailAsset_df$assetId[rmIdxAvail])
+  oriAvailAsset_df <- oriAvailAsset_df[-rmIdxAvail,]
+  assetInfo_df <- assetInfo_df[-rmIdxAsset,]
+}
+
 
 #### resource_df and availAsset_df ####
 info_list <- ResourceInfoAndAvailAsset(assetInfo_df,oriAvailAsset_df)
@@ -98,17 +114,17 @@ result1 <- CallAllocation(algoVersion,scenario=1,
                           ifNewAlloc=T,list())
 
 # scenario 2: Post Settlement Currency
-result2 <- CallAllocation(algoVersion,scenario=2,
-                          callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs_vec,fungible,
-                          ifNewAlloc=T,list())
+#result2 <- CallAllocation(algoVersion,scenario=2,
+#                          callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs_vec,fungible,
+#                          ifNewAlloc=T,list())
 
 # scenario 3: post least liquid assets
-result3 <- CallAllocation(algoVersion,scenario=3,
-                          callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs_vec,fungible,
-                          ifNewAlloc=T,list())
+#result3 <- CallAllocation(algoVersion,scenario=3,
+#                          callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs_vec,fungible,
+#                          ifNewAlloc=T,list())
 scenarios[['Algo']] <- result1
-scenarios[['SettleCCY']] <- result2
-scenarios[['LeastLiquid']] <- result3
+#scenarios[['SettleCCY']] <- result2
+#scenarios[['LeastLiquid']] <- result3
 #### Scenario Analysis Output END #######################
 
 #### Noted: 

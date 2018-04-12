@@ -122,8 +122,9 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
     
     #### CONSTRAINTS
     
+    # deduct some units to avoid overflow in the rounding later
     oriQuantity_vec <- quantity_vec
-    quantity_vec <- quantity_vec - (callNum-2)
+    quantity_vec <- quantity_vec - max(1,(callNum-1))
     
     fCon2_list <- QtyConst(varName_vec,varNum,resource_vec,resource_df$qtyMin)
     fCon3_list <- MarginConst(varName_vec,varNum,minUnitValue_vec,haircut_vec,callInfo_df$id,callInfo_df$callAmount)
