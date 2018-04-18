@@ -889,7 +889,7 @@ DummyConst <- function(varName_vec,varNum,quantity_vec,callAmount_vec,minUnitVal
   rowIdx2_vec <- 1:(varNum2-varNum)
   
   fCon4_mat[cbind(rowIdx1_vec,colIdx1_vec)] <- 1
-  scaleFactor_vec <- pmin(quantity_vec,callAmount_vec/minUnitValue_vec)*20
+  scaleFactor_vec <- quantity_vec+1
   scaleFactor_vec <- scaleFactor_vec[match(newNameDummy_vec,newName_vec)]
   fCon4_mat[cbind(rowIdx2_vec,colIdx2_vec)] <- -scaleFactor_vec
   
