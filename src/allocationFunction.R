@@ -202,7 +202,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
       resourceGroup_vec <- unique(availAssetGroup_df$assetCustacId)
       resourceGroup_df <- resource_df[match(resourceGroup_vec,resource_df$id),]
       
-      availInfoGroup_list <- AssetByCallInfo(callIdGroup_vec,resourceGroup_vec,availAssetGroup_df)
+      availInfoGroup_list <- AssetByCallInfo(callIdGroup_vec,resourceGroup_vec,availAssetGroup_df,resourceGroup_df)
       
       if(ifNewAlloc){
         allocatedGroup_list <- list()
@@ -285,7 +285,7 @@ PreAllocation <- function(algoVersion,callId_vec,callInfo_df,availAsset_df,resou
     availAssetGroup_df <- availAsset_df[which(availAsset_df$callId %in% callInThisMs_vec),]
     resourceGroup_vec <- unique(availAssetGroup_df$assetCustacId)
     resourceGroup_df <- resource_df[match(resourceGroup_vec,resource_df$id),]
-    availInfoGroup_list <- AssetByCallInfo(callInThisMs_vec,resourceGroup_vec,availAssetGroup_df)
+    availInfoGroup_list <- AssetByCallInfo(callInThisMs_vec,resourceGroup_vec,availAssetGroup_df,resourceGroup_df)
     
     idxTemp_vec <- match(callInThisMs_vec,names(allocated_list))
     allocatedGroup_list <- allocated_list[idxTemp_vec]
