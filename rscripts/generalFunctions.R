@@ -6,8 +6,20 @@ LiquidFun <- function(quantityLeft_vec,quantityTotal_vec,liquidity_vec,minUnitVa
   return(ratio)
 }
 
-CostDefinition <- function(availAsset_df){
-  cost <- availAsset_df$internalCost+availAsset_df$externalCost+availAsset_df$opptCost-(availAsset_df$interestRate+availAsset_df$yield)
+CostDefinition <- function(availAsset_df,resource_df){
+  # asset in availAsset_df
+  assetId_vec <- SplitResource(availAsset_df$assetCustacId,"asset")
+  # noncash Id
+  noncashId_vec <-  resource_df$assetId[which(resource_df$assetId!=resource_df$currency)]
+  # noncash idx in availAsset_df
+  noncashIdx_vec <- which(assetId_vec %in% noncashId_vec)
+  
+  # floor positive repo rates to 0 (for noncash assets)
+  negIdx <- which(availAsset_df$opptCost[noncashIdx_vec] < 0)
+  if(length(negIdx)){
+    availAsset_df$opptCost[noncashIdx_vec[negIdx]] <- 0
+  }
+  cost <- availAsset_df$internalCost+availAsset_df$externalCost+availAsset_df$opptCost-availAsset_df$interestRate
   return(cost)
 }
 
@@ -690,7 +702,7 @@ ResultAnalysis <- function(availAssetOri_df,availAsset_df,resourceOri_df,resourc
   resource_vec <- resource_df$id
   resourceOri_vec <- resourceOri_df$id
   
-  availInfo_list <- AssetByCallInfo(callId_vec,resource_vec,availAsset_df)
+  availInfo_list <- AssetByCallInfo(callId_vec,resource_vec,availAsset_df,resource_df)
   eli_mat <- availInfo_list$eli_mat;
   eli_vec <-  as.vector(t(eli_mat))
   idxEli_vec <- which(eli_vec==1)
@@ -713,7 +725,7 @@ ResultAnalysis <- function(availAssetOri_df,availAsset_df,resourceOri_df,resourc
   movements <- OperationFun(varAmount_mat,callInfo_df,'matrix')
   
   #### Liquidity
-  availInfoOri_list <- AssetByCallInfo(callId_vec,resourceOri_vec,availAssetOri_df)
+  availInfoOri_list <- AssetByCallInfo(callId_vec,resourceOri_vec,availAssetOri_df,resource_df)
   liquidity_vec <- apply((1-availInfoOri_list$haircut_mat)^2,2,min)
   qtyLeft <- resourceOri_df$qtyMin
   idx_vec <- match(resource_df$id,resourceOri_df$id)
@@ -769,7 +781,7 @@ ResourceInfoAndAvailAsset <- function(assetInfo_df,availAsset_df){
   return(list(resource_df=resource_df,availAsset_df=newAvailAsset_df))
 }
 
-AssetByCallInfo <- function(callId_vec,resource_vec,availAsset_df){
+AssetByCallInfo <- function(callId_vec,resource_vec,availAsset_df,resource_df){
   
   resourceNum <- length(resource_vec)
   callNum <- length(callId_vec)
@@ -790,7 +802,7 @@ AssetByCallInfo <- function(callId_vec,resource_vec,availAsset_df){
   haircutC_mat[cbind(idxTempCallId_vec,idxTempResource_vec)] <- availAsset_df$haircut
   haircutFX_mat[cbind(idxTempCallId_vec,idxTempResource_vec)] <- availAsset_df$FXHaircut
   haircut_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- availAsset_df$haircut+availAsset_df$FXHaircut
-  cost_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- CostDefinition(availAsset_df)
+  cost_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- CostDefinition(availAsset_df,resource_df)
   
   # convert the matrix format data to vector format
   # thinking of keeping only eligible parts

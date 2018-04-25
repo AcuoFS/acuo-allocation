@@ -6,11 +6,6 @@ LiquidFun <- function(quantityLeft_vec,quantityTotal_vec,liquidity_vec,minUnitVa
   return(ratio)
 }
 
-CashOrNoncashFun <- function(resource_df,assetId_vec){
-  match(assetId_vec,resource_df$assetId)
-  which(resource_df$assetId==resource_df$currency)
-}
-
 CostDefinition <- function(availAsset_df,resource_df){
   # asset in availAsset_df
   assetId_vec <- SplitResource(availAsset_df$assetCustacId,"asset")

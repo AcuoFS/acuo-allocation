@@ -53,10 +53,6 @@ callInfo_df <- CallInfoFxConversion(callInfo_df)
 #### assetInfo_df ####
 assetInfo_df <- AssetInfoFxConversion(assetInfo_df)
 
-#### availAsset_df ####
-availAsset_df <- availAsset_df[order(availAsset_df$callId),]
-availAsset_df$quantity[which(availAsset_df$quantity<0)] <- 0 ### dont allow negative quantity, temp
-
 
 #### resource_df and availAsset_df ####
 info_list <- ResourceInfoAndAvailAsset(assetInfo_df,availAsset_df)
