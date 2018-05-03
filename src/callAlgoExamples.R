@@ -26,9 +26,9 @@ source("src/callLpSolve.R")
 #### Sources END ###########
 
 #### Input Prepare Start ###########
-msId_vec <- c(    "a504007a")
+msId_vec <- c(     "4b8f815")
 
-callId_vec <- unlist(CallIdByMsId(msId_vec))[1]
+callId_vec <- unlist(CallIdByMsId(msId_vec))
 #agreementId_vec <- c('a1','a34')
 #callId_vec <- unname(unlist(callIdByAgreementId(agreementId_vec)))
 clientId = '999';
@@ -78,6 +78,11 @@ if(length(rmIdxAvail)>0){
   rmIdxAsset <- which(assetInfo_df$id %in% oriAvailAsset_df$assetId[rmIdxAvail])
   oriAvailAsset_df <- oriAvailAsset_df[-rmIdxAvail,]
   assetInfo_df <- assetInfo_df[-rmIdxAsset,]
+}
+# remove assets in availAsset_df but not in assetInfo_df
+rmIdxAvail <- which(is.na(match(availAsset_df$assetId,assetInfo_df$id)))
+if(length(rmIdxAvail)>0){
+  availAsset_df <- availAsset_df[-rmIdxAvail,]
 }
 
 

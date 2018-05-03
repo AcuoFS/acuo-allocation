@@ -45,6 +45,11 @@ if(length(rmIdxAvail)>0){
   availAsset_df <- availAsset_df[-rmIdxAvail,]
   assetInfo_df <- assetInfo_df[-rmIdxAsset,]
 }
+# remove assets in availAsset_df but not in assetInfo_df
+rmIdxAvail <- which(is.na(match(availAsset_df$assetId,assetInfo_df$id)))
+if(length(rmIdxAvail)>0){
+  availAsset_df <- availAsset_df[-rmIdxAvail,]
+}
 
 #### callInfo_df ####
 callInfo_df$callAmount <- abs(as.numeric(callInfo_df$callAmount)) # make sure the callAmount is non-negative
