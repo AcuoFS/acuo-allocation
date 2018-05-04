@@ -102,7 +102,7 @@ AdjustResultVec <- function(solution_vec,varNum,varName_vec,fCon4_mat,
   
   # round up the decimal quantity to the nearest integer.
   # if it's larger than 0.5
-  # if close to 0, then set both real and dummies to 0, and if this action causes the 
+  # if close to 0, then set both real and dummies to 0, and if this action causes the
   # the insufficiency of the total amount, make it up at the checking module
   # not only update result_mat but also the original solution_vec
   
@@ -138,7 +138,7 @@ AdjustResultVec <- function(solution_vec,varNum,varName_vec,fCon4_mat,
   solNum2_vec <- 1*(temp_vec & 1) # recalculate the dummy value
   
   # substitute
-  solution_vec[1:varNum] <- solNum1_vec 
+  solution_vec[1:varNum] <- solNum1_vec
   solution_vec[(varNum+1):varNum2] <- solNum2_vec
   
   return(solution_vec)
@@ -180,8 +180,8 @@ CheckResultVec <- function(result_mat,quantityTotal_vec,callId_vec,callAmount_ve
           newQuantity <- 0
           otherAmount <- sum(result_mat[j,1+which(result_mat[j,-i]>0)]*minUnitValue_mat[j,1+which(result_mat[j,-i]>0)]*(1-haircut_mat[j,1+which(result_mat[j,-i]>0)]))
           missingAmount <- callAmount_vec[j]-(otherAmount+newQuantity/(1-haircut_mat[j,i])/minUnitValue_mat[j,i])
-          # missingAmount<0, means even we substract the exceed quantity of the asset, 
-          # the sub-total is still larger than call amount, then, we update asset to the 
+          # missingAmount<0, means even we substract the exceed quantity of the asset,
+          # the sub-total is still larger than call amount, then, we update asset to the
           # least quantity(already 0) which can meet the margin call requirement, no swaps occur
           if(missingAmount<=0){
             result_mat[j,i]<- newQuantity
@@ -232,8 +232,8 @@ CheckResultVec <- function(result_mat,quantityTotal_vec,callId_vec,callAmount_ve
                                  (1-haircut_mat[,-i][j,which(result_mat[j,-i]>0)]))
           }
           missingAmount <- callAmount_vec[j]-(otherAmount+newQuantity*minUnitValue_mat[j,i]*(1-haircut_mat[j,i]))
-          # missingAmount<0, means even we substract the exceed quantity of the asset, 
-          # the sub-total is still larger than call amount, then, we update asset to the 
+          # missingAmount<0, means even we substract the exceed quantity of the asset,
+          # the sub-total is still larger than call amount, then, we update asset to the
           # least quantity which can meet the margin call requirement, no swaps occur
           if(missingAmount<=0){
             newQuantity <-  ceiling((callAmount_vec[j]-otherAmount)/minUnitValue_mat[j,i]/(1-haircut_mat[j,i]))
@@ -262,7 +262,7 @@ CheckResultVec <- function(result_mat,quantityTotal_vec,callId_vec,callAmount_ve
             # order by amount from larger to smaller, make sure the least movements
             # asset.amount.left <- asset.amount.left[,order(asset.amount.left[2,])]
             
-            # the index of available assets, excluding the 
+            # the index of available assets, excluding the
             # idxTemp <- intersect(which(quantityLeft_vec>0),which(eli_mat[j,]==1))
           } else{
             # whether there are other assets allocated to call j
@@ -292,7 +292,7 @@ CheckResultVec <- function(result_mat,quantityTotal_vec,callId_vec,callAmount_ve
           quantityLeft_vec <- quantityTotal_vec-quantityUsed_vec
           break
         }
-      } 
+      }
     }
   }
   
@@ -334,7 +334,7 @@ CheckResultVec <- function(result_mat,quantityTotal_vec,callId_vec,callAmount_ve
   return(list(result_mat=result_mat,quantityTotal_vec=quantityTotal_vec))
 }
 
-#### convertFunctions #### 
+#### convertFunctions ####
 ConstructAllocDf <- function(resourceInfo_df,callInfo_df,haircutC_vec,haircutFX_vec,minUnitQuantity_vec,cost_vec ){
   assetId_vec <- resourceInfo_df$assetId
   assetCustodianAccount_vec <- resourceInfo_df$custodianAccount
@@ -378,10 +378,10 @@ ResultMat2List <- function(result_mat,callId_vec,resource_vec,callInfo_df, hairc
   callNum <- length(callId_vec)
   
   #### construct the result
-  for(i in 1:callNum){      
-    # resource and result_mat columns have the same order 
-    # the allocated indexes: 
-    idx_vec <- which(result_mat[i,]!=0) 
+  for(i in 1:callNum){
+    # resource and result_mat columns have the same order
+    # the allocated indexes:
+    idx_vec <- which(result_mat[i,]!=0)
     if(length(idx_vec)==0){
       errormsg <- paste("ALERR3004: There's no asset allocated to margin call",callId_vec[i])
       stop(errormsg)
@@ -575,7 +575,7 @@ ResultList2Df <- function(result_list,callId_vec){
   return(result_df)
 }
 
-#### improveFunctions #### 
+#### improveFunctions ####
 OrderCallId <- function(callOrderMethod,callInfo_df){
   ## method 0: Keep original
   ## method 1: By margin call amount, decreasing
@@ -736,9 +736,9 @@ ResultAnalysis <- function(availAssetOri_df,availAsset_df,resourceOri_df,resourc
   return(resultAnalysis=resultAnalysis)
 }
 
-#### infoFunctions #### 
+#### infoFunctions ####
 ResourceInfoAndAvailAsset <- function(assetInfo_df,availAsset_df){
-  # order by call id 
+  # order by call id
   availAsset_df <- availAsset_df[order(availAsset_df[,1],availAsset_df[,2]),]
   # remove assets with negative amount
   availAsset_df$quantity[which(availAsset_df$quantity<0)] <- 0 # avoid negative amount
@@ -759,7 +759,7 @@ ResourceInfoAndAvailAsset <- function(assetInfo_df,availAsset_df){
   ## add 5 columns: resource id, custodianAccount id, quantity, minQty, qtyRes
   resource_df <- cbind(id=resource_vec,resource_df,custodianAccount_vec)
   idx2_vec <- match(resource_vec, availAsset_df$assetCustacId)
-  venue_vec <- availAsset_df$venue[idx2_vec] 
+  venue_vec <- availAsset_df$venue[idx2_vec]
   qtyOri_vec <- availAsset_df$quantity[idx2_vec]
   qtyMin_vec <- floor(qtyOri_vec/resource_df$minUnit) # interal minUnit quantity
   qtyRes_vec <- qtyOri_vec - qtyMin_vec*resource_df$minUnit # quantity left after integral minQty
@@ -1106,11 +1106,11 @@ ConstructModelObj <- function(callAmount_mat,minUnitValue_mat,haircut_mat,costBa
     assetLiquidity_vec <- apply((1-haircut_mat*eli_mat)^2,2,min) # define asset liquidity
     
   }
-  liquidity_mat <- matrix(rep(assetLiquidity_vec,callNum),nrow=callNum,byrow=TRUE,dimnames=list(callId_vec,resource_vec)) 
+  liquidity_mat <- matrix(rep(assetLiquidity_vec,callNum),nrow=callNum,byrow=TRUE,dimnames=list(callId_vec,resource_vec))
   liquidity_vec <- as.vector(t(liquidity_mat))
   
   callCcy <- callInfo_df$currency
-  operation_mat <- matrix(rep(1,resourceNum*callNum),nrow=callNum,byrow=TRUE,dimnames=list(callId_vec,resource_vec)) 
+  operation_mat <- matrix(rep(1,resourceNum*callNum),nrow=callNum,byrow=TRUE,dimnames=list(callId_vec,resource_vec))
   assetId_vec <- SplitResource(resource_vec,'asset') #### parallel with resource, not unique
   for(i in 1:callNum){
     idxCcy <- which(callCcy[i]==assetId_vec)    # return the index of mc[i] currency cash in the asset list
@@ -1158,7 +1158,7 @@ DeriveOptimalAssetsV2 <- function(minUnitQuantity_mat,eli_mat,callAmount_mat,hai
                                   pref_vec,objParams_list,callId_vec,resource_vec){
   callNum <- length(callId_vec); resourceNum <- length(resource_vec)
   normCost_mat <- objParams_list$cost_mat
-  normLiquidity_mat <- objParams_list$liquidity_mat 
+  normLiquidity_mat <- objParams_list$liquidity_mat
   
   optimal_mat <- normCost_mat*pref_vec[1]+normLiquidity_mat*pref_vec[2]
   colnames(optimal_mat) <- resource_vec
@@ -1193,7 +1193,7 @@ DeriveOptimalAssetsV2 <- function(minUnitQuantity_mat,eli_mat,callAmount_mat,hai
       
       # temp.largestAmount.asset: the least score assets score and index(>=1)
       largestAmountResource_vec <- matrix(c(tempMinUnitQuantity_mat[i,idxMinScore_vec]*minUnitValue_mat[i,idxMinScore_vec],idxMinScore_vec),nrow=2,byrow=T)
-      if(length(largestAmountResource_vec[1,])>1){  
+      if(length(largestAmountResource_vec[1,])>1){
         largestAmountResource_vec <- largestAmountResource_vec[,order(largestAmountResource_vec[1,],decreasing=T)]
         # substitute in sortOptimal_mat
         sortOptimal_mat[,1:length(largestAmountResource_vec[1,])]<- largestAmountResource_vec
@@ -1222,7 +1222,7 @@ DeriveOptimalAssetsV1 <- function(minUnitQuantity_mat,eli_mat,callAmount_mat,hai
                                   pref_vec,objParams_list,callId_vec,resource_vec){
   callNum <- length(callId_vec); resourceNum <- length(resource_vec)
   normCost_mat <- objParams_list$cost_mat
-  normLiquidity_mat <- objParams_list$liquidity_mat 
+  normLiquidity_mat <- objParams_list$liquidity_mat
   normOperation_mat <- objParams_list$operation_mat
   
   optimal_mat <- normOperation_mat*pref_vec[3]+normLiquidity_mat*pref_vec[2]+normCost_mat*pref_vec[1]
@@ -1258,7 +1258,7 @@ DeriveOptimalAssetsV1 <- function(minUnitQuantity_mat,eli_mat,callAmount_mat,hai
       
       # temp.largestAmount.asset: the least score assets score and index(>=1)
       largestAmountResource_vec <- matrix(c(tempMinUnitQuantity_mat[i,idxMinScore_vec]*minUnitValue_mat[i,idxMinScore_vec],idxMinScore_vec),nrow=2,byrow=T)
-      if(length(largestAmountResource_vec[1,])>1){  
+      if(length(largestAmountResource_vec[1,])>1){
         largestAmountResource_vec <- largestAmountResource_vec[,order(largestAmountResource_vec[1,],decreasing=T)]
         # substitute in sortOptimal_mat
         sortOptimal_mat[,1:length(largestAmountResource_vec[1,])]<- largestAmountResource_vec
@@ -1306,7 +1306,7 @@ VarInfo <- function(eli_vec,callInfo_df,resource_vec,callId_vec){
   newNameOri_vec <- t(newNameOri_mat)[idxEli_vec]
   
   # remove duplicated variables constructed by same asset in one statement for different calls
-  newNameDummy_vec <- unique(newNameOri_vec) 
+  newNameDummy_vec <- unique(newNameOri_vec)
   
   # use the dummies to construct the indicator
   # same number means same asset for same statement: 1,2,3,4,1,2,4,5,...
@@ -1351,6 +1351,20 @@ UsedQtyFromResultList <- function(result_list,resource_vec,callId_vec){
     }
   }
   return(quantityUsed_vec)
+}
+
+UpdateResourceInfoAndAvailAsset <- function(resource_df,availAsset_df,callNum){
+  rmResourceIdx <- which(resource_df$qtyMin/resource_df$minUnit < callNum)
+  if(length(rmResourceIdx)>0){
+    rmResource_vec <- resource_df$id[rmResourceIdx]
+    resource_df <- resource_df[-rmResourceIdx,]
+    
+  }
+  rmIdxAvail <- which(is.na(match(availAsset_df$assetCustacId,resource_df$id)))
+  if(length(rmIdxAvail)>0){
+    availAsset_df <- availAsset_df[-rmIdxAvail,]
+  }
+  return(list(resource_df=resource_df,availAsset_df=availAsset_df))
 }
 
 #### staticFunctions #### 

@@ -114,8 +114,8 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
       # assume one margin statement contains either 1 or 2 margin calls
       if(length(callInThisMs_vec)==2){
         # find the lines of available resources for these two calls
-        idx1_vec <- which(availAsset_df$callId==callInThisMs_vec[1]) 
-        idx2_vec <- which(availAsset_df$callId==callInThisMs_vec[2]) 
+        idx1_vec <- which(availAsset_df$callId==callInThisMs_vec[1])
+        idx2_vec <- which(availAsset_df$callId==callInThisMs_vec[2])
         
         # find the common resources
         resource1_vec <- availAsset_df$assetCustacId[idx1_vec]
@@ -146,8 +146,8 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
         callAmount1 <- callInfo_df$callAmount[which(callInfo_df$id==callInThisMs_vec[1])]
         callAmount2 <- callInfo_df$callAmount[which(callInfo_df$id==callInThisMs_vec[2])]
         
-        idxAvail1_vec <- which(availAsset_df$callId==callInThisMs_vec[1]) 
-        idxAvail2_vec <- which(availAsset_df$callId==callInThisMs_vec[2]) 
+        idxAvail1_vec <- which(availAsset_df$callId==callInThisMs_vec[1])
+        idxAvail2_vec <- which(availAsset_df$callId==callInThisMs_vec[2])
         
         haircut1_vec <- availAsset_df$haircut[idxAvail1_vec]+availAsset_df$FXHaircut[idxAvail1_vec]
         haircut2_vec <- availAsset_df$haircut[idxAvail2_vec]+availAsset_df$FXHaircut[idxAvail2_vec]
@@ -170,7 +170,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
         
         ## remove the insufficient assets
         rmIdx1_vec <- idxAvail1_vec[-suffIdx_vec] # lines not sufficient
-        rmIdx2_vec <- idxAvail2_vec[-suffIdx_vec] 
+        rmIdx2_vec <- idxAvail2_vec[-suffIdx_vec]
         
         if(length(c(rmIdx1_vec,rmIdx2_vec))>=1){
           availAsset_df <- availAsset_df[-c(rmIdx1_vec,rmIdx2_vec),]
@@ -178,9 +178,6 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
       }
     }
   }
-  # update the available resource based on the new availAsset_df
-  resource_vec <- unique(availAsset_df$assetCustacId)
-  resource_df <- resource_df[match(resource_vec,resource_df$id),]
   
   #### Case When Movement Limit Is 1 Per Margin Statement END ######
   
@@ -199,8 +196,9 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
     callInfoGroup_df <- callInfo_df[match(callIdGroup_vec,callInfo_df$id),]
     availAssetGroup_df <- availAsset_df[which(availAsset_df$callId %in% callIdGroup_vec),]
     
-    resourceGroup_vec <- unique(availAssetGroup_df$assetCustacId)
-    resourceGroup_df <- resource_df[match(resourceGroup_vec,resource_df$id),]
+    updatedInfo <- UpdateResourceInfoAndAvailAsset(resource_df,availAssetGroup_df,length(callIdGroup_vec))
+    resourceGroup_df <- updatedInfo$resource_df
+    availAssetGroup_df <- updatedInfo$availAsset_df
     
     availInfoGroup_list <- AssetByCallInfo(callIdGroup_vec,resourceGroup_vec,availAssetGroup_df,resourceGroup_df)
     
@@ -241,7 +239,7 @@ AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,a
     checkCallGroup_mat <- finalGroupResult$checkCall_mat
     
     # update the resource_df quantity, rounding
-    quantityUsed_vec <- UsedQtyFromResultList(callOutputGroup_list,resource_vec,callId_vec)
+    quantityUsed_vec <- UsedQtyFromResultList(callOutputGroup_list,resource_df$id,callId_vec)
     resource_df$qtyMin <- round(resource_df$qtyMin - quantityUsed_vec/resource_df$minUnit,4)
     
     for(k in 1:length(callIdGroup_vec)){
@@ -283,9 +281,12 @@ PreAllocation <- function(algoVersion,callId_vec,callInfo_df,availAsset_df,resou
     
     callInfoGroup_df <- callInfo_df[match(callInThisMs_vec,callInfo_df$id),]
     availAssetGroup_df <- availAsset_df[which(availAsset_df$callId %in% callInThisMs_vec),]
-    resourceGroup_vec <- unique(availAssetGroup_df$assetCustacId)
-    resourceGroup_df <- resource_df[match(resourceGroup_vec,resource_df$id),]
-    availInfoGroup_list <- AssetByCallInfo(callInThisMs_vec,resourceGroup_vec,availAssetGroup_df,resourceGroup_df)
+    
+    updatedInfo <- UpdateResourceInfoAndAvailAsset(resource_df,availAssetGroup_df,length(callInThisMs_vec))
+    resourceGroup_df <- updatedInfo$resource_df
+    availAssetGroup_df <- updatedInfo$availAsset_df
+    
+    availInfoGroup_list <- AssetByCallInfo(callInThisMs_vec,resourceGroup_df$id,availAssetGroup_df,resourceGroup_df)
     
     idxTemp_vec <- match(callInThisMs_vec,names(allocated_list))
     allocatedGroup_list <- allocated_list[idxTemp_vec]
@@ -312,7 +313,7 @@ PreAllocation <- function(algoVersion,callId_vec,callInfo_df,availAsset_df,resou
       checkCall_mat[which(rownames(checkCall_mat)==callId),2] <- checkCallGroup_mat[which(rownames(checkCallGroup_mat)==callId),2]
     }
     ## update the quantity in  resource_df
-    quantityUsed_vec <- UsedQtyFromResultList(callOutputGroup_list,resource_vec,callId_vec)
+    quantityUsed_vec <- UsedQtyFromResultList(callOutputGroup_list,resource_df$id,callId_vec)
     resource_df$qtyMin <- resource_df$qtyMin - quantityUsed_vec/resource_df$minUnit
     
   }

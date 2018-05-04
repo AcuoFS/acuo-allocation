@@ -63,6 +63,10 @@ assetInfo_df <- AssetInfoFxConversion(assetInfo_df)
 info_list <- ResourceInfoAndAvailAsset(assetInfo_df,availAsset_df)
 resource_df <- info_list$resource_df
 availAsset_df <- info_list$availAsset_df
+
+updateInfo <- UpdateResourceInfoAndAvailAsset(resource_df,availAsset_df,length(callInfo_df$id))
+resource_df <- updateInfo$resource_df
+availAsset_df <- updateInfo$availAsset_df
 ###### END ####################################
 
 #### CALL THE ALLOCATION FUNCTION ###########

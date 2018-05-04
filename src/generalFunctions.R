@@ -1353,6 +1353,20 @@ UsedQtyFromResultList <- function(result_list,resource_vec,callId_vec){
   return(quantityUsed_vec)
 }
 
+UpdateResourceInfoAndAvailAsset <- function(resource_df,availAsset_df,callNum){
+  rmResourceIdx <- which(resource_df$qtyMin/resource_df$minUnit < callNum)
+  if(length(rmResourceIdx)>0){
+    rmResource_vec <- resource_df$id[rmResourceIdx]
+    resource_df <- resource_df[-rmResourceIdx,]
+
+  }
+  rmIdxAvail <- which(is.na(match(availAsset_df$assetCustacId,resource_df$id)))
+  if(length(rmIdxAvail)>0){
+    availAsset_df <- availAsset_df[-rmIdxAvail,]
+  }
+  return(list(resource_df=resource_df,availAsset_df=availAsset_df))
+}
+
 #### staticFunctions #### 
 PasteFun1 <- function(x1='',x2=''){
   temp=paste(x1,x2,sep='_',collapse = '')
