@@ -1,6 +1,4 @@
-AllocateByGroups <- function(callInfo_df,
-                             availAsset_df,availAssetOri_df,
-                             resource_df,resourceOri_df,
+AllocateByGroups <- function(callInfo_df,availAsset_df,resource_df,
                              pref_vec,operLimitMs,fungible,
                              algoVersion,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod,
                              ifNewAlloc,allocated_list){  
@@ -55,9 +53,7 @@ AllocateByGroups <- function(callInfo_df,
     }
     
     #### Call AllocateAndCompareResults ####
-    groupResult <- AllocateAndCompareResults(callInfoGroup_df,
-                                             availAssetGroup_df,availAssetOri_df,
-                                             resourceGroup_df,resourceOri_df,
+    groupResult <- AllocateAndCompareResults(callInfoGroup_df,availAssetGroup_df,resourceGroup_df,
                                              pref_vec,operLimitMs,fungible,
                                              algoVersion,minMoveValue,timeLimit,
                                              availInfoGroup_list,ifNewAlloc,allocatedGroup_list)
@@ -83,9 +79,7 @@ AllocateByGroups <- function(callInfo_df,
               solverStatus=groupResult$solverStatus,solverObjValue=groupResult$solverObjValue))
 }
 
-AllocateAndCompareResults <- function(callInfo_df,
-                                      availAsset_df,availAssetOri_df,
-                                      resource_df,resourceOri_df,
+AllocateAndCompareResults <- function(callInfo_df,availAsset_df,resource_df,
                                       pref_vec,operLimitMs,fungible,
                                       algoVersion,minMoveValue,timeLimit,
                                       availInfo_list,ifNewAlloc,allocated_list){
@@ -109,7 +103,7 @@ AllocateAndCompareResults <- function(callInfo_df,
   
   #### Result Selection #########################
   # select the better result between PreAllocation and CoreAlgo
-  betterResult <- ResultSelect(preAllocateResult, coreAlgoResult,availAssetOri_df,availAsset_df,resourceOri_df,resource_df,callInfo_df,pref_vec)
+  betterResult <- ResultSelect(preAllocateResult, coreAlgoResult,availAsset_df,availAsset_df,resource_df,resource_df,callInfo_df,pref_vec)
   
   #### Return Allocation Result #################
   return(betterResult)
