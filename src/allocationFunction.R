@@ -25,8 +25,7 @@ CallAllocation <- function(algoVersion,scenario,callInfo_df,availAsset_df,resour
   # build scenario into the function
   #### Scenario: Algo suggestion: #####
   if(scenario==1){
-    result <- AllocationAlgo(callId_vec,resource_vec,resource_vec,
-                             callInfo_df,availAsset_df,availAsset_df,resource_df,resource_df,pref_vec,operLimit,operLimitMs_vec,fungible,
+    result <- AllocationAlgo(callInfo_df,availAsset_df,availAsset_df,resource_df,resource_df,pref_vec,operLimitMs,fungible,
                              algoVersion,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod,
                              ifNewAlloc,allocated_list)
   } else if(scenario==2){
@@ -73,249 +72,35 @@ CallAllocation <- function(algoVersion,scenario,callInfo_df,availAsset_df,resour
 
 
 #### CONNECT TO THE CORE MODULE OF OPTIMIZATION ####################
-AllocationAlgo <- function(callId_vec,resource_vec,resourceOri_vec,callInfo_df,availAsset_df,availAssetOri_df,
+AllocationAlgo <- function(callInfo_df,
+                           availAsset_df,availAssetOri_df,
                            resource_df,resourceOri_df,
-                           pref_vec,operLimit,operLimitMs_vec,fungible,
+                           pref_vec,operLimitMs,fungible,
                            algoVersion,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod,
                            ifNewAlloc,allocated_list){
-  
-  #### Input Prepare & Output Initialization Start ###########
-  #### Order callId_vec
-  msOri_vec <- unique(callInfo_df$marginStatement)
-  
-  callInfo_df <- OrderCallId(callOrderMethod,callInfo_df)
-  
-  msTemp_vec <- unique(callInfo_df$marginStatement)
-  idxTemp_vec <- match(msOri_vec,msTemp_vec)
-  
-  operLimitMs_vec <- operLimitMs_vec[idxTemp_vec]
-  callId_vec <- callInfo_df$id
-  
-  #### Group the callId_vec
-  groupCallId_list <- GroupCallIdByMs(callLimit=inputLimit_vec[3],msLimit=inputLimit_vec[4],callInfo_df,callId_vec)
-  
-  #### Initialize the Ouput
-  callNum <- length(callId_vec)
-  msId_vec <- unique(callInfo_df$marginStatement)
-  msNum <- length(msId_vec)
-  
-  callOutput_list <- list()
-  msOutput_list <- list()
-  checkCall_mat <- matrix(c(callInfo_df$callAmount,rep(0,callNum)),nrow=callNum, dimnames = list(callId_vec,c('callAmount','fulfilledAmount')))
-  #### Input Prepare & Output Initialization END #############
-  
-  #### Case When Movement Limit Is 1 Per Margin Statement Start ####
-  ## keep only the sufficient assets and remove the other
-  for(i in 1:msNum){
-    msId <- msId_vec[i]
-    operLimitMs <- operLimitMs_vec[i]
-    if(operLimitMs==1){
-      callInThisMs_vec <- callInfo_df$id[which(callInfo_df$marginStatement==msId)]
-      # assume one margin statement contains either 1 or 2 margin calls
-      if(length(callInThisMs_vec)==2){
-        # find the lines of available resources for these two calls
-        idx1_vec <- which(availAsset_df$callId==callInThisMs_vec[1]) 
-        idx2_vec <- which(availAsset_df$callId==callInThisMs_vec[2]) 
-        
-        # find the common resources
-        resource1_vec <- availAsset_df$assetCustacId[idx1_vec]
-        resource2_vec <- availAsset_df$assetCustacId[idx2_vec]
-        sameResource_vec <- intersect(resource1_vec,resource2_vec)
-        if(length(sameResource_vec)==0){ # not possible normally
-          errormsg <- paste('ALERR2002: There is no asset sufficient for both',paste(callInThisMs_vec),'in',msId)
-          stop(errormsg)
-        }
-        
-        # remove the other resources in availAsset_df
-        rmIdx1_vec <- idx1_vec[-match(sameResource_vec,resource1_vec)] # lines not in the intersection
-        rmIdx2_vec <- idx2_vec[-match(sameResource_vec,resource2_vec)]
-        if(length(c(rmIdx1_vec,rmIdx2_vec))>=1){
-          availAsset_df <- availAsset_df[-c(rmIdx1_vec,rmIdx2_vec),]
-        }
-        
-        # if the optimal ccy for a margin statement is sufficient,
-        # then the asset allocated to VM and IM will be the same
-        # if the optimal ccy is not sufficient, 
-        # then we need to allocate the second optimal ccy which is sufficient
-        
-        #### approach 1
-        # pre-calculate the sufficient quantity for each ccy,
-        # remove the insuffient ccy in the availAsset_df
-        # and done
-        
-        callAmount1 <- callInfo_df$callAmount[which(callInfo_df$id==callInThisMs_vec[1])]
-        callAmount2 <- callInfo_df$callAmount[which(callInfo_df$id==callInThisMs_vec[2])]
-        
-        idxAvail1_vec <- which(availAsset_df$callId==callInThisMs_vec[1]) 
-        idxAvail2_vec <- which(availAsset_df$callId==callInThisMs_vec[2]) 
-        
-        haircut1_vec <- availAsset_df$haircut[idxAvail1_vec]+availAsset_df$FXHaircut[idxAvail1_vec]
-        haircut2_vec <- availAsset_df$haircut[idxAvail2_vec]+availAsset_df$FXHaircut[idxAvail2_vec]
-        
-        resourceAvail_vec <- availAsset_df$assetCustacId[idxAvail1_vec]
-        
-        idxRes_vec <- match(resourceAvail_vec,resource_df$id)
-        minUnitValue_vec <- resource_df$minUnitValue[idxRes_vec]
-        quantity_vec <- resource_df$qtyMin[idxRes_vec]
-        
-        integralSuffQty1_vec <- ceiling(callAmount1/(1-haircut1_vec)/minUnitValue_vec)
-        integralSuffQty2_vec <- ceiling(callAmount2/(1-haircut2_vec)/minUnitValue_vec)
-        integralSuffQty_vec <- integralSuffQty1_vec+integralSuffQty2_vec
-        
-        suffIdx_vec <- which(quantity_vec >= integralSuffQty_vec)
-        if(length(suffIdx_vec)==0){ # not possible normally
-          errormsg <- paste('ALERR2002: There is no asset sufficient for both',callInThisMs_vec,'in',msId)
-          stop(errormsg)
-        }
-        
-        ## remove the insufficient assets
-        rmIdx1_vec <- idxAvail1_vec[-suffIdx_vec] # lines not sufficient
-        rmIdx2_vec <- idxAvail2_vec[-suffIdx_vec] 
-        
-        if(length(c(rmIdx1_vec,rmIdx2_vec))>=1){
-          availAsset_df <- availAsset_df[-c(rmIdx1_vec,rmIdx2_vec),]
-        }
-      }
-    }
-  }
 
-  #### Case When Movement Limit Is 1 Per Margin Statement END ######
   
-  ############ ITERATE THE GROUP, RUN THE ALGO Start #########################
-  
-  for(i in 1:length(groupCallId_list)){
-    
-    callIdGroup_vec <- groupCallId_list[[i]]
-    msIdGroup_vec <- unique(callInfo_df$marginStatement[which(callInfo_df$id %in% callIdGroup_vec)])
-    ratio <- length(msIdGroup_vec)/length(msId_vec) # the proportion of the msGroup in the msList
-    operLimitGroup <- operLimit*ratio
-    
-    idxTemp_vec <- match(msIdGroup_vec,msId_vec)
-    operLimitGroupMs_vec <- operLimitMs_vec[idxTemp_vec]
-    
-    callInfoGroup_df <- callInfo_df[match(callIdGroup_vec,callInfo_df$id),]
-    availAssetGroup_df <- availAsset_df[which(availAsset_df$callId %in% callIdGroup_vec),]
-    
-    updatedInfo <- UpdateResourceInfoAndAvailAsset(resource_df,availAssetGroup_df,length(callIdGroup_vec))
-    resourceGroup_df <- updatedInfo$resource_df
-    availAssetGroup_df <- updatedInfo$availAsset_df
-    
-    availInfoGroup_list <- AssetByCallInfo(callIdGroup_vec,resourceGroup_df$id,availAssetGroup_df,resourceGroup_df)
-    
-    if(ifNewAlloc){
-      allocatedGroup_list <- list()
-    } else{
-      idxTemp_vec <- match(callIdGroup_vec,names(allocated_list))
-      allocatedGroup_list <- allocated_list[idxTemp_vec]
-    }
-    #### Pre-allocate Start ######################
-    resultPre <- PreAllocation(algoVersion,callIdGroup_vec,callInfoGroup_df,availAssetGroup_df,resourceGroup_df,
-                               pref_vec,operLimitGroup,operLimitGroupMs_vec,fungible,minMoveValue,timeLimit,
-                               ifNewAlloc,allocatedGroup_list)
-    
-    callOutputGroupPre_list <- resultPre$callOutput_list
-    checkCallGroupPre_mat <- resultPre$checkCall_mat
-    
-    initAllocation_list <- callOutputGroupPre_list # currently, store all the cumulated margin calls
-    #### Pre-allocate End ########################
-    
-    #### Run CoreAlgo Start ######################
-    if(algoVersion==1){
-      resultGroup_list <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue)#,initAllocation_list)
-    } else if(algoVersion==2){
-      resultGroup_list <- CoreAlgoV2(callInfoGroup_df, resourceGroup_df, availInfoGroup_list,
-                                     timeLimit,pref_vec,operLimitGroup,operLimitGroupMs_vec,fungible,minMoveValue,
-                                     ifNewAlloc,initAllocation_list,allocatedGroup_list)
-    }
-    #### Run CoreAlgo END ########################
-    
-    # select the better result
-    finalGroupResult <- ResultSelect(resultPre, resultGroup_list,availAssetOri_df,availAsset_df,resourceOri_df,resource_df,callInfo_df,pref_vec)
-    msOutputGroup_list <- finalGroupResult$msOutput_list
-    callOutputGroup_list <- finalGroupResult$callOutput_list
-    
-    solverStatus <- finalGroupResult$solverStatus
-    solverObjValue <- finalGroupResult$solverObjValue
-    checkCallGroup_mat <- finalGroupResult$checkCall_mat
-    
-    # update the resource_df quantity, rounding
-    quantityUsed_vec <- UsedQtyFromResultList(callOutputGroup_list,resource_df$id,callId_vec)
-    resource_df$qtyMin <- round(resource_df$qtyMin - quantityUsed_vec/resource_df$minUnit,4)
-    
-    for(k in 1:length(callIdGroup_vec)){
-      callId <- callIdGroup_vec[k]
-      msId <- callInfo_df$marginStatement[which(callInfo_df$id==callId)]
-      callOutput_list[[callId]] <- callOutputGroup_list[[callId]]
-      msOutput_list[[msId]] <- msOutputGroup_list[[msId]]
-      checkCall_mat[which(rownames(checkCall_mat)==callId),2] <- checkCallGroup_mat[which(rownames(checkCallGroup_mat)==callId),2]
-    }
+  #### Handle Extreme Scenarios ##################
+  ## 1. movement limit for one or several margin statements is 1
+  if(operLimitMs==1){
+    availAsset_df <- HandleStatementMovementLimitIsOne(availAsset_df,callInfo_df,resource_df)
   }
   
-  #### Result Analysis
-  resultAnalysis <- ResultAnalysis(availAssetOri_df,availAsset_df,resourceOri_df,resource_df,callInfo_df,callOutput_list)
-
-  ############ ITERATE THE GROUP, RUN THE ALGO END #########################
+  #### Allocate Calls by Groups ##################
+  result <- AllocateByGroups(callInfo_df,
+                             availAsset_df,availAssetOri_df,
+                             resource_df,resourceOri_df,
+                             pref_vec,operLimitMs,fungible,
+                             algoVersion,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod,
+                             ifNewAlloc,allocated_list)
   
+  #### Analyze Allocation Result Performance ######
+  # dailyCost, monthlyCost, reservedLiquidityRatio, movement
+  resultAnalysis <- ResultAnalysis(availAssetOri_df,availAsset_df,resourceOri_df,resource_df,callInfo_df,
+                                   result$callOutput_list)
+
+  #### Return Allocation Result and Analytics #####
   return(list(#msOutput=msOutput_list,
-    callOutput=callOutput_list,checkCall_mat=checkCall_mat,
-    solverStatus=solverStatus,solverObjValue=solverObjValue,resultAnalysis=resultAnalysis))
-}
-
-PreAllocation <- function(algoVersion,callId_vec,callInfo_df,availAsset_df,resource_df,
-                          pref_vec,operLimit,operLimitMs_vec,fungible,minMoveValue,timeLimit,
-                          ifNewAlloc,allocated_list){
-  ## callInfo_df: in group
-  msId_vec <- unique(callInfo_df$marginStatement)
-  callNum <- length(callId_vec)
-  
-  resource_vec <- unique(availAsset_df$assetCustacId)
-  
-  callOutput_list <- list()
-  checkCall_mat <- matrix(c(callInfo_df$callAmount,rep(0,callNum)),nrow=callNum, dimnames = list(callId_vec,c('callAmount','fulfilledAmount')))
-  
-  for(i in 1:length(msId_vec)){
-    msId <- msId_vec[i]
-    operLimitMs <- operLimitMs_vec[i]
-    callIdx_vec <- which(callInfo_df$marginStatement==msId)
-    callInThisMs_vec <- callInfo_df$id[callIdx_vec]
-    
-    callInfoGroup_df <- callInfo_df[match(callInThisMs_vec,callInfo_df$id),]
-    availAssetGroup_df <- availAsset_df[which(availAsset_df$callId %in% callInThisMs_vec),]
-    
-    updatedInfo <- UpdateResourceInfoAndAvailAsset(resource_df,availAssetGroup_df,length(callInThisMs_vec))
-    resourceGroup_df <- updatedInfo$resource_df
-    availAssetGroup_df <- updatedInfo$availAsset_df
-    
-    availInfoGroup_list <- AssetByCallInfo(callInThisMs_vec,resourceGroup_df$id,availAssetGroup_df,resourceGroup_df)
-    
-    idxTemp_vec <- match(callInThisMs_vec,names(allocated_list))
-    allocatedGroup_list <- allocated_list[idxTemp_vec]
-    # core Algo, assume all data comes in a list
-    if(algoVersion==1){
-      resultGroup_list <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue)
-    } else if(algoVersion==2){
-      resultGroup_list <- CoreAlgoV2(callInfoGroup_df, resourceGroup_df, availInfoGroup_list,
-                                     timeLimit,pref_vec,operLimitMs,operLimitMs,fungible,minMoveValue,
-                                     ifNewAlloc,list(),allocatedGroup_list)
-    }
-    
-    #msOutputGroup_list <- resultGroup_list$msOutput_list
-    callOutputGroup_list <- resultGroup_list$callOutput_list
-    solverStatus <- resultGroup_list$solverStatus
-    solverObjValue <- resultGroup_list$solverObjValue
-    checkCallGroup_mat <- resultGroup_list$checkCall_mat
-    
-    for(k in 1:length(callInThisMs_vec)){
-      callId <- callInThisMs_vec[k]
-      msId <- callInfo_df$marginStatement[which(callInfo_df$id==callId)]
-      callOutput_list[[callId]] <- callOutputGroup_list[[callId]]
-      #msOutput_list[[msId]] <- msOutputGroup_list[[msId]]
-      checkCall_mat[which(rownames(checkCall_mat)==callId),2] <- checkCallGroup_mat[which(rownames(checkCallGroup_mat)==callId),2]
-    }
-    ## update the quantity in  resource_df
-    quantityUsed_vec <- UsedQtyFromResultList(callOutputGroup_list,resource_df$id,callId_vec)
-    resource_df$qtyMin <- resource_df$qtyMin - quantityUsed_vec/resource_df$minUnit
-  }
-  resultPre_list <- list(checkCall_mat=checkCall_mat,callOutput_list=callOutput_list)
-  return(resultPre_list)
+    callOutput=result$callOutput_list,checkCall_mat=result$checkCall_mat,
+    solverStatus=result$solverStatus,solverObjValue=result$solverObjValue,resultAnalysis=resultAnalysis))
 }

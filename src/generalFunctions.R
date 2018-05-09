@@ -629,7 +629,10 @@ OrderCallId <- function(callOrderMethod,callInfo_df){
   return(callInfo_df)
 }
 
-GroupCallIdByMs <- function(callLimit,msLimit,callInfo_df,callId_vec){
+GroupCallIdByMs <- function(callLimit,msLimit,callInfo_df,callOrderMethod){
+  #### Order callId_vec
+  callInfo_df <- OrderCallId(callOrderMethod,callInfo_df)
+  callId_vec <- callInfo_df$id
   
   groupCallId_list <- list()
   # if the total call numbers is equal or less than limitTotal, only one group

@@ -18,6 +18,9 @@
 setwd("E:/ACUO/projects/acuo-allocation/")
 source('src/functionsOfDBRequestByExecutingCypher.R')
 source("src/allocationFunction.R")
+source("src/extremeScenarioHandling/OneMovement.R")
+source("src/extremeScenarioHandling/utils.R")
+source("src/allocationByGroup/allocationByGroup.R")
 source("src/coreAlgo.R")
 source("src/generalFunctions.R")
 source("src/callLpSolve.R")
@@ -26,14 +29,17 @@ source("src/callLpSolve.R")
 #### Sources END ###########
 
 #### Input Prepare Start ###########
-msId_vec <- c(     "4b8f815")
+msId_vec <- c(    "7d866f21",
+                  "d391d349",
+                  "4fc3a05f",
+                  "4b8f815")
 
 callId_vec <- unlist(CallIdByMsId(msId_vec))
 #agreementId_vec <- c('a1','a34')
 #callId_vec <- unname(unlist(callIdByAgreementId(agreementId_vec)))
 clientId = '999';
 pref_vec = c(5.4,3.5);
-operLimitMs <- 2 
+operLimitMs <- 1 
 fungible <- FALSE
 
 #### callInfo_df ####
@@ -80,16 +86,20 @@ if(length(rmIdxAvail)>0){
   assetInfo_df <- assetInfo_df[-rmIdxAsset,]
 }
 # remove assets in availAsset_df but not in assetInfo_df
-rmIdxAvail <- which(is.na(match(availAsset_df$assetId,assetInfo_df$id)))
-if(length(rmIdxAvail)>0){
-  availAsset_df <- availAsset_df[-rmIdxAvail,]
-}
+#rmIdxAvail <- which(is.na(match(availAsset_df$assetId,assetInfo_df$id)))
+#if(length(rmIdxAvail)>0){
+#  availAsset_df <- availAsset_df[-rmIdxAvail,]
+#}
 
 
 #### resource_df and availAsset_df ####
 info_list <- ResourceInfoAndAvailAsset(assetInfo_df,oriAvailAsset_df)
 resource_df <- info_list$resource_df
 availAsset_df <- info_list$availAsset_df
+
+updateInfo <- UpdateResourceInfoAndAvailAsset(resource_df,availAsset_df,length(callInfo_df$id))
+resource_df <- updateInfo$resource_df
+availAsset_df <- updateInfo$availAsset_df
 
 #if(is.na(all(assetInfo_df$FXRate))){
 #  warning('FXRate contains NA! Use Static FX rates for this test!')
@@ -108,25 +118,23 @@ availAsset_df <- info_list$availAsset_df
 #### Scenario Analysis Output Start #####################
 scenarios <- list()
 algoVersion <- 2
-msNum <- length(unique(callInfo_df$marginStatement))
-operLimitMs_vec <- rep(operLimitMs,msNum)
-operLimit<- sum(operLimitMs_vec)
+
 
 # scenario 1: Algo Suggestion
-
 result1 <- CallAllocation(algoVersion,scenario=1,
-                          callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs_vec,fungible,
+                          callInfo_df,availAsset_df,resource_df,pref_vec,operLimitMs,fungible,
                           ifNewAlloc=T,list())
 
 # scenario 2: Post Settlement Currency
 #result2 <- CallAllocation(algoVersion,scenario=2,
-#                          callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs_vec,fungible,
+#                          callInfo_df,availAsset_df,resource_df,pref_vec,operLimitMs,fungible,
 #                          ifNewAlloc=T,list())
 
 # scenario 3: post least liquid assets
 #result3 <- CallAllocation(algoVersion,scenario=3,
-#                          callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs_vec,fungible,
+#                          callInfo_df,availAsset_df,resource_df,pref_vec,operLimitMs,fungible,
 #                          ifNewAlloc=T,list())
+
 scenarios[['Algo']] <- result1
 #scenarios[['SettleCCY']] <- result2
 #scenarios[['LeastLiquid']] <- result3
