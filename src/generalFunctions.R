@@ -629,7 +629,14 @@ OrderCallId <- function(callOrderMethod,callInfo_df){
   return(callInfo_df)
 }
 
-GroupCallIdByMs <- function(callLimit=7,msLimit=4,callInfo_df,callOrderMethod){
+GroupCallIdByMs <- function(callLimit,msLimit,callInfo_df,callOrderMethod){
+  #### Assign Default Values
+  if(missing(callLimit)){
+    callLimit <- 7
+  }
+  if(missing(msLimit)){
+    msLimit <- 4
+  }
   #### Order callId_vec
   callInfo_df <- OrderCallId(callOrderMethod,callInfo_df)
   callId_vec <- callInfo_df$id
