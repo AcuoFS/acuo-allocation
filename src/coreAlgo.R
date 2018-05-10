@@ -3,6 +3,14 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
                        pref_vec,operLimit,operLimitMs_vec,fungible,
                        ifNewAlloc,initAllocation_list,allocated_list,minMoveValue,timeLimit){
   
+  #### Assign Default Values
+  if(missing(timeLimit)){
+    timeLimit <- 13
+  }
+  if(missing(minMoveValue)){
+    minMoveValue <- 1000
+  }
+  
   #### Prepare Parameters Start #############################
   pref_vec <- pref_vec/sum(pref_vec[1:2]) # Recalculate the parameters weight setting
   callId_vec<-callInfo_df$id

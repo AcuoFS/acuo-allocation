@@ -23,13 +23,7 @@ CallAllocation <- function(scenario,
   #### Input Prepare #########
   callId_vec <- as.character(callInfo_df$id)
   resource_vec <- as.character(resource_df$id)
-  if(missing(timeLimit)){
-    timeLimit <- 13
-  }
-  if(missing(minMoveValue)){
-    minMoveValue <- 1000
-  }
-  
+
   #### Run Algo Under a Specific Scenario
   if(scenario==1){
     #### Allocation #################################
