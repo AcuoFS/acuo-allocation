@@ -21,8 +21,6 @@ CallAllocation <- function(scenario,
   # scenario = 3, post least liquid assets
   
   #### Input Prepare #########
-  callId_vec <- as.character(callInfo_df$id)
-  resource_vec <- as.character(resource_df$id)
 
   #### Run Algo Under a Specific Scenario
   if(scenario==1){
@@ -32,50 +30,45 @@ CallAllocation <- function(scenario,
                              minMoveValue,timeLimit,maxCallNum,maxMsNum,callOrderMethod)
     
     #### Analyze Allocation Result Performance ######
-    # dailyCost, monthlyCost, reservedLiquidityRatio, movement
     resultAnalysis <- ResultAnalysis(availAsset_df,availAsset_df,resource_df,resource_df,callInfo_df,
                                      result$callOutput_list)
   } else if(scenario==2){
     
-    availAssetCash_df <- availAsset_df
-    resourceCash_vec <- resource_vec
-    resourceCash_df <- resource_df
-    settleCcy_vec <- callInfo_df$currency
+    # store the idx of the assets with the same currency of the call
+    idxAssetKeep_vec <- vector()
     
-    idxKeep_vec <- rep(0,length(availAssetCash_df$callId))
-    count <- 0
-    for(i in 1:length(callId_vec)){
-      assetTemp_vec <- SplitResource(availAsset_df$assetCustacId,'asset')
-      idxTemp_vec <- which(availAssetCash_df$callId==callId_vec[i] & assetTemp_vec==callInfo_df$currency[i])
-      if(length(idxTemp_vec)==0){
+    for(i in 1:length(callInfo_df$id)){
+      thisCallId <- callInfo_df$id[i]
+      thisCallCcy <- callInfo_df$currency[i]
+      
+      # find idx(in availAsset_df) of the assets with the same currency of the call in availAsset_df
+      idxAssetCallCcy_vec <- which(availAsset_df$callId==thisCallId & SplitResource(availAsset_df$assetCustacId,'asset')==thisCallCcy)
+
+      if(length(idxAssetCallCcy_vec)==0){
         stop('ALERR2001: Settlement currency is not available(not in inventory/not eligible)!')
+      } else{
+        idxAssetKeep_vec <- append(idxAssetKeep_vec,idxAssetCallCcy_vec)
       }
-      numTemp <- length(idxTemp_vec)
-      count <- count+numTemp
-      idxKeep_vec[(count-numTemp+1):count] <- idxTemp_vec
     }
-    idxKeep_vec <- idxKeep_vec[1:count]
-    availAssetCash_df <- availAssetCash_df[idxKeep_vec,]
-    resourceCash_vec <- unique(availAssetCash_df$assetCustacId)
-    resourceCash_df <- resource_df[match(resourceCash_vec,resource_df$id),]
-    
+    availAssetCash_df <- availAsset_df[idxAssetKeep_vec,]
+    resourceCash_df <- resource_df[match(unique(availAssetCash_df$assetCustacId),resource_df$id),]
+
     result <- AllocationAlgo(callInfo_df,availAssetCash_df,resourceCash_df,
-                             pref_vec,operLimit,operLimitMs_vec,fungible,
+                             pref_vec,operLimitMs,fungible,
                              algoVersion,ifNewAlloc,allocated_list,
                              minMoveValue,timeLimit,maxCallNum,maxMsNum,callOrderMethod)
     
     #### Analyze Allocation Result Performance ######
-    # dailyCost, monthlyCost, reservedLiquidityRatio, movement
-    resultAnalysis <- ResultAnalysis(availAssetCash_df,availAsset_df,resourceCash_df,resource_df,callInfo_df,
+    resultAnalysis <- ResultAnalysis(availAssetCash_df,availAssetOri_df=availAsset_df,resourceCash_df,resourceOri_df=resource_df,callInfo_df,
                                      result$callOutput_list)
   } else if(scenario==3){
-    pref_vec <- c(0,10,0)
-    result <- AllocationAlgo(callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs_vec,fungible,
-                             algoVersion,minMoveValue,timeLimit,maxCallNum,maxMsNum,callOrderMethod,
-                             ifNewAlloc,allocated_list)
+    pref_vec <- c(0,10)
+    result <- AllocationAlgo(callInfo_df,availAsset_df,resource_df,
+                             pref_vec,operLimitMs,fungible,
+                             algoVersion,ifNewAlloc,allocated_list,
+                             minMoveValue,timeLimit,maxCallNum,maxMsNum,callOrderMethod)
     
     #### Analyze Allocation Result Performance ######
-    # dailyCost, monthlyCost, reservedLiquidityRatio, movement
     resultAnalysis <- ResultAnalysis(availAsset_df,availAsset_df,resource_df,resource_df,callInfo_df,
                                      result$callOutput_list)
   } else{

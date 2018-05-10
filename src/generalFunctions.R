@@ -714,7 +714,11 @@ ResultSelect <- function(result1, result2,availAssetOri_df,availAsset_df,resourc
   return(finalResult)
 }
 
-ResultAnalysis <- function(availAssetOri_df,availAsset_df,resourceOri_df,resource_df,callInfo_df,callOutput_list){
+ResultAnalysis <- function(availAsset_df,availAssetOri_df,resource_df,resourceOri_df,callInfo_df,callOutput_list){
+  # Calculate dailyCost, monthlyCost, reservedLiquidityRatio, movement
+  # 
+  # Returns:
+  #   A list of the four values
   callId_vec <- callInfo_df$id
   resource_vec <- resource_df$id
   resourceOri_vec <- resourceOri_df$id
@@ -750,7 +754,7 @@ ResultAnalysis <- function(availAssetOri_df,availAsset_df,resourceOri_df,resourc
   reservedLiquidityRatio <- LiquidFun(qtyLeft,resourceOri_df$qtyMin,liquidity_vec,resourceOri_df$minUnitValue/resourceOri_df$FXRate)
   
   resultAnalysis <- list(dailyCost=dailyCost,monthlyCost=monthlyCost,movements=movements,reservedLiquidityRatio=reservedLiquidityRatio)
-  return(resultAnalysis=resultAnalysis)
+  return(resultAnalysis)
 }
 
 #### infoFunctions #### 
