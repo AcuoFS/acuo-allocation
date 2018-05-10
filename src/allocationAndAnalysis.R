@@ -1,6 +1,6 @@
 
 CallAllocation <- function(algoVersion,scenario,callInfo_df,availAsset_df,resource_df,
-                           pref_vec,operLimit,operLimitMs_vec,fungible,ifNewAlloc,allocated_list,inputLimit_vec,timeLimit,callOrderMethod,minMoveValue){
+                           pref_vec,operLimitMs,fungible,ifNewAlloc,allocated_list,inputLimit_vec,timeLimit,callOrderMethod,minMoveValue){
   # Deal with different scenarios by controling the input to the algo &
   # Analysize allocation result performance
   #
