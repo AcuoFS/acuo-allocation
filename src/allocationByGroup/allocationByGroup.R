@@ -25,16 +25,7 @@ AllocateByGroups <- function(callInfo_df,availAsset_df,resource_df,
   
   #### Iterate the Groups, Run Algo ####
   for(i in 1:length(groupCallId_list)){
-    
     callIdGroup_vec <- groupCallId_list[[i]]
-    msIdGroup_vec <- unique(callInfo_df$marginStatement[which(callInfo_df$id %in% callIdGroup_vec)])
-    
-    # *estimate the movement limits for the groups
-    ratio <- length(msIdGroup_vec)/length(msId_vec) # the proportion of the msGroup in the msList
-    operLimitGroup <- operLimit*ratio
-    
-    idxTemp_vec <- match(msIdGroup_vec,msId_vec)
-    operLimitGroupMs_vec <- operLimitMs_vec[idxTemp_vec]
     
     callInfoGroup_df <- callInfo_df[match(callIdGroup_vec,callInfo_df$id),]
     availAssetGroup_df <- availAsset_df[which(availAsset_df$callId %in% callIdGroup_vec),]
@@ -95,7 +86,8 @@ AllocateAndCompareResults <- function(callInfo_df,availAsset_df,resource_df,
   if(algoVersion==1){
     resultGroup_list <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue)#,initAllocation_list)
   } else if(algoVersion==2){
-    operLimitMs_vec <- rep(operLimitMs,msNum)
+    operLimit <- operLimitMs*length(unique(callInfo_df$marginStatement))
+    operLimitMs_vec <- rep(operLimitMs,length(unique(callInfo_df$marginStatement)))
     coreAlgoResult <- CoreAlgoV2(callInfo_df, resource_df, availInfo_list,
                              pref_vec,operLimit,operLimitMs_vec,fungible,
                              minMoveValue,timeLimit,ifNewAlloc,initAllocation_list,allocated_list)
