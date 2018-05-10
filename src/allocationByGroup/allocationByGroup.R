@@ -1,12 +1,12 @@
 AllocateByGroups <- function(callInfo_df,availAsset_df,resource_df,
                              pref_vec,operLimitMs,fungible,
                              algoVersion,ifNewAlloc,allocated_list,
-                             minMoveValue,timeLimit,inputLimit_vec,callOrderMethod){  
+                             minMoveValue,timeLimit,maxCallNum,maxMsNum,callOrderMethod){  
   # Improve Algo performance by allocating a few calls each time instead of the entire list
   # and then updating the quantity used for assets after each iteration, until all calls are allocated
   #
   # Args(Direct Use): 
-  #   inputLimit_vec: number of calls and number of statements in a group
+  #   maxCallNum,maxMsNum: number of calls and number of statements in a group
   #
   # Args(Indirect Use -- pass to other functions)
   #   
@@ -21,7 +21,7 @@ AllocateByGroups <- function(callInfo_df,availAsset_df,resource_df,
                           dimnames = list(callInfo_df$id,c('callAmount','fulfilledAmount')))
   
   #### Group the Margin Calls ###################
-  groupCallId_list <- GroupCallIdByMs(callLimit=inputLimit_vec[3],msLimit=inputLimit_vec[4],callInfo_df,callOrderMethod)
+  groupCallId_list <- GroupCallIdByMs(maxCallNum,maxMsNum,callInfo_df,callOrderMethod)
   
   #### Iterate the Groups, Run Algo ####
   for(i in 1:length(groupCallId_list)){

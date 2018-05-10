@@ -3,7 +3,7 @@ CallAllocation <- function(scenario,
                            callInfo_df,availAsset_df,resource_df,
                            pref_vec,operLimitMs,fungible,
                            algoVersion,ifNewAlloc,allocated_list,
-                           minMoveValue,timeLimit,inputLimit_vec,callOrderMethod){
+                           minMoveValue,timeLimit,maxCallNum,maxMsNum,callOrderMethod){
   # Deal with different scenarios by controling the input to the algo &
   # Analysize allocation result performance
   #
@@ -23,9 +23,6 @@ CallAllocation <- function(scenario,
   #### Input Prepare #########
   callId_vec <- as.character(callInfo_df$id)
   resource_vec <- as.character(resource_df$id)
-  if(missing(inputLimit_vec)){
-    inputLimit_vec <- c(7,7,7,4)
-  }
   if(missing(timeLimit)){
     timeLimit <- 13
   }
@@ -41,7 +38,7 @@ CallAllocation <- function(scenario,
     #### Allocation #################################
     result <- AllocationAlgo(callInfo_df,availAsset_df,resource_df,pref_vec,operLimitMs,fungible,
                              algoVersion,ifNewAlloc,allocated_list,
-                             minMoveValue,timeLimit,inputLimit_vec,callOrderMethod)
+                             minMoveValue,timeLimit,maxCallNum,maxMsNum,callOrderMethod)
     
     #### Analyze Allocation Result Performance ######
     # dailyCost, monthlyCost, reservedLiquidityRatio, movement
@@ -74,7 +71,7 @@ CallAllocation <- function(scenario,
     result <- AllocationAlgo(callInfo_df,availAssetCash_df,resourceCash_df,
                              pref_vec,operLimit,operLimitMs_vec,fungible,
                              algoVersion,ifNewAlloc,allocated_list,
-                             minMoveValue,timeLimit,inputLimit_vec,callOrderMethod)
+                             minMoveValue,timeLimit,maxCallNum,maxMsNum,callOrderMethod)
     
     #### Analyze Allocation Result Performance ######
     # dailyCost, monthlyCost, reservedLiquidityRatio, movement
@@ -83,7 +80,7 @@ CallAllocation <- function(scenario,
   } else if(scenario==3){
     pref_vec <- c(0,10,0)
     result <- AllocationAlgo(callInfo_df,availAsset_df,resource_df,pref_vec,operLimit,operLimitMs_vec,fungible,
-                             algoVersion,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod,
+                             algoVersion,minMoveValue,timeLimit,maxCallNum,maxMsNum,callOrderMethod,
                              ifNewAlloc,allocated_list)
     
     #### Analyze Allocation Result Performance ######
