@@ -26,9 +26,6 @@ CallAllocation <- function(scenario,
   if(missing(timeLimit)){
     timeLimit <- 13
   }
-  if(missing(callOrderMethod)){
-    callOrderMethod <- 3
-  }
   if(missing(minMoveValue)){
     minMoveValue <- 1000
   }

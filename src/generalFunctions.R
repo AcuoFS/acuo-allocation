@@ -582,6 +582,10 @@ OrderCallId <- function(callOrderMethod,callInfo_df){
   ## method 2: By margin type, VM then IM; sub order by call amount
   ## method 3: By total call amount in margin statement, decreasing
   
+  #### Assign Default Values
+  callOrderMethod <- 3
+  
+  #### Order Calls
   if(callOrderMethod==0){ # keep original
     callInfo_df <- callInfo_df
   }else if(callOrderMethod==1){ # by call amount, decreasing
