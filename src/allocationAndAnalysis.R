@@ -1,6 +1,9 @@
 
-CallAllocation <- function(algoVersion,scenario,callInfo_df,availAsset_df,resource_df,
-                           pref_vec,operLimitMs,fungible,ifNewAlloc,allocated_list,inputLimit_vec,timeLimit,callOrderMethod,minMoveValue){
+CallAllocation <- function(scenario,
+                           callInfo_df,availAsset_df,resource_df,
+                           pref_vec,operLimitMs,fungible,
+                           algoVersion,ifNewAlloc,allocated_list,
+                           minMoveValue,timeLimit,inputLimit_vec,callOrderMethod){
   # Deal with different scenarios by controling the input to the algo &
   # Analysize allocation result performance
   #
@@ -37,8 +40,8 @@ CallAllocation <- function(algoVersion,scenario,callInfo_df,availAsset_df,resour
   if(scenario==1){
     #### Allocation #################################
     result <- AllocationAlgo(callInfo_df,availAsset_df,resource_df,pref_vec,operLimitMs,fungible,
-                             algoVersion,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod,
-                             ifNewAlloc,allocated_list)
+                             algoVersion,ifNewAlloc,allocated_list,
+                             minMoveValue,timeLimit,inputLimit_vec,callOrderMethod)
     
     #### Analyze Allocation Result Performance ######
     # dailyCost, monthlyCost, reservedLiquidityRatio, movement
@@ -70,8 +73,8 @@ CallAllocation <- function(algoVersion,scenario,callInfo_df,availAsset_df,resour
     
     result <- AllocationAlgo(callInfo_df,availAssetCash_df,resourceCash_df,
                              pref_vec,operLimit,operLimitMs_vec,fungible,
-                             algoVersion,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod,
-                             ifNewAlloc,allocated_list)
+                             algoVersion,ifNewAlloc,allocated_list,
+                             minMoveValue,timeLimit,inputLimit_vec,callOrderMethod)
     
     #### Analyze Allocation Result Performance ######
     # dailyCost, monthlyCost, reservedLiquidityRatio, movement

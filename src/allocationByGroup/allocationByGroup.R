@@ -1,7 +1,7 @@
 AllocateByGroups <- function(callInfo_df,availAsset_df,resource_df,
                              pref_vec,operLimitMs,fungible,
-                             algoVersion,minMoveValue,timeLimit,inputLimit_vec,callOrderMethod,
-                             ifNewAlloc,allocated_list){  
+                             algoVersion,ifNewAlloc,allocated_list,
+                             minMoveValue,timeLimit,inputLimit_vec,callOrderMethod){  
   # Improve Algo performance by allocating a few calls each time instead of the entire list
   # and then updating the quantity used for assets after each iteration, until all calls are allocated
   #
@@ -46,8 +46,7 @@ AllocateByGroups <- function(callInfo_df,availAsset_df,resource_df,
     #### Call AllocateAndCompareResults ####
     groupResult <- AllocateAndCompareResults(callInfoGroup_df,availAssetGroup_df,resourceGroup_df,
                                              pref_vec,operLimitMs,fungible,
-                                             algoVersion,minMoveValue,timeLimit,
-                                             availInfoGroup_list,ifNewAlloc,allocatedGroup_list)
+                                             algoVersion,availInfoGroup_list,ifNewAlloc,allocatedGroup_list,minMoveValue,timeLimit)
     
     
     #### Quantity Update ##########
@@ -72,13 +71,11 @@ AllocateByGroups <- function(callInfo_df,availAsset_df,resource_df,
 
 AllocateAndCompareResults <- function(callInfo_df,availAsset_df,resource_df,
                                       pref_vec,operLimitMs,fungible,
-                                      algoVersion,minMoveValue,timeLimit,
-                                      availInfo_list,ifNewAlloc,allocated_list){
+                                      algoVersion,availInfo_list,ifNewAlloc,allocated_list,minMoveValue,timeLimit){
   #### PreAllocation Allocation #################
   preAllocateResult <- PreAllocation(callInfo_df,availAsset_df,resource_df,
                                      pref_vec,operLimitMs,fungible,
-                                     algoVersion,minMoveValue,timeLimit,
-                                     ifNewAlloc,allocated_list)
+                                     algoVersion,ifNewAlloc,allocated_list,minMoveValue,timeLimit)
   
   initAllocation_list <- preAllocateResult$callOutput_list # currently, store all the cumulated margin calls
   
@@ -90,7 +87,7 @@ AllocateAndCompareResults <- function(callInfo_df,availAsset_df,resource_df,
     operLimitMs_vec <- rep(operLimitMs,length(unique(callInfo_df$marginStatement)))
     coreAlgoResult <- CoreAlgoV2(callInfo_df, resource_df, availInfo_list,
                              pref_vec,operLimit,operLimitMs_vec,fungible,
-                             minMoveValue,timeLimit,ifNewAlloc,initAllocation_list,allocated_list)
+                             ifNewAlloc,initAllocation_list,allocated_list,minMoveValue,timeLimit)
   }
   
   #### Result Selection #########################
@@ -103,8 +100,8 @@ AllocateAndCompareResults <- function(callInfo_df,availAsset_df,resource_df,
 
 PreAllocation <- function(callInfo_df,availAsset_df,resource_df,
                           pref_vec,operLimitMs,fungible,
-                          algoVersion,minMoveValue,timeLimit,
-                          ifNewAlloc,allocated_list){
+                          algoVersion,ifNewAlloc,allocated_list,
+                          minMoveValue,timeLimit){
   ## callInfo_df: in group
   msId_vec <- unique(callInfo_df$marginStatement)
   callNum <- length(callId_vec)
@@ -136,7 +133,7 @@ PreAllocation <- function(callInfo_df,availAsset_df,resource_df,
     } else if(algoVersion==2){
       resultGroup_list <- CoreAlgoV2(callInfoGroup_df, resourceGroup_df, availInfoGroup_list,
                                      pref_vec,operLimitMs,operLimitMs,fungible,
-                                     minMoveValue,timeLimit,ifNewAlloc,list(),allocatedGroup_list)
+                                     ifNewAlloc,list(),allocatedGroup_list,minMoveValue,timeLimit)
     }
     
     #msOutputGroup_list <- resultGroup_list$msOutput_list

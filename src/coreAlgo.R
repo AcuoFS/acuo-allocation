@@ -1,7 +1,7 @@
 
 CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
                        pref_vec,operLimit,operLimitMs_vec,fungible,
-                       minMoveValue,timeLimit,ifNewAlloc,initAllocation_list,allocated_list){
+                       ifNewAlloc,initAllocation_list,allocated_list,minMoveValue,timeLimit){
   
   #### Prepare Parameters Start #############################
   pref_vec <- pref_vec/sum(pref_vec[1:2]) # Recalculate the parameters weight setting

@@ -122,19 +122,19 @@ algoVersion <- 2
 
 
 # scenario 1: Algo Suggestion
-result1 <- CallAllocation(algoVersion,scenario=1,
+result1 <- CallAllocation(scenario=1,
                           callInfo_df,availAsset_df,resource_df,pref_vec,operLimitMs,fungible,
-                          ifNewAlloc=T,list())
+                          algoVersion,ifNewAlloc=T)
 
 # scenario 2: Post Settlement Currency
-#result2 <- CallAllocation(algoVersion,scenario=2,
+#result2 <- CallAllocation(scenario=2,
 #                          callInfo_df,availAsset_df,resource_df,pref_vec,operLimitMs,fungible,
-#                          ifNewAlloc=T,list())
+#                          algoVersion,ifNewAlloc=T)
 
 # scenario 3: post least liquid assets
 #result3 <- CallAllocation(algoVersion,scenario=3,
 #                          callInfo_df,availAsset_df,resource_df,pref_vec,operLimitMs,fungible,
-#                          ifNewAlloc=T,list())
+#                          algoVersion,ifNewAlloc=T)
 
 scenarios[['Algo']] <- result1
 #scenarios[['SettleCCY']] <- result2
