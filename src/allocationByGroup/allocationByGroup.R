@@ -92,7 +92,7 @@ AllocateAndCompareResults <- function(callInfo_df,availAsset_df,resource_df,
   
   #### Result Selection #########################
   # select the better result between PreAllocation and CoreAlgo
-  betterResult <- ResultSelect(preAllocateResult, coreAlgoResult,availAsset_df,availAsset_df,resource_df,resource_df,callInfo_df,pref_vec)
+  betterResult <- ResultSelect(preAllocateResult, coreAlgoResult,availAsset_df,resource_df,callInfo_df,pref_vec)
   
   #### Return Allocation Result #################
   return(betterResult)

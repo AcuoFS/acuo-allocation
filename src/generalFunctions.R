@@ -1,100 +1,5 @@
 #### analysisFunctions #######
-LiquidFun <- function(quantityLeft_vec,quantityTotal_vec,liquidity_vec,minUnitValue_vec){
-  numerator <- sum(quantityLeft_vec*liquidity_vec*minUnitValue_vec)
-  denominator <- sum(quantityTotal_vec*liquidity_vec*minUnitValue_vec)
-  ratio <- numerator/denominator
-  return(ratio)
-}
 
-CostDefinition <- function(availAsset_df,resource_df){
-  # asset in availAsset_df
-  assetId_vec <- SplitResource(availAsset_df$assetCustacId,"asset")
-  # noncash Id
-  noncashId_vec <-  resource_df$assetId[which(resource_df$assetId!=resource_df$currency)]
-  # noncash idx in availAsset_df
-  noncashIdx_vec <- which(assetId_vec %in% noncashId_vec)
-  
-  # floor positive repo rates to 0 (for noncash assets)
-  negIdx <- which(availAsset_df$opptCost[noncashIdx_vec] < 0)
-  if(length(negIdx)){
-    availAsset_df$opptCost[noncashIdx_vec[negIdx]] <- 0
-  }
-  cost <- availAsset_df$internalCost+availAsset_df$externalCost+availAsset_df$opptCost-availAsset_df$interestRate
-  return(cost)
-}
-
-CostFun <- function(amount_vec,cost_vec){
-  cost <- sum(amount_vec*cost_vec)
-  return(cost)
-}
-
-OperationFun <- function(result,callInfo_df,method){
-  movements <- 0
-  if(method=='matrix'){
-    result_mat <- result
-    resultDummy_mat <- 1*(result_mat&1)
-    msDul_vec <- callInfo_df$marginStatement
-    msId_vec <- unique(msDul_vec)
-    
-    if(length(result_mat[1,])==1){
-      for(m in 1:length(msId_vec)){
-        idxTemp_vec <- which(msDul_vec==msId_vec[m])
-        if(length(idxTemp_vec)==1){
-          movements <- movements+sum(resultDummy_mat[idxTemp_vec])
-        } else{
-          movements <- movements+max(resultDummy_mat[idxTemp_vec])
-        }
-      }
-    } else{
-      for(m in 1:length(msId_vec)){
-        idxTemp_vec <- which(msDul_vec==msId_vec[m])
-        if(length(idxTemp_vec)==1){
-          movements <- movements+sum(resultDummy_mat[idxTemp_vec,])
-        } else{
-          movements <- movements+sum(apply(resultDummy_mat[idxTemp_vec,],2,max))
-        }
-      }
-    }
-  } else if(method=='msList'){
-    msOutput_list <- result
-    msId_vec <- unique(callInfo_df$marginStatement)
-    msNum <- length(msId_vec)
-    for(i in 1:msNum){
-      msId <- msId_vec[i]
-      msAlloc_df <- msOutput_list[[msId]]
-      resources <- unique(PasteResource(msAlloc_df$Asset,msAlloc_df$CustodianAccout))
-      movements <- movements + length(resources)
-    }
-  } else if(method=='callList'){
-    callOutput_list <- result
-    callId_vec <- callInfo_df$id
-    msId_vec <- unique(callInfo_df$marginStatement)
-    callNum <- length(callId_vec)
-    msNum <- length(msId_vec)
-    for(i in 1:msNum){
-      msId <- msId_vec[i]
-      callIds <- callInfo_df$id[which(callInfo_df$marginStatement==msId)]
-      
-      callId <- callIds[1]
-      msAlloc_df <- callOutput_list[[callId]]
-      if(length(callIds>1)){
-        # inside one margin statement
-        for(m in 2:length(callIds)){
-          callId <- callIds[m]
-          callAlloc_df <- callOutput_list[[callId]]
-          msAlloc_df <- rbind(callAlloc_df,msAlloc_df)
-        }
-      }
-      resources <- unique(PasteResource(msAlloc_df$Asset,msAlloc_df$CustodianAccout))
-      movements <- movements + length(resources)
-    }
-    
-  } else{
-    stop('ALERR3005: Invalid OperationFun input method')
-  }
-  
-  return(movements)
-}
 
 #### checkFunctions #######
 AdjustResultVec <- function(solution_vec,varNum,varName_vec,fCon4_mat,
@@ -676,7 +581,7 @@ GroupCallIdByMs <- function(callLimit,msLimit,callInfo_df,callOrderMethod){
   return(groupCallId_list)
 }
 
-ResultSelect <- function(result1, result2,availAssetOri_df,availAsset_df,resourceOri_df,resource_df,callInfo_df,pref_vec){
+ResultSelect <- function(result1, result2,availAsset_df,resource_df,callInfo_df,pref_vec){
   callId_vec <- callInfo_df$id
   resource_vec <- resource_df$id
   callOutput1 <- result1$callOutput
@@ -691,8 +596,8 @@ ResultSelect <- function(result1, result2,availAssetOri_df,availAsset_df,resourc
   resource1_df$qtyMin <- qtyMin1
   resource2_df <- resource_df
   resource2_df$qtyMin <- qtyMin2
-  resultAnalysis1 <- ResultAnalysis(availAssetOri_df,availAsset_df,resourceOri_df,resource1_df,callInfo_df,callOutput1)
-  resultAnalysis2 <- ResultAnalysis(availAssetOri_df,availAsset_df,resourceOri_df,resource2_df,callInfo_df,callOutput2)
+  resultAnalysis1 <- ResultAnalysis(availAsset_df,resource1_df,callInfo_df,callOutput1)
+  resultAnalysis2 <- ResultAnalysis(availAsset_df,resource2_df,callInfo_df,callOutput2)
   
   # compare and select
   cost1 <- resultAnalysis1$dailyCost
@@ -712,49 +617,6 @@ ResultSelect <- function(result1, result2,availAssetOri_df,availAsset_df,resourc
     finalResult <- result2
   }
   return(finalResult)
-}
-
-ResultAnalysis <- function(availAsset_df,availAssetOri_df,resource_df,resourceOri_df,callInfo_df,callOutput_list){
-  # Calculate dailyCost, monthlyCost, reservedLiquidityRatio, movement
-  # 
-  # Returns:
-  #   A list of the four values
-  callId_vec <- callInfo_df$id
-  resource_vec <- resource_df$id
-  resourceOri_vec <- resourceOri_df$id
-  
-  availInfo_list <- AssetByCallInfo(callId_vec,resource_vec,availAsset_df,resource_df)
-  eli_mat <- availInfo_list$eli_mat;
-  eli_vec <-  as.vector(t(eli_mat))
-  idxEli_vec <- which(eli_vec==1)
-  cost_mat <- availInfo_list$cost_mat
-  cost_vec <- as.vector(t(cost_mat))[idxEli_vec]
-  
-  varInfo_list <- VarInfo(eli_vec,callInfo_df,resource_vec,callId_vec)
-  varName_vec <- varInfo_list$varName_vec;
-  varNum <- varInfo_list$varNum
-  varAmount_vec <- ResultList2AmountVec(callOutput_list,callId_vec,varName_vec[1:varNum])
-  
-  #### Costs
-  dailyCost <- CostFun(varAmount_vec,cost_vec)
-  monthlyCost <- dailyCost*30
-  dailyCost <- dailyCost
-  monthlyCost <- monthlyCost
-  
-  #### Movements
-  varAmount_mat <- VarVec2mat(varAmount_vec[1:varNum],varName_vec[1:varNum],callId_vec,resource_vec)
-  movements <- OperationFun(varAmount_mat,callInfo_df,'matrix')
-  
-  #### Liquidity
-  availInfoOri_list <- AssetByCallInfo(callId_vec,resourceOri_vec,availAssetOri_df,resource_df)
-  liquidity_vec <- apply((1-availInfoOri_list$haircut_mat)^2,2,min)
-  qtyLeft <- resourceOri_df$qtyMin
-  idx_vec <- match(resource_df$id,resourceOri_df$id)
-  qtyLeft[idx_vec] <- resource_df$qtyMin
-  reservedLiquidityRatio <- LiquidFun(qtyLeft,resourceOri_df$qtyMin,liquidity_vec,resourceOri_df$minUnitValue/resourceOri_df$FXRate)
-  
-  resultAnalysis <- list(dailyCost=dailyCost,monthlyCost=monthlyCost,movements=movements,reservedLiquidityRatio=reservedLiquidityRatio)
-  return(resultAnalysis)
 }
 
 #### infoFunctions #### 

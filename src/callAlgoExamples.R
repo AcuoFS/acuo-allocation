@@ -19,11 +19,12 @@ setwd("E:/ACUO/projects/acuo-allocation/")
 source('src/functionsOfDBRequestByExecutingCypher.R')
 source("src/allocationAndAnalysis.R")
 source("src/allocationFunction.R")
+source("src/coreAlgo.R")
+source("src/generalFunctions.R")
 source("src/extremeScenarioHandling/OneMovement.R")
 source("src/extremeScenarioHandling/utils.R")
 source("src/allocationByGroup/allocationByGroup.R")
-source("src/coreAlgo.R")
-source("src/generalFunctions.R")
+source("src/resultAnalysis/resultAnalysis.R")
 source("src/callLpSolve.R")
 
 
@@ -127,9 +128,9 @@ result1 <- CallAllocation(scenario=1,
                           algoVersion,ifNewAlloc=T)
 
 # scenario 2: Post Settlement Currency
-#result2 <- CallAllocation(scenario=2,
-#                          callInfo_df,availAsset_df,resource_df,pref_vec,operLimitMs,fungible,
-#                          algoVersion,ifNewAlloc=T)
+result2 <- CallAllocation(scenario=2,
+                          callInfo_df,availAsset_df,resource_df,pref_vec,operLimitMs,fungible,
+                          algoVersion,ifNewAlloc=T)
 
 # scenario 3: post least liquid assets
 #result3 <- CallAllocation(algoVersion,scenario=3,

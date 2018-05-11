@@ -26,15 +26,20 @@ CallAllocation <- function(scenario,callInfo_df,availAsset_df,resource_df,pref_v
   #   resource_df
   #   callInfo_df
   #
+  # Variables:
+  #   usableAvailAsset_df: info of the resources can be used to allocate for calls
+  #   usableResource_df: info of all resources can be used to allocate
+  #   
+  #
   # Returns:  
   #   A list contains allocation result and analysis
   
   #### Adjust the Input to Algo ####################
-  availAssetOri_df <- availAsset_df
-  resourceOri_df <- resource_df
-  
+
   if(scenario==1){
-    # do nothing
+    ## Usable Resources
+    usableAvailAsset_df <- availAsset_df
+    usableResource_df <- resource_df
   } else if(scenario==2){ 
     ## Keep Only Assets Same as Call Currency
     idxAssetKeep_vec <- vector() # to store assets idx with the same currency of the call
@@ -49,26 +54,26 @@ CallAllocation <- function(scenario,callInfo_df,availAsset_df,resource_df,pref_v
         stop('ALERR2001: Settlement currency is not available(not in inventory/not eligible)!')
       }
     }
-    availAssetCash_df <- availAsset_df[idxAssetKeep_vec,]
-    resourceCash_df <- resource_df[match(unique(availAssetCash_df$assetCustacId),resource_df$id),]
-    
-    ## Assign
-    availAsset_df <- availAssetCash_df
-    resource_df <- resourceCash_df
+    ## Usable Resources
+    usableAvailAsset_df <- availAsset_df[idxAssetKeep_vec,]
+    usableResource_df <- resource_df[match(unique(availAssetCash_df$assetCustacId),resource_df$id),]
   } else if(scenario==3){
     ## Set the Preference
     pref_vec <- c(0,10)
+    ## Usable Resources
+    usableAvailAsset_df <- availAsset_df
+    usableResource_df <- resource_df
   } else{
     stop('ALERR1006: Please input a valid scenario!')
   }
   #### Allocation ################################
-  result <- AllocationAlgo(callInfo_df,availAsset_df,resource_df,
+  result <- AllocationAlgo(callInfo_df,usableAvailAsset_df,usableResource_df,
                            pref_vec,operLimitMs,fungible,
                            algoVersion,ifNewAlloc,allocated_list,
                            minMoveValue,timeLimit,maxCallNum,maxMsNum,callOrderMethod)
   
   #### Analyze Allocation Result Performance ######
-  resultAnalysis <- ResultAnalysis(availAsset_df,availAsset_df,resource_df,resource_df,callInfo_df,
+  resultAnalysis <- ResultAnalysis(availAsset_df,resource_df,callInfo_df,
                                    result$callOutput_list)
   
   #### Return Allocation and Analysis Result #######
