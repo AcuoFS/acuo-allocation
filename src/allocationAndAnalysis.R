@@ -56,7 +56,7 @@ CallAllocation <- function(scenario,callInfo_df,availAsset_df,resource_df,pref_v
     }
     ## Usable Resources
     usableAvailAsset_df <- availAsset_df[idxAssetKeep_vec,]
-    usableResource_df <- resource_df[match(unique(availAssetCash_df$assetCustacId),resource_df$id),]
+    usableResource_df <- resource_df[match(unique(usableAvailAsset_df$assetCustacId),resource_df$id),]
   } else if(scenario==3){
     ## Set the Preference
     pref_vec <- c(0,10)
@@ -73,7 +73,7 @@ CallAllocation <- function(scenario,callInfo_df,availAsset_df,resource_df,pref_v
                            minMoveValue,timeLimit,maxCallNum,maxMsNum,callOrderMethod)
   
   #### Analyze Allocation Result Performance ######
-  resultAnalysis <- ResultAnalysis(availAsset_df,resource_df,callInfo_df,
+  resultAnalysis <- DeriveResultAnalytics(availAsset_df,resource_df,callInfo_df,
                                    result$callOutput_list)
   
   #### Return Allocation and Analysis Result #######

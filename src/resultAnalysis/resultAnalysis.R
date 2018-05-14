@@ -1,5 +1,5 @@
 
-ResultAnalysis <- function(availAsset_df,resource_df,callInfo_df,callOutput_list){
+DeriveResultAnalytics <- function(availAsset_df,resource_df,callInfo_df,callOutput_list){
   # Calculate dailyCost, monthlyCost, reservedLiquidityRatio, movement
   # 
   # Returns:
@@ -13,26 +13,26 @@ ResultAnalysis <- function(availAsset_df,resource_df,callInfo_df,callOutput_list
                               callId_vec = availAsset_df$callId,
                               resource_vec = availAsset_df$assetCustacId)
   varAmount_vec <- ResultList2AmountVec(callOutput_list,callId_vec,varName_vec)
-  cost_vec <- CostDefinition(availAsset_df,resource_df)
+  cost_vec <- DefineCost(availAsset_df,resource_df)
   
-  dailyCost <- CostFun(varAmount_vec,cost_vec,"daily")
-  monthlyCost <- CostFun(varAmount_vec,cost_vec,"monthly")
+  dailyCost <- CalculateCost(varAmount_vec,cost_vec,"daily")
+  monthlyCost <- CalculateCost(varAmount_vec,cost_vec,"monthly")
   
   #### Movement
-  movements <- OperationFun(callOutput_list,callInfo_df,'callList')
+  movements <- CalculateMovement(callOutput_list,callInfo_df,'callList')
   
   #### Reserved Liquidity Ratio
   quantityTotal_vec <- resource_df$qtyMin
   quantityLeft_vec <- quantityTotal_vec - UsedQtyFromResultList(callOutput_list, resource_vec,callId_vec)
-  liquidity_vec <- LiquidityDefinition(availAsset_df,resource_df)
+  liquidity_vec <- DefineLiquidity(availAsset_df,resource_df)
   minUnitValue_vec <- resource_df$minUnitValue/resource_df$FXRate
-  reservedLiquidityRatio <- LiquidFun(quantityLeft_vec,quantityTotal_vec,liquidity_vec,minUnitValue_vec)
+  reservedLiquidityRatio <- CalculateLiquidity(quantityLeft_vec,quantityTotal_vec,liquidity_vec,minUnitValue_vec)
   
   resultAnalysis <- list(dailyCost=dailyCost,monthlyCost=monthlyCost,movements=movements,reservedLiquidityRatio=reservedLiquidityRatio)
   return(resultAnalysis)
 }
 
-CostFun <- function(amount_vec,cost_vec,term){
+CalculateCost <- function(amount_vec,cost_vec,term){
   # calculate daily cost or monthly cost
   if(term=="daily"){
     cost <- sum(amount_vec*cost_vec)
@@ -42,14 +42,14 @@ CostFun <- function(amount_vec,cost_vec,term){
   return(cost)
 }
 
-LiquidFun <- function(quantityLeft_vec,quantityTotal_vec,liquidity_vec,minUnitValue_vec){
+CalculateLiquidity <- function(quantityLeft_vec,quantityTotal_vec,liquidity_vec,minUnitValue_vec){
   numerator <- sum(quantityLeft_vec*liquidity_vec*minUnitValue_vec)
   denominator <- sum(quantityTotal_vec*liquidity_vec*minUnitValue_vec)
   ratio <- numerator/denominator
   return(ratio)
 }
 
-OperationFun <- function(result,callInfo_df,method){
+CalculateMovement <- function(result,callInfo_df,method){
   movements <- 0
   if(method=='matrix'){
     result_mat <- result
@@ -111,13 +111,13 @@ OperationFun <- function(result,callInfo_df,method){
     }
     
   } else{
-    stop('ALERR3005: Invalid OperationFun input method')
+    stop('ALERR3005: Invalid CalculateMovement input method')
   }
   
   return(movements)
 }
 
-CostDefinition <- function(availAsset_df,resource_df){
+DefineCost <- function(availAsset_df,resource_df){
   # The cost of a resource for a call is defined as follow:
   #   cost = internal + external + opportunity - interest rate
   #
@@ -143,7 +143,7 @@ CostDefinition <- function(availAsset_df,resource_df){
   return(cost)
 }
 
-LiquidityDefinition <- function(availAsset_df,resource_df){
+DefineLiquidity <- function(availAsset_df,resource_df){
   # The liquidity of a resource is defined as follow:
   #   liquidity = min((1-haircut_i)^2), where haircut_i denotes the haircut of the resource for call i.
   #

@@ -14,6 +14,7 @@
 # 8. assetInfo_df <- assetInfoByAssetId(assetId_vec)
 ########### FUNCTION INPUT FROM JAVA LAYER END ##########################
 
+
 #### Sources Start #########
 setwd("E:/ACUO/projects/acuo-allocation/")
 source('src/functionsOfDBRequestByExecutingCypher.R')
@@ -26,8 +27,6 @@ source("src/extremeScenarioHandling/utils.R")
 source("src/allocationByGroup/allocationByGroup.R")
 source("src/resultAnalysis/resultAnalysis.R")
 source("src/callLpSolve.R")
-
-
 #### Sources END ###########
 
 #### Input Prepare Start ###########

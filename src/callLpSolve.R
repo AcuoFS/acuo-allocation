@@ -1,8 +1,7 @@
 CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
                         lpType_vec,lpKind_vec,lpLowerBound_vec,lpUpperBound_vec,lpBranchMode_vec,
                         lpGuessBasis_vec,
-                        presolve,epsd,timeout,bbRule,epsint,
-                        scaling,improve){
+                        presolve,timeout){
   library(lpSolveAPI)
   # input variables
   # must have: lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec
@@ -55,7 +54,7 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
       set.branch.mode(lpModel,k,lpBranchMode_vec[k])
     }  
   }
-  
+
   # guess basis
   if(!missing(lpGuessBasis_vec)){
     if(!all(lpGuessBasis_vec==0)){
@@ -64,8 +63,16 @@ CallLpSolve <- function(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
   }
   
   # set control options
-  lp.control(lpModel,presolve=presolve,epsd=epsd,timeout=timeout,bb.rule=bbRule,epsint=epsint,
-             scaling=scaling,improve=improve,verbose='important',negrange=-1e-6)
+  lp.control(lpModel,
+             presolve=presolve,
+             timeout=timeout,
+             bb.rule=c("pseudononint","autoorder","greedy", "dynamic","rcostfixing","branchreverse"),
+             epsd=1e-9,
+             epsint=1e-9,
+             scaling=c("geometric","quadratic","equilibrate", "integers"),
+             improve=c("solution","dualfeas","thetagap"),
+             verbose='important',
+             negrange=-1e-6)
   
   # solve the problem
   resultStatus <- solve(lpModel)  

@@ -3,6 +3,9 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
                        pref_vec,operLimit,operLimitMs_vec,fungible,
                        ifNewAlloc,initAllocation_list,allocated_list,minMoveValue,timeLimit){
   
+  callInfo_df <- renjinFix(callInfo_df, "callInfo.")
+  resource_df <- renjinFix(resource_df, "resource.")
+  
   #### Assign Default Values
   if(missing(timeLimit)){
     timeLimit <- 13
@@ -12,20 +15,19 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
   }
   
   #### Prepare Parameters Start #############################
+  
   pref_vec <- pref_vec/sum(pref_vec[1:2]) # Recalculate the parameters weight setting
+  
   callId_vec<-callInfo_df$id
   resource_vec<-resource_df$id
   msId_vec <- unique(callInfo_df$marginStatement)
   
-  callInfo_df <- renjinFix(callInfo_df, "callInfo.")
-  resource_df <- renjinFix(resource_df, "resource.")
   
   callNum <- length(callId_vec)            # total margin call number
   resourceNum <- length(resource_vec)          # total asset number
-  msNum <- length(msId_vec)
   
-  base_mat <- availInfo_list$base_mat
-  eli_mat <- availInfo_list$eli_mat; 
+  
+  eli_mat <- availInfo_list$eli_mat
   eli_vec <-  as.vector(t(eli_mat)) # eligibility matrix & vector
   idxEli_vec <- which(eli_vec==1)         # eligible index
   
@@ -96,14 +98,16 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
   #### ALLOCATION ########################################
   
   #### Construct Variable Names Start ######
-  varInfo_list <- VarInfo(eli_vec,callInfo_df,resource_vec,callId_vec)
+  varInfo_list <- VarInfo(eli_vec,callInfo_df,resource_vec)
   
   varName_vec <- varInfo_list$varName_vec
   varNum <- varInfo_list$varNum
   varNum2 <- varInfo_list$varNum2
   pos_vec <- varInfo_list$pos_vec
   #### Construct Variable Names END ########
-  
+  cat("eli size:",length(eli_vec),'\n')
+  cat("varNum:",varNum,'\n')
+  cat("varNum2:",varNum2,'\n')
   if(1*(!is.element(0,ifSelectAssetSuff_vec))){
     
     #### Optimal Assets are Sufficient Start ##########
@@ -186,13 +190,7 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
     
     #### Control options
     lpPresolve <- ifelse(callNum<=10,'none','knapsack')
-    lpEpsd <- 1e-9
-    lpEpsint <- 1e-9
     lpTimeout <- timeLimit
-    bbRule <-  c("pseudononint","autoorder","greedy", "dynamic","rcostfixing","branchreverse")
-    #bbRule <- c("pseudononint", "greedy", "dynamic","rcostfixing") # default
-    lpScale <- c("geometric","quadratic","equilibrate", "integers")
-    lpImprove <- c("solution","dualfeas","thetagap")
     
     #### INITIAL GUESS BASIS 
     lpGuessBasis_vec <- rep(0,varNum2)
@@ -207,8 +205,7 @@ CoreAlgoV2 <- function(callInfo_df, resource_df, availInfo_list,
     solverOutput_list <- CallLpSolve(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
                                      lpType_vec=lpType_vec,lpKind_vec=lpKind_vec,lpLowerBound_vec=lpLowerBound_vec,lpUpperBound_vec=lpUpperBound_vec,lpBranchMode_vec=lpBranchMode_vec,
                                      lpGuessBasis_vec=lpGuessBasis_vec, 
-                                     presolve=lpPresolve,epsd=lpEpsd,timeout=lpTimeout,bbRule=bbRule,
-                                     epsint=lpEpsint, scaling=lpScale,improve=lpImprove)
+                                     presolve=lpPresolve,timeout=lpTimeout)
     #### solver outputs
     solverStatus<- solverOutput_list$resultStatus
     solverSolution_vec <- solverOutput_list$solverSolution_vec

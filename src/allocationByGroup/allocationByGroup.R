@@ -42,7 +42,7 @@ AllocateByGroups <- function(callInfo_df,availAsset_df,resource_df,
       idxTemp_vec <- match(callIdGroup_vec,names(allocated_list))
       allocatedGroup_list <- allocated_list[idxTemp_vec]
     }
-    
+    cat("group:", i,"; avail length:",length(availAssetGroup_df$callId),'\n')
     #### Call AllocateAndCompareResults ####
     groupResult <- AllocateAndCompareResults(callInfoGroup_df,availAssetGroup_df,resourceGroup_df,
                                              pref_vec,operLimitMs,fungible,
@@ -119,6 +119,7 @@ PreAllocation <- function(callInfo_df,availAsset_df,resource_df,
     callInfoGroup_df <- callInfo_df[match(callInThisMs_vec,callInfo_df$id),]
     availAssetGroup_df <- availAsset_df[which(availAsset_df$callId %in% callInThisMs_vec),]
     
+    cat("pre group:", i,"; avail length:",length(availAssetGroup_df$callId),'\n')
     updatedInfo <- UpdateResourceInfoAndAvailAsset(resource_df,availAssetGroup_df,length(callInThisMs_vec))
     resourceGroup_df <- updatedInfo$resource_df
     availAssetGroup_df <- updatedInfo$availAsset_df

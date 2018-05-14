@@ -1,5 +1,3 @@
-#### analysisFunctions #######
-
 
 #### checkFunctions #######
 AdjustResultVec <- function(solution_vec,varNum,varName_vec,fCon4_mat,
@@ -596,8 +594,8 @@ ResultSelect <- function(result1, result2,availAsset_df,resource_df,callInfo_df,
   resource1_df$qtyMin <- qtyMin1
   resource2_df <- resource_df
   resource2_df$qtyMin <- qtyMin2
-  resultAnalysis1 <- ResultAnalysis(availAsset_df,resource1_df,callInfo_df,callOutput1)
-  resultAnalysis2 <- ResultAnalysis(availAsset_df,resource2_df,callInfo_df,callOutput2)
+  resultAnalysis1 <- DeriveResultAnalytics(availAsset_df,resource1_df,callInfo_df,callOutput1)
+  resultAnalysis2 <- DeriveResultAnalytics(availAsset_df,resource2_df,callInfo_df,callOutput2)
   
   # compare and select
   cost1 <- resultAnalysis1$dailyCost
@@ -685,7 +683,7 @@ AssetByCallInfo <- function(callId_vec,resource_vec,availAsset_df,resource_df){
   haircutC_mat[cbind(idxTempCallId_vec,idxTempResource_vec)] <- availAsset_df$haircut
   haircutFX_mat[cbind(idxTempCallId_vec,idxTempResource_vec)] <- availAsset_df$FXHaircut
   haircut_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- availAsset_df$haircut+availAsset_df$FXHaircut
-  cost_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- CostDefinition(availAsset_df,resource_df)
+  cost_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- DefineCost(availAsset_df,resource_df)
   
   # convert the matrix format data to vector format
   # thinking of keeping only eligible parts
@@ -982,6 +980,7 @@ ConstructModelObj <- function(callAmount_mat,minUnitValue_mat,haircut_mat,costBa
   cost_vec <- as.vector(t(cost_mat))
   #costBasis_mat <- costBasis_mat/(1-haircut_mat)
   costBasis_vec <- as.vector(t(costBasis_mat))
+  #resourceLiquidity <- LiquidityDefinition(haircut_mat)
   if(is.null(dim(haircut_mat))){
     assetLiquidity_vec <- (1-haircut_mat*eli_mat)^2 # define asset liquidity
     
@@ -1166,7 +1165,8 @@ DeriveOptimalAssetsV1 <- function(minUnitQuantity_mat,eli_mat,callAmount_mat,hai
   return(optimalAsset_mat)
 }
 
-VarInfo <- function(eli_vec,callInfo_df,resource_vec,callId_vec){
+VarInfo <- function(eli_vec,callInfo_df,resource_vec){
+  callId_vec <- callInfo_df$id
   callNum <- length(callId_vec)
   resourceNum <- length(resource_vec)
   idxEli_vec <- which(eli_vec==1)
