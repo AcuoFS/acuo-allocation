@@ -21,10 +21,11 @@ source('src/functionsOfDBRequestByExecutingCypher.R')
 source("src/allocationAndAnalysis.R")
 source("src/allocationFunction.R")
 source("src/coreAlgo.R")
+source("src/generalFunctions/modelFunctions.R")
 source("src/generalFunctions.R")
 source("src/extremeScenarioHandling/OneMovement.R")
 source("src/extremeScenarioHandling/utils.R")
-source("src/allocationByGroup/allocationByGroup.R")
+source("src/allocationByGroup.R")
 source("src/resultAnalysis/resultAnalysis.R")
 source("src/callLpSolve.R")
 #### Sources END ###########
@@ -48,7 +49,8 @@ callInfo_df <- CallInfoByCallId(callId_vec)
 if(length(unlist(callInfo_df))==0){
   stop('Empty callInfo_df input!')
 }
-callInfo_df <- CallInfoFxConversion(callInfo_df)
+callInfo_df <- UnifyFxBaseUsdInCallInfo(callInfo_df)
+callInfo_df <- ConvertCallAmountToBaseCcyInCallInfo(callInfo_df)
 # margin statements with money IN calls
 #idxTemp_vec <- which(callInfo_df$direction == 'IN')
 #if(length(idxTemp_vec)>0){
@@ -68,7 +70,8 @@ if(length(unlist(assetInfo_df))==0){
   stop('Empty assetInfo_df input!')
 }
 assetInfo_df<-assetInfo_df[order(assetInfo_df$id),]
-assetInfo_df <- AssetInfoFxConversion(assetInfo_df)
+assetInfo_df <- UnifyFxBaseUsdAssetInfo(assetInfo_df)
+assetInfo_df <- AddMinUnitValueInBaseCcyToAssetInfo(assetInfo_df)
 print(assetInfo_df)
 
 #### remove unexpected data ####

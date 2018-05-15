@@ -78,7 +78,6 @@ CallAllocation <- function(scenario,callInfo_df,availAsset_df,resource_df,pref_v
   
   #### Return Allocation and Analysis Result #######
   return(list(#msOutput=msOutput_list,
-    callOutput=result$callOutput_list,checkCall_mat=result$checkCall_mat,
-    solverStatus=result$solverStatus,solverObjValue=result$solverObjValue,resultAnalysis=resultAnalysis))
+    callOutput=result$callOutput_list,resultAnalysis=resultAnalysis))
 }
 
