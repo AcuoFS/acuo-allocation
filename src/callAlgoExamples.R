@@ -18,9 +18,7 @@
 #### Sources Start #########
 setwd("E:/ACUO/projects/acuo-allocation/")
 source('src/functionsOfDBRequestByExecutingCypher.R')
-source("src/allocationScenario1.R")
-source("src/allocationScenario2.R")
-source("src/allocationScenario3.R")
+source("src/allocationScenarios.R")
 source("src/allocationByGroup.R")
 source("src/coreAlgo.R")
 source("src/generalFunctions/modelFunctions.R")
