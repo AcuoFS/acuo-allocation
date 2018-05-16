@@ -1,9 +1,21 @@
 
-CoreAlgoV2 <- function(callInfo_df, resource_df,availAsset_df,
+CoreAlgoV2 <- function(callInfo_df,availAsset_df,resource_df,
                        pref_vec,operLimitMs,fungible,
-                       ifNewAlloc,initAllocation_list,allocated_list,minMoveValue,timeLimit){
+                       ifNewAlloc,initAllocation_list,allocated_list,
+                       minMoveValue,timeLimit){
+  # Estimate overall asset sufficiency
+  # Derive optimal assets based on the weighted objectives parameters
+  # Determine the method to solve the problem based on the sufficiency of optimal assets
+  
   callInfo_df <- renjinFix(callInfo_df, "callInfo.")
-  resource_df <- renjinFix(resource_df, "resource.")
+  resource_df <- renjinFix(resource_df, "resource.")  
+  
+  #### Handle Extreme Scenarios ##################
+  ## 1. movement limit for one or several margin statements is 1
+  if(operLimitMs==1){
+    availAsset_df <- HandleStatementMovementLimitIsOne(availAsset_df,callInfo_df,resource_df)
+  }
+  
   #### Assign Default Values ####
   if(missing(timeLimit)){
     timeLimit <- 13

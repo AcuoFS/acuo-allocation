@@ -18,14 +18,15 @@
 #### Sources Start #########
 setwd("E:/ACUO/projects/acuo-allocation/")
 source('src/functionsOfDBRequestByExecutingCypher.R')
-source("src/allocationAndAnalysis.R")
-source("src/allocationFunction.R")
+source("src/allocationScenario1.R")
+source("src/allocationScenario2.R")
+source("src/allocationScenario3.R")
+source("src/allocationByGroup.R")
 source("src/coreAlgo.R")
 source("src/generalFunctions/modelFunctions.R")
 source("src/generalFunctions.R")
 source("src/extremeScenarioHandling/OneMovement.R")
 source("src/extremeScenarioHandling/utils.R")
-source("src/allocationByGroup.R")
 source("src/resultAnalysis/resultAnalysis.R")
 source("src/callLpSolve.R")
 #### Sources END ###########
@@ -115,8 +116,6 @@ availAsset_df <- updateInfo$availAsset_df
 #  }
 #}
 
-#### Input Prepare END #############
-
 
 
 #### Scenario Analysis Output Start #####################
@@ -125,21 +124,27 @@ algoVersion <- 2
 
 
 # scenario 1: Algo Suggestion
-result1 <- CallAllocation(scenario=1,
-                          callInfo_df,availAsset_df,resource_df,pref_vec,operLimitMs,fungible,
-                          algoVersion,ifNewAlloc=T)
+output1 <- AllocationScenario1(callInfo_df,availAsset_df,resource_df,pref_vec,operLimitMs,fungible,
+                    algoVersion,ifNewAlloc=T)
+resultAnalysis1 <- DeriveResultAnalytics(availAsset_df,resource_df,callInfo_df,output1$callOutput)
+resultS1 <- list(callOutput=output1$callOutput_list,msOutput=output1$msOutput_list,resultAnalysis=resultAnalysis1)
+
 
 # scenario 2: Post Settlement Currency
-result2 <- CallAllocation(scenario=2,
-                          callInfo_df,availAsset_df,resource_df,pref_vec,operLimitMs,fungible,
-                          algoVersion,ifNewAlloc=T)
+# output2 <- AllocationScenario2(callInfo_df,availAsset_df,resource_df,pref_vec,operLimitMs,fungible,
+#                                algoVersion,ifNewAlloc=T)
+# resultAnalysis2 <- DeriveResultAnalytics(availAsset_df,resource_df,callInfo_df,output2$callOutput)
+# resultS2 <- list(callOutput=output2$callOutput_list,msOutput=output2$msOutput_list,resultAnalysis=resultAnalysis2)
+
 
 # scenario 3: post least liquid assets
-#result3 <- CallAllocation(algoVersion,scenario=3,
-#                          callInfo_df,availAsset_df,resource_df,pref_vec,operLimitMs,fungible,
-#                          algoVersion,ifNewAlloc=T)
+# output3 <- AllocationScenario3(callInfo_df,availAsset_df,resource_df,pref_vec,operLimitMs,fungible,
+#                                algoVersion,ifNewAlloc=T)
+# resultAnalysis3 <- DeriveResultAnalytics(availAsset_df,resource_df,callInfo_df,output3$callOutput)
+# resultS3 <- list(callOutput=output3$callOutput_list,msOutput=output3$msOutput_list,resultAnalysis=resultAnalysis3)
 
-scenarios[['Algo']] <- result1
+
+scenarios[['Algo']] <- resultS1
 #scenarios[['SettleCCY']] <- result2
 #scenarios[['LeastLiquid']] <- result3
 #### Scenario Analysis Output END #######################

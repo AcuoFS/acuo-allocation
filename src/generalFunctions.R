@@ -301,7 +301,7 @@ ResultMat2List <- function(result_mat,callId_vec,resource_vec,callInfo_df, hairc
     
     #### Update msOutput_list ######
     msId <- callInfo_df$marginStatement[i]
-    msOutput_list[[msId]] <- alloc_df
+    msOutput_list[[msId]] <- rbind(msOutput_list[[msId]],alloc_df)
 
   }
   result_list <- list(callOutput_list=callOutput_list,msOutput_list=msOutput_list)
