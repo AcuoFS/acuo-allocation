@@ -1,6 +1,6 @@
 
 CoreAlgoV2 <- function(callInfo_df, resource_df,availAsset_df,
-                       pref_vec,operLimit,operLimitMs_vec,fungible,
+                       pref_vec,operLimitMs,fungible,
                        ifNewAlloc,initAllocation_list,allocated_list,minMoveValue,timeLimit){
   callInfo_df <- renjinFix(callInfo_df, "callInfo.")
   resource_df <- renjinFix(resource_df, "resource.")
@@ -46,7 +46,7 @@ CoreAlgoV2 <- function(callInfo_df, resource_df,availAsset_df,
   } else {
     result_mat <- AllocateUnderInsufficientOptimalAssets(costScore_mat,liquidityScore_mat,pref_vec,eli_mat,
                                                     callInfo_df,resource_df$id,resource_df,
-                                                    minMoveValue,operLimit,operLimitMs_vec,fungible,timeLimit,
+                                                    minMoveValue,operLimitMs,fungible,timeLimit,
                                                     allocated_list,initAllocation_list)
   }
   

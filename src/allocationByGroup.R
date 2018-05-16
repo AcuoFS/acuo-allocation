@@ -76,10 +76,8 @@ AllocateAndCompareResults <- function(callInfo_df,availAsset_df,resource_df,
   if(algoVersion==1){
     resultGroup_list <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue)#,initAllocation_list)
   } else if(algoVersion==2){
-    operLimit <- operLimitMs*length(unique(callInfo_df$marginStatement))
-    operLimitMs_vec <- rep(operLimitMs,length(unique(callInfo_df$marginStatement)))
     coreAlgoResult <- CoreAlgoV2(callInfo_df, resource_df, availAsset_df,
-                             pref_vec,operLimit,operLimitMs_vec,fungible,
+                             pref_vec,operLimitMs,fungible,
                              ifNewAlloc,initAllocation_list,allocated_list,minMoveValue,timeLimit)
   }
   
@@ -123,7 +121,7 @@ PreAllocation <- function(callInfo_df,availAsset_df,resource_df,
       resultGroup_list <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue)
     } else if(algoVersion==2){
       resultGroup_list <- CoreAlgoV2(callInfoGroup_df, resourceGroup_df, availAssetGroup_df,
-                                     pref_vec,operLimitMs,operLimitMs,fungible,
+                                     pref_vec,operLimitMs,fungible,
                                      ifNewAlloc,list(),allocatedGroup_list,minMoveValue,timeLimit)
     }
     

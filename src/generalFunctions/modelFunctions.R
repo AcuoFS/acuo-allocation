@@ -117,7 +117,7 @@ DummyConstInherit <- function(allocated_vec,varName_vec,varNum,quantity_vec,call
   return(fCon4_list)
 }
 
-MoveConst <- function(varName_vec,varNum,operLimit,operLimitMs,fungible){
+MoveConst <- function(varName_vec,varNum,operLimitMs,fungible){
   varNum2 <- length(varName_vec)
   msIdDul_vec <- SplitVarName(varName_vec[(varNum+1):varNum2],'ms')
   msId_vec <- unique(msIdDul_vec)
@@ -127,7 +127,7 @@ MoveConst <- function(varName_vec,varNum,operLimit,operLimitMs,fungible){
   fCon5_mat[1,(varNum+1):varNum2] <- 1
   
   fDir5_vec <- c('<=')
-  fRhs5_vec <- c(operLimit)
+  fRhs5_vec <- c(operLimitMs*msNum)
   
   #### set the movements limit per margin statement if fungible=FALSE
   # the total limit is not necessary in theory, but it's better keep it until proven
@@ -152,7 +152,7 @@ MoveConst <- function(varName_vec,varNum,operLimit,operLimitMs,fungible){
   return(fCon5_list)
 }
 
-MoveConstInherit <- function(allocated_vec,varName_vec,varNum,operLimit,operLimitMs_vec,fungible){
+MoveConstInherit <- function(allocated_vec,varName_vec,varNum,operLimitMs,fungible){
   varNum2 <- length(varName_vec)
   msIdDul_vec <- SplitVarName(varName_vec[(varNum+1):varNum2],'ms')
   msId_vec <- unique(msIdDul_vec)
@@ -162,7 +162,7 @@ MoveConstInherit <- function(allocated_vec,varName_vec,varNum,operLimit,operLimi
   fCon5_mat[1,(varNum+1):varNum2] <- 1
   
   fDir5_vec <- c('<=')
-  fRhs5_vec <- c(operLimit)
+  fRhs5_vec <- c(operLimitMs*msNum)
   
   #### set the movements limit per margin statement if fungible=FALSE
   # the total limit is not necessary in theory, but it's better keep it until proven
@@ -176,7 +176,7 @@ MoveConstInherit <- function(allocated_vec,varName_vec,varNum,operLimit,operLimi
     fCon6_mat[cbind(rowIdx_vec,colIdx_vec)] <- 1
     
     fDir6_vec <- rep('<=',msNum)
-    fRhs6_vec <- operLimitMs_vec
+    fRhs6_vec <- rep(operLimitMs,msNum)
     
     fCon5_mat <- rbind(fCon5_mat,fCon6_mat)
     fDir5_vec <- c(fDir5_vec,fDir6_vec)
@@ -680,7 +680,7 @@ AllocateUnderSufficientOptimalAssets <- function(optimalAsset_mat,assetSuffQty_m
 
 AllocateUnderInsufficientOptimalAssets <- function(costScore_mat,liquidityScore_mat,pref_vec,eli_mat,
                                                    callInfo_df,resource_vec,resource_df,
-                                                   minMoveValue,operLimit,operLimitMs_vec,fungible,timeLimit,
+                                                   minMoveValue,operLimitMs,fungible,timeLimit,
                                                    allocated_list,initAllocation_list){
   idxEli_vec <- which(t(eli_mat)==1)         # eligible index
   callNum <- length(callInfo_df$id)
@@ -719,12 +719,12 @@ AllocateUnderInsufficientOptimalAssets <- function(costScore_mat,liquidityScore_
   fCon3_list <- MarginConst(varName_vec,varNum,minUnitValue_vec,haircut_vec,callInfo_df$id,callInfo_df$callAmount)
   if(ifNewAlloc){
     fCon4_list <- DummyConst(varName_vec,varNum,quantity_vec,callAmount_vec,minUnitValue_vec)
-    fCon5_list <- MoveConst(varName_vec,varNum,operLimit,operLimitMs_vec,fungible)
+    fCon5_list <- MoveConst(varName_vec,varNum,operLimitMs,fungible)
   } else{
     allocated_vec <- ResultList2Vec(allocated_list,callId_vec,minUnit_vec,varName_vec,varNum,pos_vec)
     allocatedDummy_vec <- allocated_vec[(varNum+1):varNum2]
     fCon4_list <- DummyConstInherit(allocatedDummy_vec,varName_vec,varNum,quantity_vec,callAmount_vec,minUnitValue_vec)
-    fCon5_list <- MoveConstInherit(allocatedDummy_vec,varName_vec,varNum,operLimit,operLimitMs_vec,fungible)
+    fCon5_list <- MoveConstInherit(allocatedDummy_vec,varName_vec,varNum,operLimitMs,fungible)
   }
   
   #### Build the Optimization Model END ########
