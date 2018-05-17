@@ -19,11 +19,11 @@ EstimateAssetSufficiency <- function(availAsset_df,callInfo_df,resource_df){
   haircut_mat <- HaircutVec2Mat(haircut_vec = availAsset_df$haircut + availAsset_df$FXHaircut,
                                 availAsset_df,callInfo_df$id,resource_df$id)
   #### Check Whether Assets Are Sufficient Per Each Call #####
-  suffPerCall <- all((eli_mat*(1-haircut_mat)) %*% (quantity_vec*minUnitValue_vec) > callInfo_df$callAmount)
+  suffPerCall <- all((eli_mat*(1-haircut_mat)) %*% (resource_df$qtyMin*resource_df$minUnitValue) > callInfo_df$callAmount)
   
   #### Check Whether Assets Are Sufficient for All Calls #####
   # use the asset's highest haircut among calls for calculation
-  suffAllCall <- sum(quantity_vec*minUnitValue_vec*(1-apply(haircut_mat,2,max))) > sum(callInfo_df$callAmount)
+  suffAllCall <- sum(resource_df$qtyMin*resource_df$minUnitValue*(1-apply(haircut_mat,2,max))) > sum(callInfo_df$callAmount)
   
   return(suffPerCall & suffAllCall)
 }

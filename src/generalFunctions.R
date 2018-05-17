@@ -511,8 +511,6 @@ ResultList2Df <- function(result_list,callId_vec){
   return(result_df)
 }
 
-#### improveFunctions #### 
-
 #### infoFunctions #### 
 ResourceInfoAndAvailAsset <- function(assetInfo_df,availAsset_df){
   # order by call id 
@@ -558,34 +556,7 @@ ResourceInfoAndAvailAsset <- function(assetInfo_df,availAsset_df){
   return(list(resource_df=resource_df,availAsset_df=newAvailAsset_df))
 }
 
-AssetByCallInfo <- function(callId_vec,resource_vec,availAsset_df,resource_df){
-  
-  resourceNum <- length(resource_vec)
-  callNum <- length(callId_vec)
-  availAsset_df <- availAsset_df[order(availAsset_df$callId),] # order the availAsset_df by callId_vec
-  
-  base_mat <- matrix(0,nrow=callNum,ncol=resourceNum, dimnames = list(callId_vec,resource_vec))
-  eli_mat <- base_mat
-  haircut_mat <- base_mat
-  haircutC_mat <- base_mat
-  haircutFX_mat <- base_mat
-  cost_mat <- base_mat
-  
-  # fill in matrixes with the data from availAsset_df
-  idxTempCallId_vec <- match(availAsset_df$callId,callId_vec)
-  idxTempResource_vec <- match(availAsset_df$assetCustacId,resource_vec)
-  
-  eli_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- 1
-  haircutC_mat[cbind(idxTempCallId_vec,idxTempResource_vec)] <- availAsset_df$haircut
-  haircutFX_mat[cbind(idxTempCallId_vec,idxTempResource_vec)] <- availAsset_df$FXHaircut
-  haircut_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- availAsset_df$haircut+availAsset_df$FXHaircut
-  cost_mat[cbind(idxTempCallId_vec,idxTempResource_vec)]<- DefineCost(availAsset_df,resource_df)
-  
-  output_list <- list(base_mat=base_mat,eli_mat=eli_mat,haircut_mat=haircut_mat,haircutC_mat=haircutC_mat,haircutFX_mat=haircutFX_mat,cost_mat=cost_mat)
-  return (output_list)
-}
-
-UnifyFxBaseUsdAssetInfo <- function(assetInfo_df){
+UnifyFxBaseUsdInAssetInfo <- function(assetInfo_df){
   # add assetInfo_df$oriFXRate to store the original fx rate
   # change assetInfo_df$oriFXRate to 1 USD can change how much foreign currency
   
