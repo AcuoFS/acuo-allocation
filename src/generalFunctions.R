@@ -277,11 +277,16 @@ ConstructAllocDf <- function(resourceInfo_df,callInfo_df,haircutC_vec,haircutFX_
   return(alloc_df)
 }
 
-ResultMat2List <- function(result_mat,callId_vec,resource_vec,callInfo_df, haircutC_mat,haircutFX_mat,cost_mat,resourceInfo_df){
+ResultMat2List <- function(result_mat,callInfo_df,availAsset_df,resource_df){
   callOutput_list  <- list()    # store selected assets for each call, list by callId_vec
   msOutput_list <- list()   # store selected assets for each margin statement, list by msId
   
+  haircutC_mat <- HaircutCVec2Mat(availAsset_df$haircut,availAsset_df,callInfo_df$id,resource_df$id)
+  haircutFX_mat <- HaircutFXVec2Mat(availAsset_df$FXHaircut,availAsset_df,callInfo_df$id,resource_df$id)
+  cost_mat <- CostVec2Mat(cost_vec = DefineCost(availAsset_df,resource_df),
+                               availAsset_df,callInfo_df$id,resource_df$id)
   #### construct the result
+  callId_vec <- callInfo_df$id
   for(i in 1:length(callId_vec)){      
     # resource and result_mat columns have the same order 
     # the allocated indexes: 
@@ -291,10 +296,8 @@ ResultMat2List <- function(result_mat,callId_vec,resource_vec,callInfo_df, hairc
       stop(errormsg)
     }
     
-    alloc_df <- ConstructAllocDf(resourceInfo_df[idx_vec,], callInfo_df[i,], haircutC_mat[i,idx_vec], haircutFX_mat[i,idx_vec],result_mat[i,idx_vec],cost_mat[i,idx_vec])
-    
-    #### UPDATE THE ASSET QUANTITY ########
-    resourceInfo_df$quantity[idx_vec] <- resourceInfo_df$quantity[idx_vec]-alloc_df$Quantity #selectAssetQuantity_vec
+    #### Construct the Allocation dataframe for This Call ####
+    alloc_df <- ConstructAllocDf(resource_df[idx_vec,], callInfo_df[i,], haircutC_mat[i,idx_vec], haircutFX_mat[i,idx_vec],result_mat[i,idx_vec],cost_mat[i,idx_vec])
     
     #### Update callOutput_list ####
     callOutput_list[[callId_vec[i]]] <- alloc_df
@@ -302,7 +305,6 @@ ResultMat2List <- function(result_mat,callId_vec,resource_vec,callInfo_df, hairc
     #### Update msOutput_list ######
     msId <- callInfo_df$marginStatement[i]
     msOutput_list[[msId]] <- rbind(msOutput_list[[msId]],alloc_df)
-
   }
   result_list <- list(callOutput_list=callOutput_list,msOutput_list=msOutput_list)
   return(result_list)
@@ -510,143 +512,6 @@ ResultList2Df <- function(result_list,callId_vec){
 }
 
 #### improveFunctions #### 
-OrderCallId <- function(callOrderMethod,callInfo_df){
-  ## method 0: Keep original
-  ## method 1: By margin call amount, decreasing
-  ## method 2: By margin type, VM then IM; sub order by call amount
-  ## method 3: By total call amount in margin statement, decreasing
-  
-  #### Assign Default Values
-  callOrderMethod <- 3
-  
-  #### Order Calls
-  if(callOrderMethod==0){ # keep original
-    callInfo_df <- callInfo_df
-  }else if(callOrderMethod==1){ # by call amount, decreasing
-    callInfo_df <- callInfo_df[order(callInfo_df$callAmount,decreasing=T),]
-  }else if(callOrderMethod==2){ # by margin type(VM first) and call amount, decreasing
-    callInfoVM <- callInfo_df[which(toupper(callInfo_df$marginType)=='VARIATION'),]
-    callInfoVM <- callInfoVM[order(callInfoVM$callAmount,decreasing=T),]
-    
-    callInfoIM <- callInfo_df[which(toupper(callInfo_df$marginType)=='INITIAL'),]
-    callInfoIM <- callInfoIM[order(callInfoIM$callAmount,decreasing=T),]
-    callInfo_df <- rbind(callInfoVM,callInfoIM)
-  }else if(callOrderMethod==3){ # by margin statement, call amount in margin statement, decreasing
-    msAggrCall_df <- aggregate(callAmount~marginStatement,data=callInfo_df,sum)
-    msAggrCall_df <- msAggrCall_df[order(msAggrCall_df$callAmount,decreasing=T),]
-    tempMs_vec <- msAggrCall_df$marginStatement
-    newCallInfo_df <- callInfo_df
-    idxCurrent <- 0
-    for(i in 1:length(tempMs_vec)){
-      idxTemp_vec <- which(tempMs_vec[i]==callInfo_df$marginStatement)
-      tempCallInfo_df <- callInfo_df[idxTemp_vec,]
-      tempCallInfo_df <- tempCallInfo_df[order(tempCallInfo_df$callAmount,decreasing=F),]
-      idxNewTemp_vec <- idxCurrent+1:length(idxTemp_vec)
-      newCallInfo_df[idxNewTemp_vec,] <- tempCallInfo_df
-      
-      idxCurrent <- idxCurrent+length(idxTemp_vec)
-    }
-    callInfo_df<- newCallInfo_df
-  }else if(callOrderMethod==4){ # by margin statement, call amount in margin statement, increasing
-    msAggrCall_df <- aggregate(callAmount~marginStatement,data=callInfo_df,sum)
-    msAggrCall_df <- msAggrCall_df[order(msAggrCall_df$callAmount,decreasing=F),]
-    tempMs_vec <- msAggrCall_df$marginStatement
-    newCallInfo_df <- callInfo_df
-    idxCurrent <- 0
-    for(i in 1:length(tempMs_vec)){
-      idxTemp_vec <- which(tempMs_vec[i]==callInfo_df$marginStatement)
-      tempCallInfo_df <- callInfo_df[idxTemp_vec,]
-      tempCallInfo_df <- tempCallInfo_df[order(tempCallInfo_df$callAmount,decreasing=F),]
-      idxNewTemp_vec <- idxCurrent+1:length(idxTemp_vec)
-      newCallInfo_df[idxNewTemp_vec,] <- tempCallInfo_df
-      
-      idxCurrent <- idxCurrent+length(idxTemp_vec)
-    }
-    callInfo_df<- newCallInfo_df
-  }
-  return(callInfo_df)
-}
-
-GroupCallIdByMs <- function(callLimit,msLimit,callInfo_df,callOrderMethod){
-  #### Assign Default Values
-  if(missing(callLimit)){
-    callLimit <- 7
-  }
-  if(missing(msLimit)){
-    msLimit <- 4
-  }
-  #### Order callId_vec
-  callInfo_df <- OrderCallId(callOrderMethod,callInfo_df)
-  callId_vec <- callInfo_df$id
-  
-  groupCallId_list <- list()
-  # if the call number is equal or less than callLimit
-  # or the ms number is equal or less than msLimit
-  # then only one group
-  # else group by msLimit
-  if(length(callInfo_df[,1])<=callLimit){
-    groupCallId_list[[1]] <- callId_vec
-  } else if(length(unique(callInfo_df$marginStatement))<=msLimit){
-    groupCallId_list[[1]] <- callId_vec
-  } else{
-    groupMsId_list <- list()
-    callMs_vec <- callInfo_df$marginStatement
-    ms_vec <- unique(callMs_vec)
-    msGroupNum <- ceiling(length(ms_vec)/msLimit)
-    
-    for(i in 1:(msGroupNum-1)){
-      tempCurrent <- msLimit*(i-1)
-      tempMs_vec <- ms_vec[(tempCurrent+1):(tempCurrent+msLimit)]
-      tempCall_vec <- callInfo_df$id[which((callInfo_df$marginStatement) %in% tempMs_vec)]
-      groupMsId_list[[i]]<- tempMs_vec
-      groupCallId_list[[i]]<- tempCall_vec
-    }
-    tempCurrent <- msLimit*(msGroupNum-1)
-    tempMs_vec <- na.omit(ms_vec[(tempCurrent+1):(tempCurrent+msLimit)])
-    tempCall_vec <- callInfo_df$id[which((callInfo_df$marginStatement) %in% tempMs_vec)]
-    groupMsId_list[[msGroupNum]]<- tempMs_vec
-    groupCallId_list[[msGroupNum]]<- tempCall_vec
-  }
-  return(groupCallId_list)
-}
-
-ResultSelect <- function(result1, result2,availAsset_df,resource_df,callInfo_df,pref_vec){
-  callId_vec <- callInfo_df$id
-  resource_vec <- resource_df$id
-  callOutput1 <- result1$callOutput
-  callOutput2 <- result2$callOutput
-  
-  # update the resource_df quantity, rounding
-  quantityUsed1_vec <- UsedQtyFromResultList(callOutput1,resource_vec,callId_vec)
-  quantityUsed2_vec <- UsedQtyFromResultList(callOutput2,resource_vec,callId_vec)
-  qtyMin1 <- round(resource_df$qtyMin - quantityUsed1_vec/resource_df$minUnit,4)
-  qtyMin2 <- round(resource_df$qtyMin - quantityUsed2_vec/resource_df$minUnit,4)
-  resource1_df <- resource_df
-  resource1_df$qtyMin <- qtyMin1
-  resource2_df <- resource_df
-  resource2_df$qtyMin <- qtyMin2
-  resultAnalysis1 <- DeriveResultAnalytics(availAsset_df,resource1_df,callInfo_df,callOutput1)
-  resultAnalysis2 <- DeriveResultAnalytics(availAsset_df,resource2_df,callInfo_df,callOutput2)
-  
-  # compare and select
-  cost1 <- resultAnalysis1$dailyCost
-  cost2 <- resultAnalysis2$dailyCost
-  liquidity1 <- resultAnalysis1$reservedLiquidityRatio
-  liquidity2 <- resultAnalysis2$reservedLiquidityRatio
-  movement1 <- resultAnalysis1$movements
-  movement2 <- resultAnalysis2$movements
-  
-  if(cost1 <= cost2 && liquidity1 >= liquidity2){
-    finalResult <- result1
-  }else if(pref_vec[1]>=pref_vec[2] && cost1 <= cost2){
-    finalResult <- result1
-  }else if(pref_vec[1]>=pref_vec[2] && liquidity1 >= liquidity2){
-    finalResult <- result1
-  }else{
-    finalResult <- result2
-  }
-  return(finalResult)
-}
 
 #### infoFunctions #### 
 ResourceInfoAndAvailAsset <- function(assetInfo_df,availAsset_df){
@@ -795,20 +660,6 @@ UsedQtyFromResultList <- function(result_list,resource_vec,callId_vec){
     }
   }
   return(quantityUsed_vec)
-}
-
-UpdateResourceInfoAndAvailAsset <- function(resource_df,availAsset_df,callNum){
-  rmResourceIdx <- which(resource_df$qtyMin/resource_df$minUnit < callNum)
-  if(length(rmResourceIdx)>0){
-    rmResource_vec <- resource_df$id[rmResourceIdx]
-    resource_df <- resource_df[-rmResourceIdx,]
-
-  }
-  rmIdxAvail <- which(is.na(match(availAsset_df$assetCustacId,resource_df$id)))
-  if(length(rmIdxAvail)>0){
-    availAsset_df <- availAsset_df[-rmIdxAvail,]
-  }
-  return(list(resource_df=resource_df,availAsset_df=availAsset_df))
 }
 
 #### staticFunctions #### 

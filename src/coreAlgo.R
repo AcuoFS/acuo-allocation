@@ -3,19 +3,17 @@ CoreAlgoV2 <- function(callInfo_df,availAsset_df,resource_df,
                        pref_vec,operLimitMs,fungible,
                        ifNewAlloc,initAllocation_list,allocated_list,
                        minMoveValue,timeLimit){
-  # Estimate overall asset sufficiency
+  # Calculated the objectives parameters
   # Derive optimal assets based on the weighted objectives parameters
-  # Determine the method to solve the problem based on the sufficiency of optimal assets
+  # Derive the sufficiency of the optimal assets
+  # Determine and call the method to solve the problem based on the sufficiency of optimal assets
+  # Valiate the solution
   
+  ## Remove unwanted characters from column names of the dataframes(not sure if still needed)
   callInfo_df <- renjinFix(callInfo_df, "callInfo.")
   resource_df <- renjinFix(resource_df, "resource.")  
   
-  #### Handle Extreme Scenarios ##################
-  ## 1. movement limit for one or several margin statements is 1
-  if(operLimitMs==1){
-    availAsset_df <- HandleStatementMovementLimitIsOne(availAsset_df,callInfo_df,resource_df)
-  }
-  
+
   #### Assign Default Values ####
   if(missing(timeLimit)){
     timeLimit <- 13
@@ -23,6 +21,7 @@ CoreAlgoV2 <- function(callInfo_df,availAsset_df,resource_df,
   if(missing(minMoveValue)){
     minMoveValue <- 1000
   }
+  
   #### Derive Eligibility Matrix ###################
   eli_mat <- EliMat(availAsset_df,callInfo_df$id,resource_df$id)
   #### Derive Haircut Matrix ###################
@@ -31,11 +30,7 @@ CoreAlgoV2 <- function(callInfo_df,availAsset_df,resource_df,
   #### Derive Cost Matrix ###################
   costBasis_mat <- CostVec2Mat(cost_vec = DefineCost(availAsset_df,resource_df),
                                availAsset_df,callInfo_df$id,resource_df$id)
-  #### Check Asset Pool Sufficiency #####
-  AssetsAreSufficient <- CheckAssetSufficiency(eli_mat,haircut_mat,resource_df$qtyMin,resource_df$minUnitValue,callInfo_df$callAmount)
-  if(!AssetsAreSufficient){
-    stop('ALERR2003: Asset inventory is insufficient')
-  }
+
   
   #### Generate Standardized Cost and Liquidity #######
   minUnitValue_mat <- matrix(rep(resource_df$minUnitValue, length(callInfo_df$id)),nrow=length(callInfo_df$id),byrow=T)
@@ -56,6 +51,11 @@ CoreAlgoV2 <- function(callInfo_df,availAsset_df,resource_df,
   if(optimalAssetsAreSufficient){
     result_mat <- AllocateUnderSufficientOptimalAssets(optimalAsset_mat,resourceSuffQty_mat,callInfo_df$id,resource_df$id)
   } else {
+    #### Handle Extreme Scenarios ##################
+    ## 1. movement limit for one or several margin statements is 1
+    if(operLimitMs==1){
+      availAsset_df <- HandleStatementMovementLimitIsOne(availAsset_df,callInfo_df,resource_df)
+    }
     result_mat <- AllocateUnderInsufficientOptimalAssets(costScore_mat,liquidityScore_mat,pref_vec,eli_mat,
                                                     callInfo_df,resource_df$id,resource_df,
                                                     minMoveValue,operLimitMs,fungible,timeLimit,
@@ -69,9 +69,7 @@ CoreAlgoV2 <- function(callInfo_df,availAsset_df,resource_df,
   resource_df$qtyMin <- checkResult$quantityTotal_vec
   
   #### Convert the Result from Matrix to List ####
-  haircutC_mat <- HaircutCVec2Mat(availAsset_df$haircut,availAsset_df,callInfo_df$id,resource_df$id)
-  haircutFX_mat <- HaircutFXVec2Mat(availAsset_df$FXHaircut,availAsset_df,callInfo_df$id,resource_df$id)
-  result_list <- ResultMat2List(result_mat,callInfo_df$id,resource_df$id,callInfo_df,haircutC_mat,haircutFX_mat,costBasis_mat,resource_df)
+  result_list <- ResultMat2List(result_mat,callInfo_df,availAsset_df,resource_df)
   
   return(result_list)
 }
