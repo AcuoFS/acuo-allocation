@@ -26,6 +26,7 @@ CoreAlgoV2 <- function(callInfo_df,availAsset_df,resource_df,
   ## 1. movement limit for one or several margin statements is 1
   if(operLimitMs==1){
     availAsset_df <- HandleStatementMovementLimitIsOne(availAsset_df,callInfo_df,resource_df)
+    resource_df <- UpdateResourceByAvailAsset(availAsset_df,resource_df)
   }
   
   #### Derive Eligibility and Haircut Matrix ###################
@@ -44,13 +45,13 @@ CoreAlgoV2 <- function(callInfo_df,availAsset_df,resource_df,
   optimalResource_vec <- DeriveOptimalAssetsV2(resource_df$qtyMin,callInfo_df$callAmount,resource_df$minUnitValue,eli_mat,haircut_mat,
                                             costScore_mat,liquidityScore_mat,pref_vec,callInfo_df$id,resource_df$id)
   
-  optimalResourcesAreSufficient <- CheckOptimalAssetSufficiency(optimalResource_vec,callInfo_df,availAsset_df,resource_df)
-  #optimalResourcesAreSufficient <- FALSE
+  #optimalResourcesAreSufficient <- CheckOptimalAssetSufficiency(optimalResource_vec,callInfo_df,availAsset_df,resource_df)
+  optimalResourcesAreSufficient <- F
   #### Allocate ###############
   if(optimalResourcesAreSufficient){
     result_mat <- AllocateUnderSufficientOptimalAssets(optimalResource_vec,callInfo_df,availAsset_df,resource_df)
   } else {
-    result_mat <- AllocateUnderInsufficientOptimalAssets(costScore_mat,liquidityScore_mat,pref_vec,eli_mat,haircut_mat,
+    result_mat <- AllocateUnderInsufficientOptimalAssets(costScore_mat,liquidityScore_mat,pref_vec,
                                                     callInfo_df,resource_df,availAsset_df,
                                                     minMoveValue,operLimitMs,fungible,timeLimit,
                                                     ifNewAlloc,allocated_list,initAllocation_list)

@@ -324,6 +324,10 @@ ConvertCallAmountToBaseCcyInCallInfo <- function(callInfo_df){
   return(callInfo_df)
 }
 
+UpdateResourceByAvailAsset <- function(availAsset_df,resource_df){
+  resource_df <- resource_df[which(resource_df$id %in% availAsset_df$assetCustacId),]
+  return(resource_df)
+}
 
 #### qtyFunctions #### 
 UpdateQtyOriInResourceDf <- function(resource_df){

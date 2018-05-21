@@ -1,5 +1,18 @@
 #### modelFunction ####
-DeriveLowerBound <- function(minMoveQty_vec,varName_vec,varNum,resource_vec,quantity_vec){
+DeriveMinMoveQty <- function(minMoveValue,quantity_vec,minUnitValue_vec,callAmount_vec,haircut_vec){
+  # Derive minimum movement quantity by minimum movement value
+  minMoveQty_vec <- ceiling(minMoveValue/minUnitValue_vec)
+  minMoveQty_vec <- pmin(minMoveQty_vec,quantity_vec)
+  
+  if(length(callAmount_vec[which(minMoveValue > callAmount_vec/(1-haircut_vec))])!=0){
+    idxTemp <- which(minMoveValue > callAmount_vec/(1-haircut_vec))
+    callEli_vec <- callAmount_vec/(1-haircut_vec)
+    minMoveQty_vec[idxTemp] <- ceiling(callEli_vec[idxTemp]/minUnitValue_vec[idxTemp])
+  }
+  return(minMoveQty_vec)
+}
+
+DeriveLowerBound <- function(minMoveValue,varName_vec,varNum,resource_vec,resourceQty_vec,quantity_vec,minUnitValue_vec,callAmount_vec,haircut_vec){
   # Derive the lower bound of the decision variables
   #   lower bound for quantity variables = minMoveQty, if resource quantity >= sum(minMoveQty* of this resource to all calls);
   #                                      = 0, if resource quantity <  sum(minMoveQty* of this resource to all calls).
@@ -9,6 +22,9 @@ DeriveLowerBound <- function(minMoveQty_vec,varName_vec,varNum,resource_vec,quan
   #
   # Returns
   #   A vector of decision variables lower bound
+  
+  ## Derive minimum movement quantity by minimum movement value
+  minMoveQty_vec <- DeriveMinMoveQty(minMoveValue,quantity_vec,minUnitValue_vec,callAmount_vec,haircut_vec)
   
   ## Initialize lower bound vector
   lowerBound_vec <- c(minMoveQty_vec,rep(0,length(varName_vec)-varNum))
@@ -20,7 +36,7 @@ DeriveLowerBound <- function(minMoveQty_vec,varName_vec,varNum,resource_vec,quan
   for(i in 1:length(resource_vec)){
     # if resource quantity is lower than the sum of minMoveQty, then set the lower bound to 0
     lowerSum <- sum(lowerBound_vec[which(varNameResource_vec==resource_vec[i])])
-    if(lowerSum > quantity_vec[i]){
+    if(lowerSum > resourceQty_vec[i]){
       lowerBound_vec[idxTemp_vec] <- 0
     }
   }
@@ -56,7 +72,7 @@ QtyConst <- function(varName_vec,varNum,resource_vec,quantity_vec){
 
 MarginConst <- function(varName_vec,varNum,minUnitValue_vec,haircut_vec,callId_vec,callAmount_vec){
   # Margin constraints, constraint number = call number
-  #   The amount allocated to a call >= the call amount
+  #   The amount allocated to a call(SUM(minUnitValue*haircut*variables)) >= the call amount
   #
   # *Coefficient matrix:
   #   row number is the number of constraints; col number is the number of decision variables
@@ -79,7 +95,7 @@ MarginConst <- function(varName_vec,varNum,minUnitValue_vec,haircut_vec,callId_v
   return(con_list)
 }
 
-DummyConst <- function(varName_vec,varNum,quantity_vec,callAmount_vec,minUnitValue_vec){
+DummyConst <- function(varName_vec,varNum,quantity_vec){
   # Dummy variables constraints, constraint number = varNum * 2
   #   1. x1 - M * d1 <= 0, M is a large number
   #   2. x1 - d1 >= m , m is a small number
@@ -119,7 +135,7 @@ DummyConst <- function(varName_vec,varNum,quantity_vec,callAmount_vec,minUnitVal
   return(con_list)
 }
 
-DummyConstInherit <- function(allocated_vec,varName_vec,varNum,quantity_vec,callAmount_vec,minUnitValue_vec){
+DummyConstInherit <- function(allocated_vec,varName_vec,varNum,quantity_vec){
   # To be refactored
   # used when there are some assets selected to the calls
   varNum2 <- length(varName_vec)
@@ -135,7 +151,7 @@ DummyConstInherit <- function(allocated_vec,varName_vec,varNum,quantity_vec,call
   rowIdx2_vec <- 1:(varNum2-varNum)
   
   fCon4_mat[cbind(rowIdx1_vec,colIdx1_vec)] <- 1
-  scaleFactor_vec <- pmin(quantity_vec,callAmount_vec/minUnitValue_vec)*20
+  scaleFactor_vec <- quantity_vec+1
   scaleFactor_vec <- scaleFactor_vec[match(newNameDummy_vec,newName_vec)]
   fCon4_mat[cbind(rowIdx2_vec,colIdx2_vec)] <- -scaleFactor_vec
   
@@ -548,9 +564,8 @@ VarInfo <- function(callInfo_df, availAsset_df){
   varName_vec <- c(quantityName_vec,distinctDummyName_vec)
   
   varNum <- length(quantityName_vec)
-  varNum2 <- length(varName_vec)
   
-  var_list <- list(varName_vec=varName_vec,varNum=varNum,varNum2=varNum2,pos_vec=pos_vec)
+  var_list <- list(varName_vec=varName_vec,varNum=varNum,pos_vec=pos_vec)
   return(var_list)
 }
 
