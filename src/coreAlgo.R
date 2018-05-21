@@ -34,30 +34,26 @@ CoreAlgoV2 <- function(callInfo_df,availAsset_df,resource_df,
                                 availAsset_df,callInfo_df$id,resource_df$id)
 
   #### Generate Standardized Cost and Liquidity #######
-  minUnitValue_mat <- matrix(rep(resource_df$minUnitValue, length(callInfo_df$id)),nrow=length(callInfo_df$id),byrow=T)
-  resourceSuffQty_mat <- CalculateIntegralUnit(amount = rep(callInfo_df$callAmount,length(resource_df$id)),
-                                               minUnitValue_mat,1-haircut_mat)
-  cost_mat <- CostVec2Mat(cost_vec = DefineCost(availAsset_df,resource_df),
-                          availAsset_df,callInfo_df$id,resource_df$id)
-  costScore_mat <- GenerateStandardizedCostMat(integerCallAmount_mat = minUnitValue_mat * resourceSuffQty_mat,
-                                               cost_mat,callInfo_df$id,resource_df$id)
+  costScore_mat <- GenerateStandardizedCostMat(cost_mat = CostVec2Mat(cost_vec = DefineCost(availAsset_df,resource_df),
+                                                                      availAsset_df,callInfo_df$id,resource_df$id),
+                                               callInfo_df$id,resource_df$id)
   liquidityScore_mat <- GenerateStandardizedLiquidityMat(resourceLiquidity = DefineLiquidity(availAsset_df,resource_df),
                                                          callInfo_df$id,resource_df$id)
   
-  #### Derive the Optimal Assets and Check Sufficiency #######
-  optimalAsset_mat <- DeriveOptimalAssetsV2(resource_df$qtyMin,callInfo_df$callAmount,resource_df$minUnitValue,eli_mat,haircut_mat,
+  #### Derive the Optimal Assets and Check Sufficiency #######  
+  optimalResource_vec <- DeriveOptimalAssetsV2(resource_df$qtyMin,callInfo_df$callAmount,resource_df$minUnitValue,eli_mat,haircut_mat,
                                             costScore_mat,liquidityScore_mat,pref_vec,callInfo_df$id,resource_df$id)
   
-  optimalAssetsAreSufficient <- CheckOptimalAssetSufficiency(optimalAsset_mat,resourceSuffQty_mat,resource_df)
-  
+  optimalResourcesAreSufficient <- CheckOptimalAssetSufficiency(optimalResource_vec,callInfo_df,availAsset_df,resource_df)
+  #optimalResourcesAreSufficient <- FALSE
   #### Allocate ###############
-  if(optimalAssetsAreSufficient){
-    result_mat <- AllocateUnderSufficientOptimalAssets(optimalAsset_mat,resourceSuffQty_mat,callInfo_df$id,resource_df$id)
+  if(optimalResourcesAreSufficient){
+    result_mat <- AllocateUnderSufficientOptimalAssets(optimalResource_vec,callInfo_df,availAsset_df,resource_df)
   } else {
-    result_mat <- AllocateUnderInsufficientOptimalAssets(costScore_mat,liquidityScore_mat,pref_vec,eli_mat,
-                                                    callInfo_df,resource_df$id,resource_df,
+    result_mat <- AllocateUnderInsufficientOptimalAssets(costScore_mat,liquidityScore_mat,pref_vec,eli_mat,haircut_mat,
+                                                    callInfo_df,resource_df,availAsset_df,
                                                     minMoveValue,operLimitMs,fungible,timeLimit,
-                                                    allocated_list,initAllocation_list)
+                                                    ifNewAlloc,allocated_list,initAllocation_list)
   }
   
   #### Valiate and Update Allocation Result ########

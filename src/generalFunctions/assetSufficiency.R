@@ -27,3 +27,37 @@ EstimateAssetSufficiency <- function(availAsset_df,callInfo_df,resource_df){
   
   return(suffPerCall & suffAllCall)
 }
+
+
+CheckOptimalAssetSufficiency <- function(optimalResource_vec,callInfo_df,availAsset_df,resource_df){
+  # Check whether the optimal resources are sufficeint for the calls
+  #
+  # Args:
+  #   optimalResource_vec: IDs of optimal resources, in call id order
+  #
+  # Returns:
+  #   true or false
+  
+  ## Haircut Matrix
+  haircut_mat <- HaircutVec2Mat(haircut_vec = availAsset_df$haircut + availAsset_df$FXHaircut,
+                                availAsset_df,callInfo_df$id,resource_df$id)
+  ## Sufficient Resource Units for Calls Matrix
+  resourceSuffQty_mat <- CalculateIntegralUnit(amount = rep(callInfo_df$callAmount,length(resource_df$id)),
+                                               valuePerUnit = matrix(rep(resource_df$minUnitValue, length(callInfo_df$id)),nrow=length(callInfo_df$id),byrow=T),
+                                               discount = 1-haircut_mat)
+  ## Distinct Optimal Resources
+  uniqueResource_vec <- unique(optimalResource_vec)
+  ## Sufficiency Vector for Distinct Resources : 1 - sufficient; 0 - insufficient
+  isResourceSuff_vec <- rep(0,length(uniqueResource_vec))
+  
+  for(i in 1:length(uniqueResource_vec)){
+    resource <- uniqueResource_vec[i]
+    idxCall_vec <- which(optimalResource_vec==resource) 
+    idxResource <- which(resource_df$id==resource)
+    
+    isResourceSuff_vec[i] <- 1*(sum(resourceSuffQty_mat[idxCall_vec,idxResource]) < resource_df$qtyMin[idxResource])
+  }
+  isSuff <- sum(isResourceSuff_vec)==length(uniqueResource_vec)
+  return(isSuff)
+}
+

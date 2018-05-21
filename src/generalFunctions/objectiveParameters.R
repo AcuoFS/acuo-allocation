@@ -1,11 +1,8 @@
 
-GenerateStandardizedCostMat <- function(integerCallAmount_mat,costBasis_mat,callId_vec,resource_vec){
-  
+GenerateStandardizedCostMat <- function(cost_mat,callId_vec,resource_vec){
+  #### cost
   callNum <- length(callId_vec)
-  resourceNum <- length(resource_vec)
   
-  #### calculate the cost
-  cost_mat <- integerCallAmount_mat*costBasis_mat
   normCost_mat <- cost_mat
   for(i in 1:callNum){
     if(length(unique(cost_mat[i,]))==1){
@@ -34,4 +31,23 @@ GenerateStandardizedLiquidityMat <- function(resourceLiquidity_vec,callId_vec,re
   }
   normLiquidity_vec <- as.vector(t(normLiquidity_mat))
   return(liquidity_mat)
+}
+
+
+CalculateObjParams <- function(cost,liquidity,pref_vec,unit,minUnitValue){
+  # calculate the weighted objectives parameters
+  # per 1 unit or per 1 dollar value of a resource
+  # 
+  # Args:
+  #   unit: the unit of the decision variable
+  #         "quantity" means per 1 unit of a resource; "amount" means per 1 dollar value of a resource
+  #
+  pref_vec <- pref_vec/sum(pref_vec[1:2]) # Recalculate the parameters weight setting
+  
+  if(unit == "quantity"){
+    weightedScore <- pref_vec[1]*cost*minUnitValue + pref_vec[2]*liquidity*minUnitValue
+  } else if(unit == "amount"){
+    weightedScore <- pref_vec[1]*cost + pref_vec[2]*liquidity
+  }
+  return(weightedScore)
 }
