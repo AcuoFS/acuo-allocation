@@ -68,3 +68,9 @@ CoreAlgoV2 <- function(callInfo_df,availAsset_df,resource_df,
   
   return(result_list)
 }
+
+renjinFix <- function(frame, name) {
+  d <- data.frame(frame);
+  colnames(d) <- gsub(name, "", colnames(d));
+  return(d);
+}

@@ -54,7 +54,6 @@ AllocateUnderInsufficientOptimalAssets <- function(costScore_mat,liquidityScore_
   
   varName_vec <- varInfo_list$varName_vec
   varNum <- varInfo_list$varNum
-  pos_vec <- varInfo_list$pos_vec
   varNum2 <- length(varName_vec)
   
   #### Build the Optimization Model #######
@@ -66,14 +65,13 @@ AllocateUnderInsufficientOptimalAssets <- function(costScore_mat,liquidityScore_
   names(fObj_vec) <- varName_vec
   
   #### CONSTRAINTS
-  
   fCon2_list <- QtyConst(varName_vec,varNum,resource_df$id,resource_df$qtyMin)
   fCon3_list <- MarginConst(varName_vec,varNum,minUnitValue_vec,haircut_vec,callInfo_df$id,callInfo_df$callAmount)
   if(ifNewAlloc){
     fCon4_list <- DummyConst(varName_vec,varNum,quantity_vec)
     fCon5_list <- MoveConst(varName_vec,varNum,operLimitMs,fungible)
   } else{
-    allocated_vec <- ResultList2Vec(allocated_list,callInfo_df$id,minUnit_vec,varName_vec,varNum,pos_vec)
+    allocated_vec <- ResultList2Vec(allocated_list,callInfo_df$id,minUnit_vec,varName_vec,varNum,varInfo_list$pos_vec)
     allocatedDummy_vec <- allocated_vec[(varNum+1):varNum2]
     fCon4_list <- DummyConstInherit(allocatedDummy_vec,varName_vec,varNum,quantity_vec)
     fCon5_list <- MoveConstInherit(allocatedDummy_vec,varName_vec,varNum,operLimitMs,fungible)
@@ -101,7 +99,7 @@ AllocateUnderInsufficientOptimalAssets <- function(costScore_mat,liquidityScore_
   lpGuessBasis_vec <- rep(0,varNum2)
   if(!missing(initAllocation_list)){
     # the initial guess must be a feasible point
-    lpGuessBasis_vec <- ResultList2Vec(initAllocation_list,callInfo_df$id,minUnit_vec,varName_vec,varNum,pos_vec)
+    lpGuessBasis_vec <- ResultList2Vec(initAllocation_list,callInfo_df$id,minUnit_vec,varName_vec,varNum,varInfo_list$pos_vec)
   }
   
   #### Call Solver to Solve the Model ###############

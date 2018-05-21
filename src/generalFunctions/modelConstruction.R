@@ -660,20 +660,6 @@ CostVec2Mat <- function(cost_vec,availAsset_df,callId_vec,resource_vec){
   return(cost_mat)
 }
 
-CheckAssetSufficiency <- function(eli_mat,haircut_mat,quantity_vec,minUnitValue_vec,callAmount_vec){
-  # check whether the assets are sufficient 
-  # per each call & all calls
-  #
-  # Args: 
-  #
-  # Returns:
-  #   true or false
-  suffPerCall <- all((eli_mat*(1-haircut_mat)) %*% (quantity_vec*minUnitValue_vec) > callAmount_vec)
-  suffAllCall <- sum(quantity_vec*minUnitValue_vec*(1-apply(haircut_mat,2,max))) > sum(callAmount_vec)
-  return(suffPerCall&suffAllCall)
-}
-
-
 PrintCallAllocatedAmount <- function(callAmount_vec,callId_vec,callSelect_list){
   # print the call amount and the allocated amount in a matrix
   # no return
