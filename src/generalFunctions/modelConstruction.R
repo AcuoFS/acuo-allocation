@@ -12,7 +12,7 @@ DeriveMinMoveQty <- function(minMoveValue,quantity_vec,minUnitValue_vec,callAmou
   return(minMoveQty_vec)
 }
 
-DeriveLowerBound <- function(minMoveValue,varName_vec,varNum,resource_vec,resourceQty_vec,quantity_vec,minUnitValue_vec,callAmount_vec,haircut_vec){
+DeriveLowerBound <- function(minMoveValue,varName_vec,resource_vec,resourceQty_vec,quantity_vec,minUnitValue_vec,callAmount_vec,haircut_vec){
   # Derive the lower bound of the decision variables
   #   lower bound for quantity variables = minMoveQty, if resource quantity >= sum(minMoveQty* of this resource to all calls);
   #                                      = 0, if resource quantity <  sum(minMoveQty* of this resource to all calls).
@@ -23,16 +23,18 @@ DeriveLowerBound <- function(minMoveValue,varName_vec,varNum,resource_vec,resour
   # Returns
   #   A vector of decision variables lower bound
   
+  qtyVarNum <- GetQtyVarNum(varName_vec)
+  
   ## Derive minimum movement quantity by minimum movement value
   minMoveQty_vec <- DeriveMinMoveQty(minMoveValue,quantity_vec,minUnitValue_vec,callAmount_vec,haircut_vec)
   
   ## Initialize lower bound vector
-  lowerBound_vec <- c(minMoveQty_vec,rep(0,length(varName_vec)-varNum))
+  lowerBound_vec <- c(minMoveQty_vec,rep(0,length(varName_vec)-qtyVarNum))
   
   ## Extract the resource id from decision variables' names
-  varNameResource_vec <- SplitVarName(varName_vec,'resource')[1:varNum]
+  varNameResource_vec <- SplitVarName(varName_vec,'resource')[1:qtyVarNum]
   
-  ## Interate the resource vector to check the quantity condition and reassign the lower bound
+  ## Iterate the resource vector to check the quantity condition and reassign the lower bound
   for(i in 1:length(resource_vec)){
     # if resource quantity is lower than the sum of minMoveQty, then set the lower bound to 0
     lowerSum <- sum(lowerBound_vec[which(varNameResource_vec==resource_vec[i])])
@@ -43,7 +45,7 @@ DeriveLowerBound <- function(minMoveValue,varName_vec,varNum,resource_vec,resour
   return(lowerBound_vec)
 }
 
-QtyConst <- function(varName_vec,varNum,resource_vec,quantity_vec){
+QtyConst <- function(varName_vec,qtyVarNum,resource_vec,quantity_vec){
   # Quantity constraints, constraint number = resource number
   #   The quantity to allocate of a resource <= the quantity of the resource
   #
@@ -54,12 +56,12 @@ QtyConst <- function(varName_vec,varNum,resource_vec,quantity_vec){
   #   A list contains constraint's coefficient matrix, direction vector, and right hand side vector 
   
   ## Extract the resource id from decision variables' names
-  varNameResource_vec <- SplitVarName(varName_vec,'resource')[1:varNum]
+  varNameResource_vec <- SplitVarName(varName_vec,'resource')[1:qtyVarNum]
   
   ## Coefficient matrix
   coef_mat <- matrix(0,nrow=length(resource_vec),ncol=length(varName_vec))
   # assign 1: can use an example to illustrate
-  coef_mat[cbind(match(varNameResource_vec,resource_vec),1:varNum)] <- 1
+  coef_mat[cbind(match(varNameResource_vec,resource_vec),1:qtyVarNum)] <- 1
   
   ## dirction vector, right hand side value vector
   dir_vec <- rep('<=',length(resource_vec))
@@ -70,7 +72,7 @@ QtyConst <- function(varName_vec,varNum,resource_vec,quantity_vec){
   return(con_list)
 }
 
-MarginConst <- function(varName_vec,varNum,minUnitValue_vec,haircut_vec,callId_vec,callAmount_vec){
+MarginConst <- function(varName_vec,qtyVarNum,minUnitValue_vec,haircut_vec,callId_vec,callAmount_vec){
   # Margin constraints, constraint number = call number
   #   The amount allocated to a call(SUM(minUnitValue*haircut*variables)) >= the call amount
   #
@@ -81,11 +83,11 @@ MarginConst <- function(varName_vec,varNum,minUnitValue_vec,haircut_vec,callId_v
   #   A list contains constraint's coefficient matrix, direction vector, and right hand side vector 
   
   ## Extract the call id from decision variables' names
-  varNameCall_vec <- SplitVarName(varName_vec,'call')[1:varNum]
+  varNameCall_vec <- SplitVarName(varName_vec,'call')[1:qtyVarNum]
   
   ## Coefficient matrix
   coef_mat <- matrix(0,nrow=length(callId_vec),ncol=length(varName_vec))
-  coef_mat[cbind(match(varNameCall_vec,callId_vec),1:varNum)] <- minUnitValue_vec*(1-haircut_vec)
+  coef_mat[cbind(match(varNameCall_vec,callId_vec),1:qtyVarNum)] <- minUnitValue_vec*(1-haircut_vec)
   
   ## dirction vector, right hand side value vector
   dir_vec <- rep('>=',length(callId_vec))
@@ -95,8 +97,8 @@ MarginConst <- function(varName_vec,varNum,minUnitValue_vec,haircut_vec,callId_v
   return(con_list)
 }
 
-DummyConst <- function(varName_vec,varNum,quantity_vec){
-  # Dummy variables constraints, constraint number = varNum * 2
+DummyConst <- function(varName_vec,qtyVarNum,quantity_vec){
+  # Dummy decision variables constraints, constraint number = qtyVarNum * 2
   #   1. x1 - M * d1 <= 0, M is a large number
   #   2. x1 - d1 >= m , m is a small number
   #
@@ -107,25 +109,25 @@ DummyConst <- function(varName_vec,varNum,quantity_vec){
   #   A list contains constraint's coefficient matrix, direction vector, and right hand side vector 
   
   varNum2 <- length(varName_vec)
-  newName_mat <- SplitVarName(varName_vec[1:varNum],'all')
-  newName_vec <- PasteVarName(newName_mat[1,],rep('dummy',varNum),newName_mat[3,])
-  newNameDummy_vec <- varName_vec[(varNum+1):varNum2]
+  newName_mat <- SplitVarName(varName_vec[1:qtyVarNum],'all')
+  newName_vec <- PasteVarName(newName_mat[1,],rep('dummy',qtyVarNum),newName_mat[3,])
+  newNameDummy_vec <- varName_vec[(qtyVarNum+1):varNum2]
   
-  coef_mat1 <- matrix(0,nrow=(varNum2-varNum),ncol=varNum2)
-  coef_mat1[cbind(match(newName_vec,newNameDummy_vec),1:varNum)] <- 1
+  coef_mat1 <- matrix(0,nrow=(varNum2-qtyVarNum),ncol=varNum2)
+  coef_mat1[cbind(match(newName_vec,newNameDummy_vec),1:qtyVarNum)] <- 1
   scaleFactor_vec <- quantity_vec+1
   scaleFactor_vec <- scaleFactor_vec[match(newNameDummy_vec,newName_vec)]
-  coef_mat1[cbind(1:(varNum2-varNum),(varNum+1):varNum2)] <- -scaleFactor_vec
+  coef_mat1[cbind(1:(varNum2-qtyVarNum),(qtyVarNum+1):varNum2)] <- -scaleFactor_vec
   
-  dir_vec1 <- rep('<=',varNum2-varNum)
-  rhs_vec1 <- rep(0,varNum2-varNum)
+  dir_vec1 <- rep('<=',varNum2-qtyVarNum)
+  rhs_vec1 <- rep(0,varNum2-qtyVarNum)
   
-  coef_mat2 <- matrix(0,nrow=varNum2-varNum,ncol=varNum2)
-  coef_mat2[cbind(match(newName_vec,newNameDummy_vec),1:varNum)] <- 1
-  coef_mat2[cbind(1:(varNum2-varNum),(varNum+1):varNum2)] <- -1
+  coef_mat2 <- matrix(0,nrow=varNum2-qtyVarNum,ncol=varNum2)
+  coef_mat2[cbind(match(newName_vec,newNameDummy_vec),1:qtyVarNum)] <- 1
+  coef_mat2[cbind(1:(varNum2-qtyVarNum),(qtyVarNum+1):varNum2)] <- -1
   
-  dir_vec2 <- rep('>=',varNum2-varNum)
-  rhs_vec2 <- rep(-0.1,varNum2-varNum)
+  dir_vec2 <- rep('>=',varNum2-qtyVarNum)
+  rhs_vec2 <- rep(-0.1,varNum2-qtyVarNum)
   
   coef_mat <- rbind(coef_mat1,coef_mat2)
   dir_vec <- c(dir_vec1,dir_vec2)
@@ -135,36 +137,36 @@ DummyConst <- function(varName_vec,varNum,quantity_vec){
   return(con_list)
 }
 
-DummyConstInherit <- function(allocated_vec,varName_vec,varNum,quantity_vec){
+DummyConstInherit <- function(allocated_vec,varName_vec,qtyVarNum,quantity_vec){
   # To be refactored
   # used when there are some assets selected to the calls
   varNum2 <- length(varName_vec)
-  newName_mat <- SplitVarName(varName_vec[1:varNum],'all')
-  newName_vec <- PasteVarName(newName_mat[1,],rep('dummy',varNum),newName_mat[3,])
-  newNameDummy_vec <- varName_vec[(varNum+1):varNum2]
+  newName_mat <- SplitVarName(varName_vec[1:qtyVarNum],'all')
+  newName_vec <- PasteVarName(newName_mat[1,],rep('dummy',qtyVarNum),newName_mat[3,])
+  newNameDummy_vec <- varName_vec[(qtyVarNum+1):varNum2]
   
-  fCon4_mat <- matrix(0,nrow=(varNum2-varNum),ncol=varNum2)
+  fCon4_mat <- matrix(0,nrow=(varNum2-qtyVarNum),ncol=varNum2)
   
-  colIdx1_vec <- 1:varNum
+  colIdx1_vec <- 1:qtyVarNum
   rowIdx1_vec <- match(newName_vec,newNameDummy_vec)
-  colIdx2_vec <- (varNum+1):varNum2
-  rowIdx2_vec <- 1:(varNum2-varNum)
+  colIdx2_vec <- (qtyVarNum+1):varNum2
+  rowIdx2_vec <- 1:(varNum2-qtyVarNum)
   
   fCon4_mat[cbind(rowIdx1_vec,colIdx1_vec)] <- 1
   scaleFactor_vec <- quantity_vec+1
   scaleFactor_vec <- scaleFactor_vec[match(newNameDummy_vec,newName_vec)]
   fCon4_mat[cbind(rowIdx2_vec,colIdx2_vec)] <- -scaleFactor_vec
   
-  fDir4_vec <- rep('<=',varNum2-varNum)
+  fDir4_vec <- rep('<=',varNum2-qtyVarNum)
   fDir4_vec[which(allocated_vec==1)] <- '>='  ## new added 18 May
-  fRhs4_vec <- rep(0,varNum2-varNum)
+  fRhs4_vec <- rep(0,varNum2-qtyVarNum)
   
-  fCon5_mat <- matrix(0,nrow=varNum2-varNum,ncol=varNum2)
+  fCon5_mat <- matrix(0,nrow=varNum2-qtyVarNum,ncol=varNum2)
   fCon5_mat[cbind(rowIdx1_vec,colIdx1_vec)] <- 1
   fCon5_mat[cbind(rowIdx2_vec,colIdx2_vec)] <- -1
   
-  fDir5_vec <- rep('>=',varNum2-varNum)
-  fRhs5_vec <- rep(-0.1,varNum2-varNum)
+  fDir5_vec <- rep('>=',varNum2-qtyVarNum)
+  fRhs5_vec <- rep(-0.1,varNum2-qtyVarNum)
   
   fCon4_mat <- rbind(fCon4_mat,fCon5_mat)
   fDir4_vec <- c(fDir4_vec,fDir5_vec)
@@ -174,14 +176,14 @@ DummyConstInherit <- function(allocated_vec,varName_vec,varNum,quantity_vec){
   return(fCon4_list)
 }
 
-MoveConst <- function(varName_vec,varNum,operLimitMs,fungible){
+MoveConst <- function(varName_vec,qtyVarNum,operLimitMs,fungible){
   varNum2 <- length(varName_vec)
-  msIdDul_vec <- SplitVarName(varName_vec[(varNum+1):varNum2],'ms')
+  msIdDul_vec <- SplitVarName(varName_vec[(qtyVarNum+1):varNum2],'ms')
   msId_vec <- unique(msIdDul_vec)
   msNum <- length(msId_vec)
   
   con_mat1 <- matrix(0,nrow=1,ncol=varNum2)
-  con_mat1[1,(varNum+1):varNum2] <- 1
+  con_mat1[1,(qtyVarNum+1):varNum2] <- 1
   
   dir_vec1 <- c('<=')
   rhs_vec1 <- c(operLimitMs*msNum)
@@ -192,7 +194,7 @@ MoveConst <- function(varName_vec,varNum,operLimitMs,fungible){
     # will be number of margin statements constraints
     con_mat2 <- matrix(0,nrow=msNum,ncol=varNum2)
     
-    colIdx_vec <- (varNum+1):varNum2
+    colIdx_vec <- (qtyVarNum+1):varNum2
     rowIdx_vec <- match(msIdDul_vec,msId_vec)
     
     con_mat2[cbind(rowIdx_vec,colIdx_vec)] <- 1
@@ -209,16 +211,16 @@ MoveConst <- function(varName_vec,varNum,operLimitMs,fungible){
   return(con_list)
 }
 
-MoveConstInherit <- function(allocated_vec,varName_vec,varNum,operLimitMs,fungible){
+MoveConstInherit <- function(allocated_vec,varName_vec,qtyVarNum,operLimitMs,fungible){
   # To be refactored
   # used when there are some assets selected to the calls
   varNum2 <- length(varName_vec)
-  msIdDul_vec <- SplitVarName(varName_vec[(varNum+1):varNum2],'ms')
+  msIdDul_vec <- SplitVarName(varName_vec[(qtyVarNum+1):varNum2],'ms')
   msId_vec <- unique(msIdDul_vec)
   msNum <- length(msId_vec)
   
   fCon5_mat <- matrix(0,nrow=1,ncol=varNum2)
-  fCon5_mat[1,(varNum+1):varNum2] <- 1
+  fCon5_mat[1,(qtyVarNum+1):varNum2] <- 1
   
   fDir5_vec <- c('<=')
   fRhs5_vec <- c(operLimitMs*msNum)
@@ -229,7 +231,7 @@ MoveConstInherit <- function(allocated_vec,varName_vec,varNum,operLimitMs,fungib
     # will be number of margin statements constraints
     fCon6_mat <- matrix(0,nrow=msNum,ncol=varNum2)
     
-    colIdx_vec <- (varNum+1):varNum2
+    colIdx_vec <- (qtyVarNum+1):varNum2
     rowIdx_vec <- match(msIdDul_vec,msId_vec)
     
     fCon6_mat[cbind(rowIdx_vec,colIdx_vec)] <- 1
@@ -245,62 +247,6 @@ MoveConstInherit <- function(allocated_vec,varName_vec,varNum,operLimitMs,fungib
   
   fCon5_list <- list(fCon5_mat=fCon5_mat,fDir5_vec=fDir5_vec,fRhs5_vec=fRhs5_vec)
   return(fCon5_list)
-}
-
-AllocateByRank <- function(resource_vec,callId,rank_vec,callAmount,quantity_vec,minUnitValue_vec,haircut_vec,operLimit){
-  ## rank_mat(scores assume using purely each asset)
-  ## names(rank_mat)=resources, value: score
-  
-  # process
-  # find the optimal resources within number of (operLimit) which are sufficient for the call
-  solution_vec <- rep(0,length(resource_vec))
-  leftCallAmount <- callAmount
-  integralSuffQty_vec <- ceiling(callAmount/(1-haircut_vec)/minUnitValue_vec)
-  suffIdx_vec <- which(quantity_vec >= integralSuffQty_vec)
-  if(length(suffIdx_vec)>=1){
-    suffResource_vec <- resource_vec[suffIdx_vec]
-    tempIdx <- which.max(rank_vec[suffIdx_vec])
-    optimalResource <- suffResource_vec[tempIdx]
-    optimalIdx <- which(resource_vec==optimalResource)
-    quantity <- integralSuffQty_vec[optimalIdx]
-    solution_vec[optimalIdx] <- quantity
-  } else{
-    if(operLimit<=1){ # operLimit=1
-      errormsg <- paste('ALERR2004: It is not sufficient to allocate',floor(operLimit),'assets for',callId)
-      stop(errormsg)
-    } else{
-      for(i in 1:operLimit){
-        amount_vec <- floor(quantity_vec)*(1-haircut_vec)*minUnitValue_vec
-        suffIdx_vec <- which(amount_vec >= callAmount)
-        if(length(suffIdx_vec)==0){
-          oriIdx_vec <- which(amount_vec==amount_vec[which.max(amount_vec)])
-          tempIdx <- which.max(rank_vec[oriIdx_vec])
-          optimalResource <- resource_vec[oriIdx_vec[tempIdx]]
-          optimalIdx <- which(resource_vec==optimalResource)
-          adjAmount <- quantity_vec[optimalIdx]*minUnitValue_vec[optimalIdx]*(1-haircut_vec[optimalIdx])
-          if(leftCallAmount>adjAmount){
-            quantity <- quantity_vec[optimalIdx]
-            solution_vec[optimalIdx] <- quantity
-            quantity_vec[optimalIdx] <- 0
-            amount_vec <- floor(quantity_vec)*(1-haircut_vec)*minUnitValue_vec
-            leftCallAmount <- leftCallAmount-adjAmount
-          } else{
-            quantity <- ceiling(leftCallAmount/(1-haircut_vec[optimalIdx])/minUnitValue_vec[optimalIdx])
-            solution_vec[optimalIdx] <- quantity
-            quantity_vec[optimalIdx] <- quantity_vec[optimalIdx] - quantity
-            amount_vec <- floor(quantity_vec)*(1-haircut_vec)*minUnitValue_vec
-            leftCallAmount <- leftCallAmount-adjAmount
-            break
-          }
-        }
-      }
-      if(leftCallAmount > 0){
-        errormsg <- paste('ALERR2004: It is not sufficient to allocate',floor(operLimit),'assets for',callId)
-        stop(errormsg)
-      }
-    }
-  }
-  return(solution_vec)
 }
 
 ConstructModelObjV1 <- function(integerCallAmount_mat,costBasis_mat,resourceLiquidity_vec, eli_mat,callInfo_df,resource_vec){
@@ -526,12 +472,18 @@ DeriveOptimalAssetsV1 <- function(minUnitQuantity_mat,eli_mat,callAmount_mat,hai
 }
 
 VarInfo <- function(callInfo_df, availAsset_df){
-  # Construct the decision variables' names
-  #
-  # Name format for quantity decision variable(quantity for a resource allocated to a call):
-  #   "msId___mcId___asset---custodianAccountId"
-  # Name format for dummy decision variable(whether a resource is allocated to a statement):
-  #   "msId___dummy___asset---custodianAccountId"
+  # Construct the decision variable names
+  # 
+  # Quantity decision variable
+  #   Definition: the minimum unit quantity of a resource allocated to a call in a statement.
+  #   Name format: "msId___mcId___resourceId"
+  # Dummy decision variables:
+  #   Definition: 1 or 0 denote whether a resource is allocated to a statement or not.
+  #   Name format: "msId___dummy___resourceId"
+  # Relationship: 
+  #   d1: ms1___dummy___resource1, x1: ms1___mc1___resource1, x2: ms1___mc2___resource1 (assume ms1 contains only mc1 and mc2)
+  #     d1 = 1, if x1 + x2 > 0;
+  #     d1 = 0, if x1 + x2 = 0.
   #
   # Returns:
   #   A list contains the variable name vector, number of quantity decision variables 
@@ -555,18 +507,23 @@ VarInfo <- function(callInfo_df, availAsset_df){
   
   ## Construct dummy variables' position 
   # example
-  # QuantityName      = c(ms1___mc1___asset1---custac1, ms1___mc2___asset1---custac1,ms2___mc3___asset1---custac1)
-  # DummyName         = c(ms1___dummy___asset1---custac1,ms1___dummy___asset1---custac1,ms2___dummy___asset1---custac1)
-  # DistinctDummyName = c(ms1___dummy___asset1---custac1,ms2___dummy___asset1---custac1)
+  # QuantityName      = c(ms1___mc1___R1, ms1___mc2___R1,ms2___mc3___R1)
+  # DummyName         = c(ms1___dummy___R1,ms1___dummy___R1,ms2___dummy___R1)
+  # DistinctDummyName = c(ms1___dummy___R1,ms2___dummy___R1)
   # pos               = c(1,1,2)
   pos_vec <- match(dummyName_vec,distinctDummyName_vec)
   
   varName_vec <- c(quantityName_vec,distinctDummyName_vec)
   
-  varNum <- length(quantityName_vec)
+  qtyVarNum <- length(quantityName_vec)
   
-  var_list <- list(varName_vec=varName_vec,varNum=varNum,pos_vec=pos_vec)
+  var_list <- list(varName_vec=varName_vec,qtyVarNum=qtyVarNum,pos_vec=pos_vec)
   return(var_list)
+}
+
+GetQtyVarNum <- function(varName_vec){
+  qtyVarNum <- which(SplitVarName(varName_vec,"call")=="dummy")[1] - 1
+  return(qtyVarNum)
 }
 
 EliMat <- function(availAsset_df,callId_vec,resource_vec){

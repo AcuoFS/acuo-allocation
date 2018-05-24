@@ -1,71 +1,195 @@
 
-#### checkFunctions #######
-AdjustResultVec <- function(solution_vec,varNum,varName_vec,fCon4_mat,
-                            callAmount_vec,minUnitQuantity_vec,minUnitValue_vec){
+
+#### Check Functions #######
+CheckSolverResult <- function(solution_vec,result_mat,varName_vec,resourceQty_vec,callAmount_vec,minUnitValue_mat,haircut_mat,
+                              lpLowerBound_vec,lpUpperBound_vec,operLimitMs,fungible,callInfo_df){
+  # Check whether solver solution meets each type of constraints 
+  #
+  # No returns
+
+  #### Checkings #########
+  ## 1. Lower Bound Checking
+  CheckLowerBound(solution_vec,lpLowerBound_vec)
   
-  # round up the decimal quantity to the nearest integer.
-  # if it's larger than 0.5
-  # if close to 0, then set both real and dummies to 0, and if this action causes the 
-  # the insufficiency of the total amount, make it up at the checking module
-  # not only update result_mat but also the original solution_vec
+  ## 2. Upper Bound Checking
+  CheckUpperBound(solution_vec,lpUpperBound_vec)
   
-  # Round the extreme values E to a reasonable number R
-  # extreme definition: ext = min(quantity limit,2*margin call)
-  # reasonable number definition: rea = min(quantity limit, margin call)
+  ## 3. Quantity Constraints Checking
+  CheckQuantityConstraint(result_mat,resourceQty_vec)
   
-  varNum2 <- length(varName_vec)
+  ## 4. Margin Constraints Checking
+  CheckMarginConstraint(result_mat,minUnitValue_mat,haircut_mat,callAmount_vec)
   
-  solNum1_vec <- solution_vec[1:varNum]
-  solNum2_vec <- solution_vec[(varNum+1):varNum2]
+  ## 5. Dummy Constraints Checking
+  CheckDummyConstraint(solution_vec,varName_vec)
   
-  # Rounding
-  solNum1_vec[which(solNum1_vec >= 0.5)] <- ceiling(solNum1_vec[which(solNum1_vec >= 0.5)])
-  solNum1_vec[which(solNum1_vec < 0.5)] <- 0
+  ## 6. Movement Constraints Checking
+  CheckMovementConstraint(result_mat,operLimitMs,fungible,callInfo_df)
   
-  ext <- pmin(minUnitQuantity_vec,2*callAmount_vec/minUnitValue_vec)
-  rea <- pmin(minUnitQuantity_vec,2*callAmount_vec/minUnitValue_vec)
-  extIdx_vec <- which((solNum1_vec>=ext)==TRUE)
-  solNum1_vec[extIdx_vec] <- rea[extIdx_vec]
+}
+
+CheckLowerBound <- function(solution_vec,lpLowerBound_vec){
+  # For a semi decision variable 
+  # if it >= lower bound or == 0, then satisfy
+  satisfy <- all(solution_vec >= lpLowerBound_vec | solution_vec == 0)
+  if(!satisfy){
+    stop("Lower bound condition checking failed")
+  }
+}
+
+CheckUpperBound <- function(solution_vec,lpUpperBound_vec){
+  satisfy <- all(solution_vec <= lpUpperBound_vec)
+  if(!satisfy){
+    stop("Upper bound condition checking failed")
+  }
+}
+
+CheckQuantityConstraint <- function(allocatedQty_mat,resourceQty_vec){
+  quantityUsed_vec <- apply(allocatedQty_mat,2,sum)
+  satisfy <- all(quantityUsed_vec <= resourceQty_vec)
+  if(!satisfy){
+    stop("Quantity limit condition checking failed")
+  }
+}
+
+CheckMarginConstraint <- function(allocatedQty_mat,minUnitValue_mat,haircut_mat,callAmount_vec){
+  allocatedAmount_mat <- allocatedQty_mat*minUnitValue_mat*(1-haircut_mat)
+  marginAllocated_vec <- apply(allocatedAmount_mat,1,sum)
+  satisfy <- all(marginAllocated_vec >= callAmount_vec)
+  if(!satisfy){
+    stop("Margin completion condition checking failed")
+  }
+}
+
+CheckDummyConstraint <- function(solution_vec,varName_vec){
+  ## Quantity variables info
+  qtyVarNum <- GetQtyVarNum(varName_vec)
+  qtyVar_vec <- solution_vec[1:qtyVarNum]
+  msInQtyVar_vec <- SplitVarName(varName_vec[1:qtyVarNum],"ms")
+  resourceInQtyVar_vec <- SplitVarName(varName_vec[1:qtyVarNum],"resource")
   
+  ## Iterate dummy variables and check values
+  # a better solution to be developed without iteration
+  dummyVar_vec <- solution_vec[(qtyVarNum+1):length(varName_vec)]
+  dummyVarName_vec <- varName_vec[(qtyVarNum+1):length(varName_vec)]
+  for(i in 1:(length(varName_vec)-qtyVarNum)){
+    msId <- SplitVarName(dummyVarName_vec[i],"ms")
+    resource <- SplitVarName(dummyVarName_vec[i],"resource")
+    # find the corresonding quantity decision variables
+    idx_vec <- which(msInQtyVar_vec == msId & resourceInQtyVar_vec == resource)
+    satisfy <- (dummyVar_vec[i] == (sum(qtyVar_vec[idx_vec]) > 0))
+    if(!satisfy){
+      stop("Dummy relationship condition checking failed")
+    }
+  }
+}
+
+CheckMovementConstraint <- function(result_mat,operLimitMs,fungible,callInfo_df){
   
-  ## update
-  temp <- varNum2-varNum
-  solNum1_mat <- matrix(rep(solNum1_vec,temp),ncol=varNum,byrow=T)
-  solNum2_mat <- solNum1_mat*fCon4_mat[1:temp,1:varNum]
-  if(temp>1){
-    temp_vec <- apply(solNum2_mat,1,sum)
-  } else{
-    temp_vec <- sum(solNum2_mat) # by row
+  msId_vec <- unique(callInfo_df$marginStatement)
+  movementForMs_vec <- rep(0,length(msId_vec))
+  for(i in 1:length(msId_vec)){
+    idx_vec <- which(callInfo_df$marginStatement == msId_vec[i])
+    thisResult_mat <- result_mat[idx_vec,]
+    if(length(idx_vec)==1){
+      movementForMs_vec[i] <- sum(thisResult_mat & 1)
+    }else{
+      movementForMs_vec[i] <- sum(apply(thisResult_mat & matrix(1,nrow=dim(thisResult_mat)[1], ncol=dim(thisResult_mat)[2]),2,max))
+      
+    }
+    
+  }
+  ## Check movement limit of all statements
+  satisfy1 <- sum(movementForMs_vec) <= operLimitMs*length(callInfo_df$marginStatement)
+  if(!satisfy1){
+    stop("Movement limit of all statements condition failed")
   }
   
-  solNum2_vec <- 1*(temp_vec & 1) # recalculate the dummy value
+  ## Check movement limit per statement in fungible scenario
+  satisfy2 <- all(movementForMs_vec <= operLimitMs)
+  if((!fungible) & (!satisfy2)){
+    stop("Movement limit per statement condition failed")
+  }
+}
+
+#### Adjust Functions #####
+RoundUpQuantityVariable <- function(solution_vec,varName_vec){
+  # Round up the decimal quantity to the nearest integer.
+  # Round down if decimal quantity is a small number 1e-5
+  #
+  # Returns:
+  #   The updated solution vector
   
-  # substitute
-  solution_vec[1:varNum] <- solNum1_vec 
-  solution_vec[(varNum+1):varNum2] <- solNum2_vec
+  ## Define A Small Number
+  small <- 1e-5
+  
+  ## Round up quantity variables larger than the small number
+  qtyVarNum <- GetQtyVarNum(varName_vec)
+  qtyVar_vec <- solution_vec[1:qtyVarNum]
+  
+  roundupIdx <- which(qtyVar_vec > small)
+  qtyVar_vec[roundupIdx] <- ceiling(qtyVar_vec[roundupIdx])
+  
+  ## Round down  quantity variables equal or than the small number
+  rounddownIdx <- which(qtyVar_vec <= small)
+  qtyVar_vec[rounddownIdx] <- 0
+  
+  solution_vec[1:qtyVarNum] <- qtyVar_vec
   
   return(solution_vec)
 }
 
-CheckResultVec <- function(result_mat,quantityTotal_vec,callId_vec,callAmount_vec,minUnitValue_vec,haircut_mat,eli_mat){
-  #### CHECK ALLOCATION RESULT ###############
-  # STATUS: Developing
-  #
-  callNum <- length(callId_vec)
-  minUnitValue_mat <- matrix(rep(minUnitValue_vec, callNum),nrow=callNum,byrow=T)
-  # 1. whether all variables are non-negative
+UpdateDummyVariable <- function(solution_vec,varName_vec){
+  # Derive dummy decision variables by quantity decision variables
+  # 
+  # Returns:
+  #   The updated solution vector
+  
+  ## Quantity variables info
+  qtyVarNum <- GetQtyVarNum(varName_vec)
+  qtyVar_vec <- solution_vec[1:qtyVarNum]
+  msInQtyVar_vec <- SplitVarName(varName_vec[1:qtyVarNum],"ms")
+  resourceInQtyVar_vec <- SplitVarName(varName_vec[1:qtyVarNum],"resource")
+  
+  ## Iterate dummy variables and assign values
+  dummyVar_vec <- solution_vec[(qtyVarNum+1):length(varName_vec)]
+  dummyVarName_vec <- varName_vec[(qtyVarNum+1):length(varName_vec)]
+  for(i in 1:(length(varName_vec)-qtyVarNum)){
+    msId <- SplitVarName(dummyVarName_vec[i],"ms")
+    resource <- SplitVarName(dummyVarName_vec[i],"resource")
+    # find the corresonding quantity decision variables
+    idx_vec <- which(msInQtyVar_vec == msId & resourceInQtyVar_vec == resource)
+    dummyVar_vec[i] <- (sum(qtyVar_vec[idx_vec]) > 0)
+  }
+  
+  ## Adjusted solution
+  solution_vec[(qtyVarNum+1):length(varName_vec)] <- dummyVar_vec
+  
+  return(solution_vec)
+}
+
+AdjustSolverResult <- function(result_mat,quantityTotal_vec,callAmount_vec,haircut_mat,minUnitValue_mat,eli_mat){
+  ## Adjustment for Constraint Violations
+  result_mat <- AdjustNonNegativeViolation(result_mat)
+  result_mat <- AdjustQuantityLimitViolation(result_mat,quantityTotal_vec,callAmount_vec,haircut_mat,minUnitValue_mat,eli_mat)
+  result_mat <- AdjustCallRequirementViolation(result_mat,quantityTotal_vec,minUnitValue_mat,haircut_mat,callAmount_vec,eli_mat)
+  return(result_mat)
+}
+
+
+AdjustNonNegativeViolation <- function(result_mat){
+  callNum <- dim(result_mat)[1]
   for(k in 1:callNum){
     idxNeg_vec <- which(result_mat[k,]<0)
     if(length(idxNeg_vec)>=1){
-      quantityTotal_vec[idxNeg_vec] <- quantityTotal_vec[idxNeg_vec] - result_mat[k,idxNeg_vec]
-      result_mat[k,idxNeg_vec] <-0 # set to 0 first, then check the other two criteria
+      result_mat[k,idxNeg_vec] <- 0 # set to 0 first, then check the other two criteria
+      warning("Adjusted negative values to 0")
     }
   }
-  
-  # whether meet the constraint
-  
-  
-  # 2. whether statisfy the quantity limits
+  return(result_mat)
+}
+
+AdjustQuantityLimitViolation <- function(result_mat,quantityTotal_vec,callAmount_vec,haircut_mat,minUnitValue_mat,eli_mat){
   quantityUsed_vec <- apply(result_mat,2,sum)
   quantityLeft_vec <- quantityTotal_vec-quantityUsed_vec
   idxExcess_vec <- which(quantityUsed_vec>quantityTotal_vec)
@@ -199,8 +323,10 @@ CheckResultVec <- function(result_mat,quantityTotal_vec,callId_vec,callAmount_ve
       } 
     }
   }
-  
-  # 3. whether meet all margin call requirements
+  return(result_mat)
+}
+
+AdjustCallRequirementViolation <- function(result_mat,quantityTotal_vec,minUnitValue_mat,haircut_mat,callAmount_vec,eli_mat){
   quantityUsed_vec <- apply(result_mat,2,sum)
   quantityLeft_vec <- quantityTotal_vec-quantityUsed_vec
   
@@ -234,7 +360,5 @@ CheckResultVec <- function(result_mat,quantityTotal_vec,callId_vec,callAmount_ve
       result_mat[i,idxAddNew] <- addNewQuantity
     }
   }
-  
-  return(list(result_mat=result_mat,quantityTotal_vec=quantityTotal_vec))
+  return(result_mat)
 }
-

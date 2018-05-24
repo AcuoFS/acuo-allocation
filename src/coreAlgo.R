@@ -57,12 +57,6 @@ CoreAlgoV2 <- function(callInfo_df,availAsset_df,resource_df,
                                                     ifNewAlloc,allocated_list,initAllocation_list)
   }
   
-  #### Valiate and Update Allocation Result ########
-  checkResult <- CheckResultVec(result_mat,quantityTotal_vec=resource_df$qtyMin,callInfo_df$id,callInfo_df$callAmount,resource_df$minUnitValue,haircut_mat,eli_mat)
-  result_mat <- checkResult$result_mat
-  ## return ?
-  resource_df$qtyMin <- checkResult$quantityTotal_vec
-  
   #### Convert the Result from Matrix to List ####
   result_list <- ResultMat2List(result_mat,callInfo_df,availAsset_df,resource_df)
   
