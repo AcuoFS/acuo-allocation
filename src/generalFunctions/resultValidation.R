@@ -114,25 +114,29 @@ CheckMovementConstraint <- function(result_mat,operLimitMs,fungible,callInfo_df)
 
 #### Adjust Functions #####
 RoundUpQuantityVariable <- function(solution_vec,varName_vec){
-  # Round up the decimal quantity to the nearest integer.
-  # Round down if decimal quantity is a small number 1e-5
+  # Round up any quantity decision variable x to the nearest integer
+  # unless x is "very close" to the floor integer then round down x to the nearest integer.
+  #
+  # "very close" definition:
+  #   x - floor(x) <= small number(e.g. 1e-5)
   #
   # Returns:
   #   The updated solution vector
+  
+  qtyVarNum <- GetQtyVarNum(varName_vec)
+  qtyVar_vec <- solution_vec[1:qtyVarNum]
+  qtyVarFloor_vec <- floor(qtyVar_vec)
   
   ## Define A Small Number
   small <- 1e-5
   
   ## Round up quantity variables larger than the small number
-  qtyVarNum <- GetQtyVarNum(varName_vec)
-  qtyVar_vec <- solution_vec[1:qtyVarNum]
+  roundUpIdx <- which((qtyVar_vec - qtyVarFloor_vec) > small)
+  qtyVar_vec[roundUpIdx] <- ceiling(qtyVar_vec[roundUpIdx])
   
-  roundupIdx <- which(qtyVar_vec > small)
-  qtyVar_vec[roundupIdx] <- ceiling(qtyVar_vec[roundupIdx])
-  
-  ## Round down  quantity variables equal or than the small number
-  rounddownIdx <- which(qtyVar_vec <= small)
-  qtyVar_vec[rounddownIdx] <- 0
+  ## Round down quantity variables equal or than the small number
+  roundDownIdx <- which((qtyVar_vec - qtyVarFloor_vec) <= small)
+  qtyVar_vec[roundDownIdx] <- floor(qtyVar_vec[roundDownIdx])
   
   solution_vec[1:qtyVarNum] <- qtyVar_vec
   
