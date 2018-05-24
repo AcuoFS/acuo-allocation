@@ -109,12 +109,24 @@ ResultMat2ListUpdate <- function(result_mat,callId_vec,resource_vec,callInfo_df,
   return(result_list)
 }
 
-ResultVec2Mat <- function(solution_vec,callId_vec,resource_vec,idxEli_vec,varNum){
-  callNum <- length(callId_vec); resourceNum <- length(resource_vec)
-  result_mat <- matrix(0,nrow=callNum,ncol=resourceNum,dimnames=list(callId_vec,resource_vec))
-  result_mat <- t(result_mat)
-  result_mat[idxEli_vec]<-solution_vec[1:varNum]
-  result_mat <- t(result_mat)
+ResultVec2Mat <- function(solution_vec,callId_vec,resource_vec,varName_vec){
+  # Convert the solution vector to matrix format with the row in callId_vec order 
+  # and the column in resource_vec order
+  #   Match call id and resource id in variable names to callId_vec and resource_vec
+  # Returns:
+  #   A matrix
+  
+  ## Extract callId and resourceId in variable names
+  qtyVarNum <- GetQtyVarNum(varName_vec)
+  callVar_vec <- SplitVarName(varName_vec[1:qtyVarNum],"call")
+  resourceVar_vec <- SplitVarName(varName_vec[1:qtyVarNum],"resource")
+  
+  ## Initialize result_mat
+  result_mat <- matrix(0,nrow=length(callId_vec),ncol=length(resource_vec),dimnames=list(callId_vec,resource_vec))
+  
+  ## Fill in result_mat by matching callId and resourceId 
+  result_mat[cbind(match(callVar_vec,callId_vec),match(resourceVar_vec,resource_vec))] <- solution_vec[1:qtyVarNum]
+
   return(result_mat)
 }
 

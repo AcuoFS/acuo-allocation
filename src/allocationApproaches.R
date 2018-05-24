@@ -141,7 +141,7 @@ AllocateUnderInsufficientOptimalAssets <- function(costScore_mat,liquidityScore_
   
   #### Check Whether Solver Result Meet All Criteria ######
   # Convert the solution to Matrix format
-  result_mat <- ResultVec2Mat(solution_vec,callInfo_df$id,resource_df$id,idxEli_vec,varNum)
+  result_mat <- ResultVec2Mat(solution_vec,callInfo_df$id,resource_df$id,varName_vec)
   
   # Checking
   CheckSolverResult(solution_vec,result_mat,varName_vec,resource_df$qtyMin,callInfo_df$callAmount,minUnitValue_mat,haircut_mat,
