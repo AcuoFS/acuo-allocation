@@ -176,14 +176,14 @@ DummyConstInherit <- function(allocated_vec,varName_vec,qtyVarNum,quantity_vec){
   return(fCon4_list)
 }
 
-MoveConst <- function(varName_vec,qtyVarNum,operLimitMs,fungible){
+MovementConst <- function(varName_vec,qtyVarNum,operLimitMs,fungible){
   varNum2 <- length(varName_vec)
   msIdDul_vec <- SplitVarName(varName_vec[(qtyVarNum+1):varNum2],'ms')
   msId_vec <- unique(msIdDul_vec)
   msNum <- length(msId_vec)
   
-  con_mat1 <- matrix(0,nrow=1,ncol=varNum2)
-  con_mat1[1,(qtyVarNum+1):varNum2] <- 1
+  coef_mat1 <- matrix(0,nrow=1,ncol=varNum2)
+  coef_mat1[1,(qtyVarNum+1):varNum2] <- 1
   
   dir_vec1 <- c('<=')
   rhs_vec1 <- c(operLimitMs*msNum)
@@ -192,22 +192,22 @@ MoveConst <- function(varName_vec,qtyVarNum,operLimitMs,fungible){
   # the total limit is not necessary in theory, but it's better keep it until proven
   if(fungible==FALSE){
     # will be number of margin statements constraints
-    con_mat2 <- matrix(0,nrow=msNum,ncol=varNum2)
+    coef_mat2 <- matrix(0,nrow=msNum,ncol=varNum2)
     
     colIdx_vec <- (qtyVarNum+1):varNum2
     rowIdx_vec <- match(msIdDul_vec,msId_vec)
     
-    con_mat2[cbind(rowIdx_vec,colIdx_vec)] <- 1
+    coef_mat2[cbind(rowIdx_vec,colIdx_vec)] <- 1
     
     dir_vec2 <- rep('<=',msNum)
     rhs_vec2 <- rep(operLimitMs,msNum)
     
-    con_mat <- rbind(con_mat1,con_mat2)
+    coef_mat <- rbind(coef_mat1,coef_mat2)
     dir_vec <- c(dir_vec1,dir_vec2)
     rhs_vec <- c(rhs_vec1,rhs_vec2)
   }
   
-  con_list <- list(con_mat=con_mat,dir_vec=dir_vec,rhs_vec=rhs_vec)
+  con_list <- list(coef_mat=coef_mat,dir_vec=dir_vec,rhs_vec=rhs_vec)
   return(con_list)
 }
 
