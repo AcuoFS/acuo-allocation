@@ -86,7 +86,7 @@ AllocateUnderInsufficientOptimalAssets <- function(costScore_mat,liquidityScore_
   lpRhs_vec <- c(fCon2_list$rhs_vec,fCon3_list$rhs_vec,fCon4_list$rhs_vec,fCon5_list$rhs_vec)
   
   #### Lower Bound and Upper Bound #####
-  lpLowerBound_vec <- DeriveLowerBound(minMoveValue,varName_vec,resource_df$id,resource_df$qtyMin,quantityVar_vec,minUnitValueVar_vec,callAmountVar_vec,haircutVar_vec)
+  lpLowerBound_vec <- DeriveLowerBound(minMoveValue,varName_vec,quantityVar_vec,minUnitValueVar_vec,callAmountVar_vec,haircutVar_vec)
   lpUpperBound_vec <- c(quantityVar_vec,rep(1,totalVarNum-qtyVarNum))
   
   #### Other Parameters in Solver ########

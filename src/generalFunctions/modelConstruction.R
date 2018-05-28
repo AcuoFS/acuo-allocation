@@ -1,9 +1,27 @@
 #### modelFunction ####
 DeriveMinMoveQty <- function(minMoveValue,quantity_vec,minUnitValue_vec,callAmount_vec,haircut_vec){
+  # Derive the minimum quantity of a resource for a single movement by minimum amount of a movement
+  # 
+  # minMoveValue: the minimum amount of a resource (in dollar) you can use for a call
+  #
+  # minMoveQty: the minimum quantity of a resource you can use for a call
+  #   minMoveQty = minMoveValue/minUnitValue, 
+  # Unless 
+  #   1. the quantity of the resource is less than minMoveQty 
+  #      minMoveQty = resource quantity
+  #   2. the quantity of the resource needed for a call is less than minMoveQty
+  #      minMoveQty = resource quantity needed for the call
+  #
+  # Returns:
+  #   A vector of the resource minimum movement quantity
+  
   # Derive minimum movement quantity by minimum movement value
   minMoveQty_vec <- ceiling(minMoveValue/minUnitValue_vec)
+  
+  # 1. In case resource quantity is less than minMoveQty
   minMoveQty_vec <- pmin(minMoveQty_vec,quantity_vec)
   
+  # 2. In case quantity needed for a call amount is less than minMoveQty
   if(length(callAmount_vec[which(minMoveValue > callAmount_vec/(1-haircut_vec))])!=0){
     idxTemp <- which(minMoveValue > callAmount_vec/(1-haircut_vec))
     callEli_vec <- callAmount_vec/(1-haircut_vec)
@@ -12,10 +30,9 @@ DeriveMinMoveQty <- function(minMoveValue,quantity_vec,minUnitValue_vec,callAmou
   return(minMoveQty_vec)
 }
 
-DeriveLowerBound <- function(minMoveValue,varName_vec,resource_vec,resourceQty_vec,quantity_vec,minUnitValue_vec,callAmount_vec,haircut_vec){
+DeriveLowerBound <- function(minMoveValue,varName_vec,quantity_vec,minUnitValue_vec,callAmount_vec,haircut_vec){
   # Derive the lower bound of the decision variables
-  #   lower bound for quantity variables = minMoveQty, if resource quantity >= sum(minMoveQty* of this resource to all calls);
-  #                                      = 0, if resource quantity <  sum(minMoveQty* of this resource to all calls).
+  #   lower bound for quantity variables = minMoveQty
   #   lower bound for dummy variables = 0
   #
   # *minMoveQty: minimum movement quantity of a resource to a call
@@ -34,14 +51,6 @@ DeriveLowerBound <- function(minMoveValue,varName_vec,resource_vec,resourceQty_v
   ## Extract the resource id from decision variables' names
   varNameResource_vec <- SplitVarName(varName_vec,'resource')[1:qtyVarNum]
   
-  ## Iterate the resource vector to check the quantity condition and reassign the lower bound
-  for(i in 1:length(resource_vec)){
-    # if resource quantity is lower than the sum of minMoveQty, then set the lower bound to 0
-    lowerSum <- sum(lowerBound_vec[which(varNameResource_vec==resource_vec[i])])
-    if(lowerSum > resourceQty_vec[i]){
-      lowerBound_vec[idxTemp_vec] <- 0
-    }
-  }
   return(lowerBound_vec)
 }
 
