@@ -37,18 +37,16 @@ AllocateUnderInsufficientOptimalAssets <- function(costScore_mat,liquidityScore_
   varInfo_list <- VarInfo(callInfo_df,availAsset_df)
   
   varName_vec <- varInfo_list$varName_vec
-  varNum <- GetQtyVarNum(varName_vec)
-  varNum2 <- length(varName_vec)
+  qtyVarNum <- GetQtyVarNum(varName_vec)
+  totalVarNum <- length(varName_vec)
   
-  #### Eligibility Index in Matrix ####
-  eli_mat <- EliMat(availAsset_df,callInfo_df$id,resource_df$id)
-  
+  #### Quantity Decision Variables Positions in Matrix ####
   ## idxEli_vec: the positions of decision variables in the matrix formed by callId and resourceId
   resourceNum <- length(resource_df$id)
   callNum <- length(callInfo_df$id)
   idx_mat <- matrix(1:(resourceNum*callNum),nrow = callNum)
-  idxEli_vec <- idx_mat[cbind(match(SplitVarName(varName_vec[1:varNum],"call"),callInfo_df$id),
-                              match(SplitVarName(varName_vec[1:varNum],"resource"),resource_df$id))]
+  idxEli_vec <- idx_mat[cbind(match(SplitVarName(varName_vec[1:qtyVarNum],"call"),callInfo_df$id),
+                              match(SplitVarName(varName_vec[1:qtyVarNum],"resource"),resource_df$id))]
   
   #### Deduct Quantity in resource_df ####
   # deduct some units in to avoid overflow in the rounding later 
@@ -62,52 +60,54 @@ AllocateUnderInsufficientOptimalAssets <- function(costScore_mat,liquidityScore_
   minUnitValueVar_vec <- matrix(rep(resource_df$minUnitValue, callNum),nrow=callNum,byrow = T)[idxEli_vec]
   haircutVar_vec <- availAsset_df$haircut + availAsset_df$FXHaircut
 
-  #### Build the Optimization Model #######
-  
-  #### OBJECTIVE FUNCTION
-  objCoef_vec <- CalculateObjParams(t(costScore_mat)[idxEli_vec],t(liquidityScore_mat)[idxEli_vec],pref_vec,"quantity",minUnitValueVar_vec)
-  fObj_vec <- c(objCoef_vec,rep(0,varNum2-varNum))
+  #### Build the Optimization Model Start #######
+  #### Objective Function ######
+  objCoef_vec <- CalculateObjParams(costScore_mat[idxEli_vec],liquidityScore_mat[idxEli_vec],pref_vec,"quantity",minUnitValueVar_vec)
+  fObj_vec <- c(objCoef_vec,rep(0,totalVarNum-qtyVarNum))
   
   names(fObj_vec) <- varName_vec
   
-  #### CONSTRAINTS
-  fCon2_list <- QtyConst(varName_vec,varNum,resource_df$id,resource_df$qtyMin)
-  fCon3_list <- MarginConst(varName_vec,varNum,minUnitValueVar_vec,haircutVar_vec,callInfo_df$id,callInfo_df$callAmount)
+  #### Constraints #############
+  fCon2_list <- QtyConst(varName_vec,qtyVarNum,resource_df$id,resource_df$qtyMin)
+  fCon3_list <- MarginConst(varName_vec,qtyVarNum,minUnitValueVar_vec,haircutVar_vec,callInfo_df$id,callInfo_df$callAmount)
   if(ifNewAlloc){
-    fCon4_list <- DummyConst(varName_vec,varNum,quantityVar_vec)
-    fCon5_list <- MovementConst(varName_vec,varNum,operLimitMs,fungible)
+    fCon4_list <- DummyConst(varName_vec,qtyVarNum,quantityVar_vec)
+    fCon5_list <- MovementConst(varName_vec,qtyVarNum,operLimitMs,fungible)
   } else{
-    allocated_vec <- ResultList2Vec(allocated_list,callInfo_df$id,minUnitVar_vec,varName_vec,varNum,varInfo_list$pos_vec)
-    allocatedDummy_vec <- allocated_vec[(varNum+1):varNum2]
-    fCon4_list <- DummyConstInherit(allocatedDummy_vec,varName_vec,varNum,quantityVar_vec)
-    fCon5_list <- MoveConstInherit(allocatedDummy_vec,varName_vec,varNum,operLimitMs,fungible)
+    allocated_vec <- ResultList2Vec(allocated_list,callInfo_df$id,minUnitVar_vec,varName_vec,qtyVarNum,varInfo_list$pos_vec)
+    allocatedDummy_vec <- allocated_vec[(qtyVarNum+1):totalVarNum]
+    fCon4_list <- DummyConstInherit(allocatedDummy_vec,varName_vec,qtyVarNum,quantityVar_vec)
+    fCon5_list <- MoveConstInherit(allocatedDummy_vec,varName_vec,qtyVarNum,operLimitMs,fungible)
   }
   
-  #### Objectives & Constraints & Others
   lpObj_vec <- fObj_vec
   lpCon_mat <- rbind(fCon2_list$coef_mat,fCon3_list$coef_mat,fCon4_list$coef_mat,fCon5_list$coef_mat)
   lpDir_vec <- c(fCon2_list$dir_vec,fCon3_list$dir_vec,fCon4_list$dir_vec,fCon5_list$dir_vec)
   lpRhs_vec <- c(fCon2_list$rhs_vec,fCon3_list$rhs_vec,fCon4_list$rhs_vec,fCon5_list$rhs_vec)
   
-  lpKind_vec <- rep('semi-continuous',varNum2)
-  lpType_vec <- rep('real',varNum2)
-  #lpType_vec[which(minUnitValueVar_vec>=1)] <- 'integer'
-  lpType_vec[(varNum+1):varNum2] <- 'integer'
+  #### Lower Bound and Upper Bound #####
   lpLowerBound_vec <- DeriveLowerBound(minMoveValue,varName_vec,resource_df$id,resource_df$qtyMin,quantityVar_vec,minUnitValueVar_vec,callAmountVar_vec,haircutVar_vec)
-  lpUpperBound_vec <- c(quantityVar_vec,rep(1,varNum2-varNum))
-  lpBranchMode_vec <- c(rep('auto',varNum),rep('auto',varNum2-varNum))
+  lpUpperBound_vec <- c(quantityVar_vec,rep(1,totalVarNum-qtyVarNum))
   
-  #### Control Options in Solver
+  #### Other Parameters in Solver ########
+  lpKind_vec <- rep('semi-continuous',totalVarNum)
+  lpType_vec <- rep('real',totalVarNum)
+  #lpType_vec[which(minUnitValueVar_vec>=1)] <- 'integer'
+  lpType_vec[(qtyVarNum+1):totalVarNum] <- 'integer'
+  lpBranchMode_vec <- c(rep('auto',qtyVarNum),rep('auto',totalVarNum-qtyVarNum))
+  
+  #### Control Options in Solver #########
   lpPresolve <- ifelse(callNum<=10,'none','knapsack')
   lpTimeout <- timeLimit
   
-  #### Initial Guess Basis 
-  lpGuessBasis_vec <- rep(0,varNum2)
+  #### Initial Guess Basis in Solver ########
+  lpGuessBasis_vec <- rep(0,totalVarNum)
   if(!missing(initAllocation_list)){
     # the initial guess must be a feasible point
-    lpGuessBasis_vec <- ResultList2Vec(initAllocation_list,callInfo_df$id,minUnitVar_vec,varName_vec,varNum,varInfo_list$pos_vec)
+    lpGuessBasis_vec <- ResultList2Vec(initAllocation_list,callInfo_df$id,minUnitVar_vec,varName_vec,qtyVarNum,varInfo_list$pos_vec)
   }
   
+  #### Build the Optimization Model End ##########
   #### Call Solver to Solve the Model ###############
   solverOutput_list <- CallLpSolve(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
                                    lpType_vec=lpType_vec,lpKind_vec=lpKind_vec,lpLowerBound_vec=lpLowerBound_vec,lpUpperBound_vec=lpUpperBound_vec,lpBranchMode_vec=lpBranchMode_vec,
@@ -153,6 +153,7 @@ AllocateUnderInsufficientOptimalAssets <- function(costScore_mat,liquidityScore_
                                 lpLowerBound_vec,lpUpperBound_vec,operLimitMs,fungible,callInfo_df)
   
   #### Adjust Solver Result ###########
+  eli_mat <- EliMat(availAsset_df,callInfo_df$id,resource_df$id)
   result_mat <- AdjustSolverResult(result_mat,resource_df$qtyMin,callInfo_df$callAmount,haircut_mat,minUnitValue_mat,eli_mat)
   
   return(result_mat)

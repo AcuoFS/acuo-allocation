@@ -155,10 +155,10 @@ ResultList2Mat <- function(callOutput_list,callId_vec,resource_vec,minUnit_vec){
   return(result_mat)
 }
 
-ResultList2Vec <- function(callOutput_list,callId_vec,minUnit_vec,varName_vec,varNum,pos_vec){
+ResultList2Vec <- function(callOutput_list,callId_vec,minUnit_vec,varName_vec,qtyVarNum,pos_vec){
   # to refactor
-  varNum2 <- length(varName_vec)
-  result1_vec <- rep(0,varNum)
+  totalVarNum <- length(varName_vec)
+  result1_vec <- rep(0,qtyVarNum)
   callNum <- length(callId_vec)
   
   for(m in 1:callNum){
@@ -176,7 +176,7 @@ ResultList2Vec <- function(callOutput_list,callId_vec,minUnit_vec,varName_vec,va
       result1_vec[idxVarTemp] <- quantityTemp/minUnit_vec[idxVarTemp]
     }
   }
-  # derive the decision variables (varNum+1 ~ varNum2)
+  # derive the decision variables (qtyVarNum+1 ~ totalVarNum)
   var1_df <- data.frame(real=result1_vec,pos=pos_vec)
   var2_df <- aggregate(real~pos,data=var1_df,sum)
   result2_vec <- ((var2_df$real) & 1)*1
@@ -186,9 +186,9 @@ ResultList2Vec <- function(callOutput_list,callId_vec,minUnit_vec,varName_vec,va
   return(result_vec)
 }
 
-ResultList2DummyVec <- function(callOutput_list,callId_vec,varName_vec,varNum){
-  varNum2 <- length(varName_vec)
-  result_vec <- rep(0,varNum2)
+ResultList2DummyVec <- function(callOutput_list,callId_vec,varName_vec,qtyVarNum){
+  totalVarNum <- length(varName_vec)
+  result_vec <- rep(0,totalVarNum)
   callNum <- length(callId_vec)
   
   for(m in 1:callNum){
@@ -204,9 +204,9 @@ ResultList2DummyVec <- function(callOutput_list,callId_vec,varName_vec,varNum){
       result_vec[idxVarTemp] <- 1
     }
   }
-  temp <- varNum2-varNum
-  result1_mat <- matrix(rep(result_vec[1:varNum],temp),ncol=varNum,byrow=T)
-  result2_mat <- result1_mat*fCon4_mat[1:temp,1:varNum]
+  temp <- totalVarNum-qtyVarNum
+  result1_mat <- matrix(rep(result_vec[1:qtyVarNum],temp),ncol=qtyVarNum,byrow=T)
+  result2_mat <- result1_mat*fCon4_mat[1:temp,1:qtyVarNum]
   
   if(temp>1){
     temp_vec <- apply(result2_mat,1,sum)
@@ -214,7 +214,7 @@ ResultList2DummyVec <- function(callOutput_list,callId_vec,varName_vec,varNum){
     temp_vec <- sum(result2_mat) # by row
   }
   
-  result_vec[(varNum+1):varNum2] <- 1*(temp_vec & 1) # recalculate the dummy value
+  result_vec[(qtyVarNum+1):totalVarNum] <- 1*(temp_vec & 1) # recalculate the dummy value
   
   return(result_vec)
 }

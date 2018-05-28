@@ -515,9 +515,7 @@ VarInfo <- function(callInfo_df, availAsset_df){
   
   varName_vec <- c(quantityName_vec,distinctDummyName_vec)
   
-  qtyVarNum <- length(quantityName_vec)
-  
-  var_list <- list(varName_vec=varName_vec,qtyVarNum=qtyVarNum,pos_vec=pos_vec)
+  var_list <- list(varName_vec=varName_vec,pos_vec=pos_vec)
   return(var_list)
 }
 

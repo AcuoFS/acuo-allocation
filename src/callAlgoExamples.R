@@ -74,7 +74,7 @@ assetInfo_df <- AssetInfoByAssetId(assetId_vec)
 if(length(unlist(assetInfo_df))==0){
   stop('Empty assetInfo_df input!')
 }
-assetInfo_df<-assetInfo_df[order(assetInfo_df$id),]
+assetInfo_df <- assetInfo_df[order(assetInfo_df$id),]
 assetInfo_df <- UnifyFxBaseUsdInAssetInfo(assetInfo_df)
 assetInfo_df <- AddMinUnitValueInBaseCcyToAssetInfo(assetInfo_df)
 print(assetInfo_df)
