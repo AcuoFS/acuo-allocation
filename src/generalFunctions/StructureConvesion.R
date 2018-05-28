@@ -155,33 +155,28 @@ ResultList2Mat <- function(callOutput_list,callId_vec,resource_vec,minUnit_vec){
   return(result_mat)
 }
 
-ResultList2Vec <- function(callOutput_list,callId_vec,minUnit_vec,varName_vec,qtyVarNum,pos_vec){
-  # to refactor
-  totalVarNum <- length(varName_vec)
-  result1_vec <- rep(0,qtyVarNum)
-  callNum <- length(callId_vec)
+ResultList2Vec <- function(callOutput_list,callId_vec,minUnit_vec,varName_vec){
+  # Convert the allocation result list to a vector with values of decision variables
+  # Remember to convert the quantity in result list to min unit quantity in the vector
+  # 
+  # Returns:
+  #   A vector of decision variables' values
   
-  for(m in 1:callNum){
-    callId <- callId_vec[m]
-    callAlloc_df <- callOutput_list[[callId]]
+  result_vec <- rep(0,length(varName_vec))
+  
+  ## Iterate calls, extract Quantity and fill in result_vec
+  for(m in 1:length(callId_vec)){
+    callAlloc_df <- callOutput_list[[callId_vec[m]]] # allocation df for this call
     
-    # find the corresponding decision variable index from the varName
-    resourceTemp_vec <- PasteResource(callAlloc_df$Asset,callAlloc_df$CustodianAccount)
-    varNameTemp_vec <- PasteVarName(callAlloc_df$marginStatement,callAlloc_df$marginCall,resourceTemp_vec)
-    
-    for(k in 1:length(resourceTemp_vec)){
-      idxVarTemp <- which(varName_vec==varNameTemp_vec[k])
-      quantityTemp <- callAlloc_df$Quantity[k]
-      # the 'Quantity'= decision variable * minUnit
-      result1_vec[idxVarTemp] <- quantityTemp/minUnit_vec[idxVarTemp]
-    }
+    varNamePaste_vec <- PasteVarName(msId_vec = callAlloc_df$marginStatement,
+                                     callId_vec = callAlloc_df$marginCall,
+                                     resource_vec = PasteResource(callAlloc_df$Asset,callAlloc_df$CustodianAccount))
+    idxVar_vec <- match(varNamePaste_vec,varName_vec)
+    result_vec[idxVar_vec] <- callAlloc_df$Quantity/minUnit_vec[idxVar_vec]
   }
-  # derive the decision variables (qtyVarNum+1 ~ totalVarNum)
-  var1_df <- data.frame(real=result1_vec,pos=pos_vec)
-  var2_df <- aggregate(real~pos,data=var1_df,sum)
-  result2_vec <- ((var2_df$real) & 1)*1
   
-  result_vec <- c(result1_vec,result2_vec)
+  ## Derive(Update) the dummy decision variables
+  result_vec <- UpdateDummyVariable(result_vec,varName_vec)
   
   return(result_vec)
 }

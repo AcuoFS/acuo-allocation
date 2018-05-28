@@ -480,7 +480,7 @@ DeriveOptimalAssetsV1 <- function(minUnitQuantity_mat,eli_mat,callAmount_mat,hai
   return(optimalAsset_mat)
 }
 
-VarInfo <- function(callInfo_df, availAsset_df){
+DeriveVarName <- function(callInfo_df, availAsset_df){
   # Construct the decision variable names
   # 
   # Quantity decision variable
@@ -495,7 +495,7 @@ VarInfo <- function(callInfo_df, availAsset_df){
   #     d1 = 0, if x1 + x2 = 0.
   #
   # Returns:
-  #   A list contains the variable name vector, number of quantity decision variables 
+  #   A vector of decision variables' names
   
   # Quantity decision variable names
   quantityName_vec <- vector()
@@ -519,13 +519,10 @@ VarInfo <- function(callInfo_df, availAsset_df){
   # QuantityName      = c(ms1___mc1___R1, ms1___mc2___R1,ms2___mc3___R1)
   # DummyName         = c(ms1___dummy___R1,ms1___dummy___R1,ms2___dummy___R1)
   # DistinctDummyName = c(ms1___dummy___R1,ms2___dummy___R1)
-  # pos               = c(1,1,2)
-  pos_vec <- match(dummyName_vec,distinctDummyName_vec)
   
   varName_vec <- c(quantityName_vec,distinctDummyName_vec)
   
-  var_list <- list(varName_vec=varName_vec,pos_vec=pos_vec)
-  return(var_list)
+  return(varName_vec)
 }
 
 GetQtyVarNum <- function(varName_vec){
