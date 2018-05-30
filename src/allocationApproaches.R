@@ -124,7 +124,7 @@ AllocateUnderInsufficientOptimalAssets <- function(costScore_mat,liquidityScore_
   } else if(is.element(solverStatus,errStatus)){
     # should stop and use another approach to solve the problem
     if(callNum==1){
-      rank_vec <- CalculateObjParams(t(costScore_mat)[idxEli_vec],t(liquidityScore_mat)[idxEli_vec],pref_vec,"amount",minUnitValueVar_vec)
+      rank_vec <- CalculateObjParams(costScore_mat[idxEli_vec],liquidityScore_mat[idxEli_vec],pref_vec,"amount",minUnitValueVar_vec)
       solverSolution_vec <- AllocateByRank(resource_df$id,callInfo_df$id,rank_vec,callInfo_df$callAmount,quantityVar_vec,minUnitValueVar_vec,haircutVar_vec,operLimit)
     } else{ # Solver time out
       ## choose the best alternative

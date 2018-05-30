@@ -1,5 +1,4 @@
 
-#### qtyFunctions #### 
 UpdateQtyOriInResourceDf <- function(resource_df){
   ## will be called at the very end of the allocation
   quantity_vec <- resource_df$qtyMin*resource_df$minUnit + resource_df$qtyRes

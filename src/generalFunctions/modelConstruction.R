@@ -1,4 +1,4 @@
-#### modelFunction ####
+
 DeriveMinMoveQty <- function(minMoveValue,quantity_vec,minUnitValue_vec,callAmount_vec,haircut_vec){
   # Derive the minimum quantity of a resource for a single movement by minimum amount of a movement
   # 

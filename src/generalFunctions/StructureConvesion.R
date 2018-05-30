@@ -1,4 +1,3 @@
-#### convertFunctions #### 
 
 ConstructAllocDf <- function(resourceInfo_df,callInfo_df,haircutC_vec,haircutFX_vec,minUnitQuantity_vec,cost_vec ){
   assetId_vec <- resourceInfo_df$assetId
