@@ -10,12 +10,11 @@ OPTIONAL match (fxrate)<-[:OF]-(fx)
 where (fxrate)-[:LAST]->(fx)
 
 RETURN  mc.id AS id,
-		mc.marginType AS marginType,
 		ms.id AS marginStatement,
+		mc.marginType AS marginType,
 		ABS(mc.marginAmount) AS callAmount,
 		mc.currency AS currency,
 		mc.callDate AS callDate,
-		mc.direction AS direction,
 		CASE WHEN mc.currency = 'USD' THEN 1
 		     WHEN mc.currency <> 'USD' THEN fx.value
 		END

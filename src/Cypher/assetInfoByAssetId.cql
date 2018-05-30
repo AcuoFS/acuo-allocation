@@ -11,7 +11,6 @@ where (fxrate)-[:LAST]->(fx)
 
 RETURN  a.id AS id,
 		a.name AS name,
-		a.rating AS rating,
 		a.currency AS currency,
 		value.unitValue AS unitValue,
 		a.minUnit AS minUnit,

@@ -18,16 +18,12 @@ MATCH (a)<-[:VALUATED]-(:Valuation)-[:LATEST]->(value:AssetValue)
 RETURN DISTINCT
     mc.id AS callId,
     a.id AS assetId,
-    h.availableQuantity AS quantity,
-    value.unitValue AS unitValue,
-    a.minUnit AS minUnit,
-    a.minUnit*value.unitValue AS minUnitValue,
-    a.currency AS currency,
-    ca.id AS CustodianAccount,
-    cu.countryShortName AS venue,
-    h.internalCost AS internalCost,
-    h.opptCost AS opptCost,
     rule.haircut AS haircut,
     rule.FXHaircut AS FXHaircut,
     rule.externalCost AS externalCost,
-    rule.interestRate AS interestRate
+    rule.interestRate AS interestRate,
+    h.availableQuantity AS quantity,
+    h.internalCost AS internalCost,
+    h.opptCost AS opptCost,
+    cu.countryShortName AS venue,
+    ca.id AS CustodianAccount

@@ -58,12 +58,6 @@ if(length(unlist(callInfo_df))==0){
 }
 callInfo_df <- UnifyFxBaseUsdInCallInfo(callInfo_df)
 callInfo_df <- ConvertCallAmountToBaseCcyInCallInfo(callInfo_df)
-# margin statements with money IN calls
-#idxTemp_vec <- which(callInfo_df$direction == 'IN')
-#if(length(idxTemp_vec)>0){
-#  errormsg <- paste(paste(unique(callInfo_df$marginStatement[idxTemp_vec]),collapse = ','),'is(are) money IN statement(s)!')
-#  stop(errormsg)
-#}
 
 #### availAsset_df ####
 oriAvailAsset_df <- AvailAssetByCallIdAndClientId(callId_vec,clientId) # available asset for the margin call
@@ -96,11 +90,6 @@ if(length(rmIdxAvail)>0){
   oriAvailAsset_df <- oriAvailAsset_df[-rmIdxAvail,]
   assetInfo_df <- assetInfo_df[-rmIdxAsset,]
 }
-# remove assets in availAsset_df but not in assetInfo_df
-#rmIdxAvail <- which(is.na(match(availAsset_df$assetId,assetInfo_df$id)))
-#if(length(rmIdxAvail)>0){
-#  availAsset_df <- availAsset_df[-rmIdxAvail,]
-#}
 
 
 #### resource_df and availAsset_df ####
