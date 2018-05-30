@@ -148,8 +148,8 @@ AllocateUnderInsufficientOptimalAssets <- function(costScore_mat,liquidityScore_
   # Checking
   minUnitValue_mat <- matrix(rep(resource_df$minUnitValue, callNum),nrow=callNum,byrow = T)
   haircut_mat <- HaircutVec2Mat(haircutVar_vec,availAsset_df,callInfo_df$id,resource_df$id)
-  CheckSolverResult(solution_vec,result_mat,varName_vec,resource_df$qtyMin,callInfo_df$callAmount,minUnitValue_mat,haircut_mat,
-                                lpLowerBound_vec,lpUpperBound_vec,operLimitMs,fungible,callInfo_df)
+  CheckSolverResult(solution_vec,result_mat,varName_vec,callInfo_df,resource_df$qtyMin,minUnitValue_mat,haircut_mat,
+                                lpLowerBound_vec,lpUpperBound_vec,operLimitMs,fungible)
   
   #### Adjust Solver Result ###########
   eli_mat <- EliMat(availAsset_df,callInfo_df$id,resource_df$id)

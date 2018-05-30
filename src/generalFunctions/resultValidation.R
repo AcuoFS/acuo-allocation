@@ -1,6 +1,6 @@
 
-CheckSolverResult <- function(solution_vec,result_mat,varName_vec,resourceQty_vec,callAmount_vec,minUnitValue_mat,haircut_mat,
-                              lpLowerBound_vec,lpUpperBound_vec,operLimitMs,fungible,callInfo_df){
+CheckSolverResult <- function(solution_vec,result_mat,varName_vec,callInfo_df,resourceQty_vec,minUnitValue_mat,haircut_mat,
+                              lpLowerBound_vec,lpUpperBound_vec,operLimitMs,fungible){
   # Check whether solver solution meets each type of constraints 
   #
   # No returns
@@ -16,7 +16,7 @@ CheckSolverResult <- function(solution_vec,result_mat,varName_vec,resourceQty_ve
   CheckQuantityConstraint(result_mat,resourceQty_vec)
   
   ## 4. Margin Constraints Checking
-  CheckMarginConstraint(result_mat,minUnitValue_mat,haircut_mat,callAmount_vec)
+  CheckMarginConstraint(result_mat,minUnitValue_mat,haircut_mat,callInfo_df$callAmount)
   
   ## 5. Dummy Constraints Checking
   CheckDummyConstraint(solution_vec,varName_vec)
@@ -43,6 +43,12 @@ CheckUpperBound <- function(solution_vec,lpUpperBound_vec){
 }
 
 CheckQuantityConstraint <- function(allocatedQty_mat,resourceQty_vec){
+  # Check whether the quantity used for a resource is within the its limit
+  # 
+  # Args: 
+  #   resourceQty_vec: minUnitQuantity per resource
+  #   allocatedQty_mat: allocation matrix(M), M[i,j] denotes the minUnitQuantity of resource[i] allocated to call[j]
+  
   quantityUsed_vec <- apply(allocatedQty_mat,2,sum)
   satisfy <- all(quantityUsed_vec <= resourceQty_vec)
   if(!satisfy){
@@ -51,6 +57,10 @@ CheckQuantityConstraint <- function(allocatedQty_mat,resourceQty_vec){
 }
 
 CheckMarginConstraint <- function(allocatedQty_mat,minUnitValue_mat,haircut_mat,callAmount_vec){
+  # Check whether the allocated amount(post haircut) for a call reach the margin requirement
+  # Args:
+  #   callAmount_vec: call amount of each call
+  
   allocatedAmount_mat <- allocatedQty_mat*minUnitValue_mat*(1-haircut_mat)
   marginAllocated_vec <- apply(allocatedAmount_mat,1,sum)
   satisfy <- all(marginAllocated_vec >= callAmount_vec)
@@ -60,6 +70,9 @@ CheckMarginConstraint <- function(allocatedQty_mat,minUnitValue_mat,haircut_mat,
 }
 
 CheckDummyConstraint <- function(solution_vec,varName_vec){
+  # Check whether the relationship between quantity decision variables and their 
+  # dummy decision variables hold
+  
   ## Quantity variables info
   qtyVarNum <- GetQtyVarNum(varName_vec)
   qtyVar_vec <- solution_vec[1:qtyVarNum]
@@ -82,20 +95,21 @@ CheckDummyConstraint <- function(solution_vec,varName_vec){
   }
 }
 
-CheckMovementConstraint <- function(result_mat,operLimitMs,fungible,callInfo_df){
+CheckMovementConstraint <- function(allocatedQty_mat,operLimitMs,fungible,callInfo_df){
+  # Check whether the movement for all statements is within the limit 
+  # and the movement per statement is within the limit if fungible is FALSE
   
+  ## Calculate the movement per each statement
   msId_vec <- unique(callInfo_df$marginStatement)
   movementForMs_vec <- rep(0,length(msId_vec))
   for(i in 1:length(msId_vec)){
     idx_vec <- which(callInfo_df$marginStatement == msId_vec[i])
-    thisResult_mat <- result_mat[idx_vec,]
+    thisResult_mat <- allocatedQty_mat[idx_vec,]
     if(length(idx_vec)==1){
       movementForMs_vec[i] <- sum(thisResult_mat & 1)
     }else{
       movementForMs_vec[i] <- sum(apply(thisResult_mat & matrix(1,nrow=dim(thisResult_mat)[1], ncol=dim(thisResult_mat)[2]),2,max))
-      
     }
-    
   }
   ## Check movement limit of all statements
   satisfy1 <- sum(movementForMs_vec) <= operLimitMs*length(callInfo_df$marginStatement)
