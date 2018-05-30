@@ -48,7 +48,7 @@ callId_vec <- unlist(CallIdByMsId(msId_vec))
 #callId_vec <- unname(unlist(callIdByAgreementId(agreementId_vec)))
 clientId = '999';
 pref_vec = c(5.4,3.5);
-operLimitMs <- 1 
+operLimitMs <- 1
 fungible <- FALSE
 
 #### callInfo_df ####
