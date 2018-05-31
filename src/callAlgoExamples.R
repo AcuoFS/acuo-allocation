@@ -97,10 +97,6 @@ info_list <- ResourceInfoAndAvailAsset(assetInfo_df,oriAvailAsset_df)
 resource_df <- info_list$resource_df
 availAsset_df <- info_list$availAsset_df
 
-updateInfo <- UpdateResourceInfoAndAvailAsset(resource_df,availAsset_df,length(callInfo_df$id))
-resource_df <- updateInfo$resource_df
-availAsset_df <- updateInfo$availAsset_df
-
 #if(is.na(all(assetInfo_df$FXRate))){
 #  warning('FXRate contains NA! Use Static FX rates for this test!')
 #  ccy_vec <- c('USD', 'EUR', 'GBP', 'SGD', 'JPY', 'HKD', 'AUD', 'CNY', 'KRW', 'CAD', 'NOK', 'SEK', 'NZD')
