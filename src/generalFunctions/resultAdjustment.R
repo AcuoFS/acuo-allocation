@@ -66,16 +66,28 @@ AdjustSolverResult <- function(result_mat,quantityTotal_vec,callAmount_vec,hairc
   return(result_mat)
 }
 
-AdjustNonNegativeViolation <- function(result_mat){
-  callNum <- dim(result_mat)[1]
-  for(k in 1:callNum){
-    idxNeg_vec <- which(result_mat[k,]<0)
-    if(length(idxNeg_vec)>=1){
-      result_mat[k,idxNeg_vec] <- 0 # set to 0 first, then check the other two criteria
-      warning("Adjusted negative values to 0")
+AdjustNonNegativeViolation <- function(allocatedQty_mat){
+  # Assign 0 to negative elements in allocation matrix
+  #
+  # Args:
+  #   allocatedQty_mat[i,j] < 0 means the quantity of resource j allocated to call i is negative
+  #
+  # Returns:
+  #   the adjusted allocation matrix; 
+  #   and warning messages depends on how many adjustments have been done
+  
+  callId_vec <- rownames(allocatedQty_mat)
+  resource_vec <- colnames(allocatedQty_mat)
+  for(i in 1:length(callId_vec)){
+    idxNeg_vec <- which(allocatedQty_mat[i,] < 0)
+    if(length(idxNeg_vec) >= 1){
+      allocatedQty_mat[i,idxNeg_vec] <- 0
+      for(w in idxNeg_vec){
+        warning(paste("Adjusted negative quantity use of resource",resource_vec[w],"in margin call",callId_vec[i],"to 0"))
+      }
     }
   }
-  return(result_mat)
+  return(allocatedQty_mat)
 }
 
 AdjustQuantityLimitViolation <- function(result_mat,quantityTotal_vec,callAmount_vec,haircut_mat,minUnitValue_mat,eli_mat){
