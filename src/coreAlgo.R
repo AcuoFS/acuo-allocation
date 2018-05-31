@@ -26,7 +26,7 @@ CoreAlgoV2 <- function(callInfo_df,availAsset_df,resource_df,
   ## 1. movement limit for one or several margin statements is 1
   if(operLimitMs==1){
     availAsset_df <- HandleStatementMovementLimitIsOne(availAsset_df,callInfo_df,resource_df)
-    resource_df <- UpdateResourceByAvailAsset(availAsset_df,resource_df)
+    resource_df <- RemoveResourceNotInAvailAsset(availAsset_df,resource_df)
   }
   
   #### Derive Eligibility and Haircut Matrix ###################
