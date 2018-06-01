@@ -152,7 +152,6 @@ AllocateUnderInsufficientOptimalAssets <- function(costScore_mat,liquidityScore_
                                 lpLowerBound_vec,lpUpperBound_vec,operLimitMs,fungible)
   
   #### Adjust Solver Result ###########
-  eli_mat <- EliMat(availAsset_df,callInfo_df$id,resource_df$id)
   result_mat <- AdjustSolverResult(result_mat,resource_df$qtyMin,callInfo_df$callAmount,haircut_mat,minUnitValue_mat,eli_mat)
   
   return(result_mat)
