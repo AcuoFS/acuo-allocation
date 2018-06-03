@@ -26,7 +26,7 @@ AllocateByGroups <- function(callInfo_df,availAsset_df,resource_df,
   for(i in 1:length(groupCallId_list)){
     callIdGroup_vec <- groupCallId_list[[i]]
     
-    #### Derive the Input for One Statement ######
+    #### Derive the Input for One Group ######
     callInfoGroup_df <- callInfo_df[match(callIdGroup_vec,callInfo_df$id),]
     availAssetGroup_df <- availAsset_df[which(availAsset_df$callId %in% callIdGroup_vec),]
     resourceGroup_df <- resource_df[which(resource_df$id %in% availAssetGroup_df$assetCustacId),]
@@ -43,17 +43,18 @@ AllocateByGroups <- function(callInfo_df,availAsset_df,resource_df,
     }
     
     #### Get Allocation Result ######
-    # an initial guess of the allocation result
-    initAllocation_list <- list()
     
-    ## if pre-allocation enabled
+    ## Derive solver starting point
     if(controls$preAllocateEnable){
       preAllocateResult <- PreAllocation(callInfoGroup_df,availAssetGroup_df,resourceGroup_df,
                                          pref_vec,operLimitMs,fungible,
                                          algoVersion,ifNewAlloc,list(),minMoveValue,timeLimit)
       initAllocation_list <- preAllocateResult$callOutput_list
+    } else{
+      initAllocation_list <- list()
     }
     
+    ## Call CoreAlgo
     if(algoVersion==1){
       groupResult <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue)#,initAllocation_list)
     } else if(algoVersion==2){
@@ -63,20 +64,16 @@ AllocateByGroups <- function(callInfo_df,availAsset_df,resource_df,
                                 minMoveValue,timeLimit)
     }
     
-    ## if compare enabled (select the better result between pre-allocation and coreAlgo)
+    ## Derive final allocation result
+    # Compare the pre-allocation and CoreAlgo result objective value
     if(controls$compareEnable){
-      # compare objective value
       groupResult <- ifelse(preAllocateResult$objValue > coreAlgoResult$objValue, preAllocateResult, coreAlgoResult) 
     } else{
       groupResult <- coreAlgoResult
     }
     
     #### Store the Result #######
-    for(k in 1:length(callIdGroup_vec)){
-      callId <- callIdGroup_vec[k]
-      msId <- callInfo_df$marginStatement[which(callInfo_df$id==callId)]
-      callOutput_list[[callId]] <- groupResult$callOutput_list[[callId]]
-    }
+    callOutput_list[callIdGroup_vec] <- groupResult$callOutput_list[callIdGroup_vec]
     
     #### Update the Quantity in resource_df ##########
     # update the resource_df quantity, rounding
