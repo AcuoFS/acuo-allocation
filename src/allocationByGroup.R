@@ -91,8 +91,7 @@ PreAllocation <- function(callInfo_df,availAsset_df,resource_df,
                           minMoveValue,timeLimit){
   # Generate an allocation as the initial guess to CoreAlgo
   # The approach is to derive allocation per statement by calling CoreAlgo and then aggregate the result. 
-  # 
-  msOutput_list <- list()
+  
   callOutput_list <- list()
   objValue <- 0
   
@@ -114,31 +113,23 @@ PreAllocation <- function(callInfo_df,availAsset_df,resource_df,
     
     #### Call CoreAlgo ###########
     if(algoVersion==1){
-      resultGroup_list <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue)
+      resultGroup <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue)
     } else if(algoVersion==2){
-      resultGroup_list <- CoreAlgoV2(callInfoGroup_df,availAssetGroup_df, resourceGroup_df, 
+      resultGroup <- CoreAlgoV2(callInfoGroup_df,availAssetGroup_df, resourceGroup_df, 
                                      pref_vec,operLimitMs,fungible,
                                      ifNewAlloc,list(),allocatedGroup_list,
                                      minMoveValue,timeLimit)
     }
-    msOutputGroup_list <- resultGroup_list$msOutput_list
-    callOutputGroup_list <- resultGroup_list$callOutput_list
-    
     #### Store the Result #######
-    for(k in 1:length(callInThisMs_vec)){
-      callId <- callInThisMs_vec[k]
-      msId <- callInfo_df$marginStatement[which(callInfo_df$id==callId)]
-      callOutput_list[[callId]] <- callOutputGroup_list[[callId]]
-      msOutput_list[[msId]] <- msOutputGroup_list[[msId]]
-      objValue <- objValue + resultGroup_list$objValue
-    }
+    callOutput_list[callInThisMs_vec] <- resultGroup$callOutput_list[callInThisMs_vec]
+    objValue <- objValue + resultGroup$objValue
     
     #### Update the Quantity in resource_df ######
-    quantityUsed_vec <- UsedQtyFromResultList(callOutputGroup_list,resource_df$id,callId_vec)
+    quantityUsed_vec <- UsedQtyFromResultList(resultGroup$callOutput_list,resource_df$id,callId_vec)
     resource_df$qtyMin <- resource_df$qtyMin - quantityUsed_vec/resource_df$minUnit
   }
-  resultPre_list <- list(callOutput_list=callOutput_list,msOutput_list=msOutput_list,objValue=objValue)
-  return(resultPre_list)
+  
+  return(list(callOutput_list=callOutput_list,objValue=objValue))
 }
 
 OrderCallId <- function(callOrderMethod,callInfo_df){
