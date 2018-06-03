@@ -88,34 +88,6 @@ AllocateByGroups <- function(callInfo_df,availAsset_df,resource_df,
   return(list(callOutput_list=callOutput_list,objValue=groupResult$objValue))
 }
 
-AllocateAndCompareResults <- function(callInfo_df,availAsset_df,resource_df,
-                                      pref_vec,operLimitMs,fungible,
-                                      algoVersion,compare,ifNewAlloc,allocated_list,minMoveValue,timeLimit){
-  #### PreAllocation Allocation #################
-  preAllocateResult <- PreAllocation(callInfo_df,availAsset_df,resource_df,
-                                     pref_vec,operLimitMs,fungible,
-                                     algoVersion,ifNewAlloc,allocated_list,minMoveValue,timeLimit)
-  
-  initAllocation_list <- preAllocateResult$callOutput_list # currently, store all the cumulated margin calls
-  
-  #### CoreAlgo Allocation ######################
-  if(algoVersion==1){
-    resultGroup_list <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue)#,initAllocation_list)
-  } else if(algoVersion==2){
-    coreAlgoResult <- CoreAlgoV2(callInfo_df,availAsset_df,resource_df,
-                             pref_vec,operLimitMs,fungible,
-                             ifNewAlloc,initAllocation_list,allocated_list,
-                             minMoveValue,timeLimit)
-  }
-  
-  #### Result Selection #########################
-  # select the better result between PreAllocation and CoreAlgo
-  betterResult <- ResultSelect(preAllocateResult, coreAlgoResult,availAsset_df,resource_df,callInfo_df,pref_vec)
-  
-  #### Return Allocation Result #################
-  return(betterResult)
-}
-
 PreAllocation <- function(callInfo_df,availAsset_df,resource_df,
                           pref_vec,operLimitMs,fungible,
                           algoVersion,ifNewAlloc,allocated_list,
@@ -170,46 +142,6 @@ PreAllocation <- function(callInfo_df,availAsset_df,resource_df,
   }
   resultPre_list <- list(callOutput_list=callOutput_list,msOutput_list=msOutput_list,objValue=objValue)
   return(resultPre_list)
-}
-
-ResultSelect <- function(result1, result2,availAsset_df,resource_df,callInfo_df,pref_vec){
-  # select the allocation result which has better analytic indicators
-  # 
-  callId_vec <- callInfo_df$id
-  resource_vec <- resource_df$id
-  callOutput1 <- result1$callOutput
-  callOutput2 <- result2$callOutput
-  
-  # update the resource_df quantity, rounding
-  quantityUsed1_vec <- UsedQtyFromResultList(callOutput1,resource_vec,callId_vec)
-  quantityUsed2_vec <- UsedQtyFromResultList(callOutput2,resource_vec,callId_vec)
-  qtyMin1 <- round(resource_df$qtyMin - quantityUsed1_vec/resource_df$minUnit,4)
-  qtyMin2 <- round(resource_df$qtyMin - quantityUsed2_vec/resource_df$minUnit,4)
-  resource1_df <- resource_df
-  resource1_df$qtyMin <- qtyMin1
-  resource2_df <- resource_df
-  resource2_df$qtyMin <- qtyMin2
-  resultAnalysis1 <- DeriveResultAnalytics(availAsset_df,resource1_df,callInfo_df,callOutput1)
-  resultAnalysis2 <- DeriveResultAnalytics(availAsset_df,resource2_df,callInfo_df,callOutput2)
-  
-  # compare and select
-  cost1 <- resultAnalysis1$dailyCost
-  cost2 <- resultAnalysis2$dailyCost
-  liquidity1 <- resultAnalysis1$reservedLiquidityRatio
-  liquidity2 <- resultAnalysis2$reservedLiquidityRatio
-  movement1 <- resultAnalysis1$movements
-  movement2 <- resultAnalysis2$movements
-  
-  if(cost1 <= cost2 && liquidity1 >= liquidity2){
-    finalResult <- result1
-  }else if(pref_vec[1]>=pref_vec[2] && cost1 <= cost2){
-    finalResult <- result1
-  }else if(pref_vec[1]>=pref_vec[2] && liquidity1 >= liquidity2){
-    finalResult <- result1
-  }else{
-    finalResult <- result2
-  }
-  return(finalResult)
 }
 
 OrderCallId <- function(callOrderMethod,callInfo_df){
