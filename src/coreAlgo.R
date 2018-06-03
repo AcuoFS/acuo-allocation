@@ -61,10 +61,9 @@ CoreAlgoV2 <- function(callInfo_df,availAsset_df,resource_df,
   objValue <- sum((pref_vec[1]*costScore_mat + pref_vec[2]*liquidityScore_mat)*result_mat*minUnitValue_mat*eli_mat)
   
   #### Convert the Result from Matrix to List ####
-  result_list <- ResultMat2List(result_mat,callInfo_df,availAsset_df,resource_df)
-  result_list$objValue <- objValue
+  callOutput_list <- ResultMat2CallList(result_mat,callInfo_df,availAsset_df,resource_df)
   
-  return(result_list)
+  return(list(callOutput_list=callOutput_list,objValue=objValue))
 }
 
 renjinFix <- function(frame, name) {

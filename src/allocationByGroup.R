@@ -22,7 +22,6 @@ AllocateByGroups <- function(callInfo_df,availAsset_df,resource_df,
   groupCallId_list <- GroupCallIdByMs(maxCallNum,maxMsNum,callInfo_df,callOrderMethod)
   #### Initiate the Returned Variables #########
   callOutput_list <- list()
-  msOutput_list <- list()
   #### Iterate the Groups, Run Algo ####
   for(i in 1:length(groupCallId_list)){
     callIdGroup_vec <- groupCallId_list[[i]]
@@ -44,7 +43,6 @@ AllocateByGroups <- function(callInfo_df,availAsset_df,resource_df,
     }
     
     #### Get Allocation Result ######
-    
     # an initial guess of the allocation result
     initAllocation_list <- list()
     
@@ -78,7 +76,6 @@ AllocateByGroups <- function(callInfo_df,availAsset_df,resource_df,
       callId <- callIdGroup_vec[k]
       msId <- callInfo_df$marginStatement[which(callInfo_df$id==callId)]
       callOutput_list[[callId]] <- groupResult$callOutput_list[[callId]]
-      msOutput_list[[msId]] <- groupResult$msOutput_list[[msId]]
     }
     
     #### Update the Quantity in resource_df ##########
@@ -88,7 +85,7 @@ AllocateByGroups <- function(callInfo_df,availAsset_df,resource_df,
   }
   
   #### Return Allocation Result #################
-  return(list(callOutput_list=callOutput_list,msOutput_list=msOutput_list,objValue=groupResult$objValue))
+  return(list(callOutput_list=callOutput_list,objValue=groupResult$objValue))
 }
 
 AllocateAndCompareResults <- function(callInfo_df,availAsset_df,resource_df,

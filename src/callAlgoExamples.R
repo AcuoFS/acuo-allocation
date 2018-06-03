@@ -119,8 +119,9 @@ controls <- list(preAllocateEnable=preAllocateEnable,compareEnable=compareEnable
 # scenario 1: Algo Suggestion
 output1 <- AllocationScenario1(callInfo_df,availAsset_df,resource_df,pref_vec,operLimitMs,fungible,
                     algoVersion,controls,ifNewAlloc=T)
+msOutput1 <- CallList2MsList(output1$callOutput_list,callInfo_df)
 resultAnalysis1 <- DeriveResultAnalytics(availAsset_df,resource_df,callInfo_df,output1$callOutput)
-resultS1 <- list(callOutput=output1$callOutput_list,msOutput=output1$msOutput_list,resultAnalysis=resultAnalysis1)
+resultS1 <- list(callOutput=output1$callOutput_list,msOutput=msOutput1,resultAnalysis=resultAnalysis1)
 
 ResultList2Df(output1$callOutput_list,callInfo_df$id)
 

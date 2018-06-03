@@ -36,9 +36,8 @@ ConstructAllocDf <- function(resourceInfo_df,callInfo_df,haircutC_vec,haircutFX_
   return(alloc_df)
 }
 
-ResultMat2List <- function(result_mat,callInfo_df,availAsset_df,resource_df){
+ResultMat2CallList <- function(result_mat,callInfo_df,availAsset_df,resource_df){
   callOutput_list  <- list()    # store selected assets for each call, list by callId_vec
-  msOutput_list <- list()   # store selected assets for each margin statement, list by msId
   
   haircutC_mat <- HaircutCVec2Mat(availAsset_df$haircut,availAsset_df,callInfo_df$id,resource_df$id)
   haircutFX_mat <- HaircutFXVec2Mat(availAsset_df$FXHaircut,availAsset_df,callInfo_df$id,resource_df$id)
@@ -60,13 +59,47 @@ ResultMat2List <- function(result_mat,callInfo_df,availAsset_df,resource_df){
     
     #### Update callOutput_list ####
     callOutput_list[[callId_vec[i]]] <- alloc_df
+  }
+  return(callOutput_list)
+}
+
+ResultMat2MsList <- function(result_mat,callInfo_df,availAsset_df,resource_df){
+  msOutput_list <- list()   # store selected assets for each margin statement, list by msId
+  
+  haircutC_mat <- HaircutCVec2Mat(availAsset_df$haircut,availAsset_df,callInfo_df$id,resource_df$id)
+  haircutFX_mat <- HaircutFXVec2Mat(availAsset_df$FXHaircut,availAsset_df,callInfo_df$id,resource_df$id)
+  cost_mat <- CostVec2Mat(cost_vec = DefineCost(availAsset_df,resource_df),
+                          availAsset_df,callInfo_df$id,resource_df$id)
+  #### construct the result
+  callId_vec <- callInfo_df$id
+  for(i in 1:length(callId_vec)){      
+    # resource and result_mat columns have the same order 
+    # the allocated indexes: 
+    idx_vec <- which(result_mat[i,]!=0) 
+    if(length(idx_vec)==0){
+      errormsg <- paste("ALERR3004: There's no asset allocated to margin call",callId_vec[i])
+      stop(errormsg)
+    }
+    
+    #### Construct the Allocation dataframe for This Call ####
+    alloc_df <- ConstructAllocDf(resource_df[idx_vec,], callInfo_df[i,], haircutC_mat[i,idx_vec], haircutFX_mat[i,idx_vec],result_mat[i,idx_vec],cost_mat[i,idx_vec])
     
     #### Update msOutput_list ######
     msId <- callInfo_df$marginStatement[i]
     msOutput_list[[msId]] <- rbind(msOutput_list[[msId]],alloc_df)
   }
-  result_list <- list(callOutput_list=callOutput_list,msOutput_list=msOutput_list)
-  return(result_list)
+  return(msOutput_list)
+}
+
+CallList2MsList <- function(callOutput_list,callInfo_df){
+  msOutput_list <- list()   # store selected assets for each margin statement, list by msId
+  
+  for(i in 1:length(callOutput_list)){
+    alloc_df <- callOutput_list[[i]]
+    msId <- callInfo_df$marginStatement[match(names(callOutput_list[i]),callInfo_df$id)]
+    msOutput_list[[msId]] <- rbind(msOutput_list[[msId]],alloc_df)
+  }
+  return(msOutput_list)
 }
 
 ResultMat2ListUpdate <- function(result_mat,callId_vec,resource_vec,callInfo_df, haircutC_mat,haircutFX_mat,cost_mat,resourceInfo_df,
