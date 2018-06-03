@@ -1,11 +1,11 @@
 AllocationScenario1 <- function(callInfo_df,availAsset_df,resource_df,pref_vec,operLimitMs,fungible,
-                                algoVersion,ifNewAlloc,allocated_list,minMoveValue,timeLimit,maxCallNum,maxMsNum,callOrderMethod){
+                                algoVersion,controls,ifNewAlloc,allocated_list,minMoveValue,timeLimit,maxCallNum,maxMsNum,callOrderMethod){
   # Scenario1: algo suggestion
   #
   #### Allocate Calls by Groups ##################
   result <- AllocateByGroups(callInfo_df,availAsset_df,resource_df,
                              pref_vec,operLimitMs,fungible,
-                             algoVersion,ifNewAlloc,allocated_list,
+                             algoVersion,controls,ifNewAlloc,allocated_list,
                              minMoveValue,timeLimit,maxCallNum,maxMsNum,callOrderMethod)
   
   #### Return Allocation and Analysis Result #######
@@ -13,7 +13,7 @@ AllocationScenario1 <- function(callInfo_df,availAsset_df,resource_df,pref_vec,o
 }
 
 AllocationScenario2 <- function(callInfo_df,availAsset_df,resource_df,pref_vec,operLimitMs,fungible,
-                                algoVersion,ifNewAlloc,allocated_list,minMoveValue,timeLimit,maxCallNum,maxMsNum,callOrderMethod){
+                                algoVersion,controls,ifNewAlloc,allocated_list,minMoveValue,timeLimit,maxCallNum,maxMsNum,callOrderMethod){
   # Scenario2: allocate using settlement currency of the call
   # To similate this scenario, we need to remove the assets other than call settlement currency 
   # from both availAsset_df and resource_df
@@ -40,7 +40,7 @@ AllocationScenario2 <- function(callInfo_df,availAsset_df,resource_df,pref_vec,o
   #### Allocate Calls by Groups ##################
   result <- AllocateByGroups(callInfo_df,availAsset_df,resource_df,
                              pref_vec,operLimitMs,fungible,
-                             algoVersion,ifNewAlloc,allocated_list,
+                             algoVersion,controls,ifNewAlloc,allocated_list,
                              minMoveValue,timeLimit,maxCallNum,maxMsNum,callOrderMethod)
   
   #### Return Allocation and Analysis Result #######
@@ -48,7 +48,7 @@ AllocationScenario2 <- function(callInfo_df,availAsset_df,resource_df,pref_vec,o
 }
 
 AllocationScenario3 <- function(callInfo_df,availAsset_df,resource_df,pref_vec,operLimitMs,fungible,
-                                algoVersion,ifNewAlloc,allocated_list,minMoveValue,timeLimit,maxCallNum,maxMsNum,callOrderMethod){
+                                algoVersion,controls,ifNewAlloc,allocated_list,minMoveValue,timeLimit,maxCallNum,maxMsNum,callOrderMethod){
   # Scenario3: allocate least liquid assets
   # To similate this scenario, we need to set the pref_vec to (0,10), which
   #           means only liquidity objective is taken into account
@@ -60,7 +60,7 @@ AllocationScenario3 <- function(callInfo_df,availAsset_df,resource_df,pref_vec,o
   #### Allocate Calls by Groups ##################
   result <- AllocateByGroups(callInfo_df,availAsset_df,resource_df,
                              pref_vec,operLimitMs,fungible,
-                             algoVersion,ifNewAlloc,allocated_list,
+                             algoVersion,controls,ifNewAlloc,allocated_list,
                              minMoveValue,timeLimit,maxCallNum,maxMsNum,callOrderMethod)
   
   #### Return Allocation and Analysis Result #######

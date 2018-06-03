@@ -48,7 +48,7 @@ callId_vec <- unlist(CallIdByMsId(msId_vec))
 #callId_vec <- unname(unlist(callIdByAgreementId(agreementId_vec)))
 clientId = '999';
 pref_vec = c(5.4,3.5);
-operLimitMs <- 1
+operLimitMs <- 2
 fungible <- FALSE
 
 #### callInfo_df ####
@@ -110,16 +110,19 @@ availAsset_df <- info_list$availAsset_df
 
 
 #### Scenario Analysis Output Start #####################
-scenarios <- list()
 algoVersion <- 2
-
+preAllocateEnable <- T
+compareEnable <- F
+startPoints <- 1
+controls <- list(preAllocateEnable=preAllocateEnable,compareEnable=compareEnable, startPoints=startPoints)
 
 # scenario 1: Algo Suggestion
 output1 <- AllocationScenario1(callInfo_df,availAsset_df,resource_df,pref_vec,operLimitMs,fungible,
-                    algoVersion,ifNewAlloc=T)
+                    algoVersion,controls,ifNewAlloc=T)
 resultAnalysis1 <- DeriveResultAnalytics(availAsset_df,resource_df,callInfo_df,output1$callOutput)
 resultS1 <- list(callOutput=output1$callOutput_list,msOutput=output1$msOutput_list,resultAnalysis=resultAnalysis1)
 
+ResultList2Df(output1$callOutput_list,callInfo_df$id)
 
 # scenario 2: Post Settlement Currency
 # output2 <- AllocationScenario2(callInfo_df,availAsset_df,resource_df,pref_vec,operLimitMs,fungible,
@@ -134,7 +137,7 @@ resultS1 <- list(callOutput=output1$callOutput_list,msOutput=output1$msOutput_li
 # resultAnalysis3 <- DeriveResultAnalytics(availAsset_df,resource_df,callInfo_df,output3$callOutput)
 # resultS3 <- list(callOutput=output3$callOutput_list,msOutput=output3$msOutput_list,resultAnalysis=resultAnalysis3)
 
-
+scenarios <- list()
 scenarios[['Algo']] <- resultS1
 #scenarios[['SettleCCY']] <- result2
 #scenarios[['LeastLiquid']] <- result3

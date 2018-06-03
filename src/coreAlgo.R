@@ -56,9 +56,13 @@ CoreAlgoV2 <- function(callInfo_df,availAsset_df,resource_df,
                                                     minMoveValue,operLimitMs,fungible,timeLimit,
                                                     ifNewAlloc,allocated_list,initAllocation_list)
   }
+  #### Calculate Objective Value ########
+  minUnitValue_mat <- matrix(rep(resource_df$minUnitValue, length(callInfo_df$id)),nrow=length(callInfo_df$id),byrow = T)
+  objValue <- sum((pref_vec[1]*costScore_mat + pref_vec[2]*liquidityScore_mat)*result_mat*minUnitValue_mat*eli_mat)
   
   #### Convert the Result from Matrix to List ####
   result_list <- ResultMat2List(result_mat,callInfo_df,availAsset_df,resource_df)
+  result_list$objValue <- objValue
   
   return(result_list)
 }

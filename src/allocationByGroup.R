@@ -1,6 +1,6 @@
 AllocateByGroups <- function(callInfo_df,availAsset_df,resource_df,
                              pref_vec,operLimitMs,fungible,
-                             algoVersion,ifNewAlloc,allocated_list,
+                             algoVersion,controls,ifNewAlloc,allocated_list,
                              minMoveValue,timeLimit,maxCallNum,maxMsNum,callOrderMethod){  
   # Improve Algo performance by allocating a few calls each time instead of the entire list
   # and then update the quantity used for assets after each iteration, until all calls are allocated.
@@ -43,10 +43,36 @@ AllocateByGroups <- function(callInfo_df,availAsset_df,resource_df,
       allocatedGroup_list <- allocated_list[match(callIdGroup_vec,names(allocated_list))]
     }
     
-    #### Call AllocateAndCompareResults ####
-    groupResult <- AllocateAndCompareResults(callInfoGroup_df,availAssetGroup_df,resourceGroup_df,
-                                             pref_vec,operLimitMs,fungible,
-                                             algoVersion,ifNewAlloc,allocatedGroup_list,minMoveValue,timeLimit)
+    #### Get Allocation Result ######
+    
+    # an initial guess of the allocation result
+    initAllocation_list <- list()
+    
+    ## if pre-allocation enabled
+    if(controls$preAllocateEnable){
+      preAllocateResult <- PreAllocation(callInfoGroup_df,availAssetGroup_df,resourceGroup_df,
+                                         pref_vec,operLimitMs,fungible,
+                                         algoVersion,ifNewAlloc,list(),minMoveValue,timeLimit)
+      initAllocation_list <- preAllocateResult$callOutput_list
+    }
+    
+    if(algoVersion==1){
+      groupResult <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue)#,initAllocation_list)
+    } else if(algoVersion==2){
+      coreAlgoResult <- CoreAlgoV2(callInfoGroup_df,availAssetGroup_df,resourceGroup_df,
+                                pref_vec,operLimitMs,fungible,
+                                ifNewAlloc,initAllocation_list,allocatedGroup_list,
+                                minMoveValue,timeLimit)
+    }
+    
+    ## if compare enabled (select the better result between pre-allocation and coreAlgo)
+    if(controls$compareEnable){
+      # compare objective value
+      groupResult <- ifelse(preAllocateResult$objValue > coreAlgoResult$objValue, preAllocateResult, coreAlgoResult) 
+    } else{
+      groupResult <- coreAlgoResult
+    }
+    
     #### Store the Result #######
     for(k in 1:length(callIdGroup_vec)){
       callId <- callIdGroup_vec[k]
@@ -62,12 +88,12 @@ AllocateByGroups <- function(callInfo_df,availAsset_df,resource_df,
   }
   
   #### Return Allocation Result #################
-  return(list(callOutput_list=callOutput_list,msOutput_list=msOutput_list))
+  return(list(callOutput_list=callOutput_list,msOutput_list=msOutput_list,objValue=groupResult$objValue))
 }
 
 AllocateAndCompareResults <- function(callInfo_df,availAsset_df,resource_df,
                                       pref_vec,operLimitMs,fungible,
-                                      algoVersion,ifNewAlloc,allocated_list,minMoveValue,timeLimit){
+                                      algoVersion,compare,ifNewAlloc,allocated_list,minMoveValue,timeLimit){
   #### PreAllocation Allocation #################
   preAllocateResult <- PreAllocation(callInfo_df,availAsset_df,resource_df,
                                      pref_vec,operLimitMs,fungible,
@@ -102,6 +128,7 @@ PreAllocation <- function(callInfo_df,availAsset_df,resource_df,
   # 
   msOutput_list <- list()
   callOutput_list <- list()
+  objValue <- 0
   
   msId_vec <- unique(callInfo_df$marginStatement)
   for(i in 1:length(msId_vec)){
@@ -137,13 +164,14 @@ PreAllocation <- function(callInfo_df,availAsset_df,resource_df,
       msId <- callInfo_df$marginStatement[which(callInfo_df$id==callId)]
       callOutput_list[[callId]] <- callOutputGroup_list[[callId]]
       msOutput_list[[msId]] <- msOutputGroup_list[[msId]]
+      objValue <- objValue + resultGroup_list$objValue
     }
     
     #### Update the Quantity in resource_df ######
     quantityUsed_vec <- UsedQtyFromResultList(callOutputGroup_list,resource_df$id,callId_vec)
     resource_df$qtyMin <- resource_df$qtyMin - quantityUsed_vec/resource_df$minUnit
   }
-  resultPre_list <- list(callOutput_list=callOutput_list,msOutput_list=msOutput_list)
+  resultPre_list <- list(callOutput_list=callOutput_list,msOutput_list=msOutput_list,objValue=objValue)
   return(resultPre_list)
 }
 
