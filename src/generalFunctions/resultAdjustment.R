@@ -58,12 +58,19 @@ UpdateDummyVariable <- function(solution_vec,varName_vec){
   return(solution_vec)
 }
 
-AdjustSolverResult <- function(result_mat,quantityTotal_vec,callAmount_vec,haircut_mat,minUnitValue_mat,eli_mat){
-  ## Adjustment for Constraint Violations
-  result_mat <- AdjustNonNegativeViolation(result_mat)
-  result_mat <- AdjustQuantityLimitViolation(result_mat,quantityTotal_vec,callAmount_vec,haircut_mat,minUnitValue_mat,eli_mat)
-  result_mat <- AdjustCallRequirementViolation(result_mat,quantityTotal_vec,minUnitValue_mat,haircut_mat,callAmount_vec,eli_mat)
-  return(result_mat)
+AdjustSolverResult <- function(allocatedQty_mat,resourceQty_vec,callAmount_vec,haircut_mat,minUnitValue_mat,eli_mat){
+  # Adjust the allocation result under 3 conditions
+  #
+  # Args:
+  #   allocatedQty_mat: current allocation matrix, allocatedQty_mat[i,j] denotes the minUnit quantity of resource j allocated to call i
+  #   resourceQty_vec: minUnit quantity of each resource
+  # 
+  # Returns:
+  #   The adjusted allocation matrix
+  allocatedQty_mat <- AdjustNonNegativeViolation(allocatedQty_mat)
+  allocatedQty_mat <- AdjustQuantityLimitViolation(allocatedQty_mat,resourceQty_vec,callAmount_vec,haircut_mat,minUnitValue_mat,eli_mat)
+  allocatedQty_mat <- AdjustCallRequirementViolation(allocatedQty_mat,resourceQty_vec,minUnitValue_mat,haircut_mat,callAmount_vec,eli_mat)
+  return(allocatedQty_mat)
 }
 
 AdjustNonNegativeViolation <- function(allocatedQty_mat){
@@ -90,14 +97,14 @@ AdjustNonNegativeViolation <- function(allocatedQty_mat){
   return(allocatedQty_mat)
 }
 
-AdjustQuantityLimitViolation <- function(result_mat,resourceQty_vec,callAmount_vec,haircut_mat,minUnitValue_mat,eli_mat){
+AdjustQuantityLimitViolation <- function(allocatedQty_mat,resourceQty_vec,callAmount_vec,haircut_mat,minUnitValue_mat,eli_mat){
   # Adjust the allocation result to meet quantity constraints
   # if the quantity used of any resource exceeds the limit
   # 
   # Variables:
   #   idxExcess_vec: the indexes of the resources violate the quantity limit
   
-  quantityUsed_vec <- apply(result_mat,2,sum)
+  quantityUsed_vec <- apply(allocatedQty_mat,2,sum)
   idxExcess_vec <- which(quantityUsed_vec > resourceQty_vec)
   if(length(idxExcess_vec) > 0){
     ## Iterate the resources
@@ -106,10 +113,10 @@ AdjustQuantityLimitViolation <- function(result_mat,resourceQty_vec,callAmount_v
       #		First row is the call ids which this resource allocated to; 
       #		Second row is the minUnit quantity used for each allocation to the call.
       #		Order by quantity, ascending
-      # which(result_mat[,i] > 0): find the call indexes that this resource allocated to
-      # result_mat[which(result_mat[,i]>0),i]: the quantity allocated to the calls
+      # which(allocatedQty_mat[,i] > 0): find the call indexes that this resource allocated to
+      # allocatedQty_mat[which(allocatedQty_mat[,i]>0),i]: the quantity allocated to the calls
       
-      thisAlloc_mat <- matrix(c(which(result_mat[,i]>0),result_mat[which(result_mat[,i]>0),i]),nrow=2,byrow=T)
+      thisAlloc_mat <- matrix(c(which(allocatedQty_mat[,i]>0),allocatedQty_mat[which(allocatedQty_mat[,i]>0),i]),nrow=2,byrow=T)
       if(length(thisAlloc_mat[1,])>1){
         thisAlloc_mat <- thisAlloc_mat[,order(thisAlloc_mat[2,])]
       }
@@ -129,14 +136,15 @@ AdjustQuantityLimitViolation <- function(result_mat,resourceQty_vec,callAmount_v
         # (1) if there is, then add more units of this allocated resource
         # (2) if not, then choose another unallocated resource to fulfill the missing amount
         
-        missingAmount <- CalculateMissingCallAmount(result_mat,minUnitValue_mat,haircut_mat,idxCall,callAmount_vec[idxCall],i,newQuantity)
+        missingAmount <- CalculateMissingCallAmount(allocatedQty_mat,idxCall,callAmount_vec[idxCall],i,newQuantity,minUnitValue_mat,haircut_mat)
         
         if(missingAmount <= 0){
-          result_mat[idxCall,i] <- newQuantity
+          allocatedQty_mat[idxCall,i] <- newQuantity
           break
         } else{
-          result_mat[idxCall,i] <- newQuantity
-          result_mat <- FulfillMissingCallAmount(missingAmount,result_mat,thisAlloc_mat,resourceQty_vec,quantityUsed_vec,idxCall,callAmount,i,minUnitValue_mat,haircut_mat,eli_mat)
+          allocatedQty_mat[idxCall,i] <- newQuantity
+          allocatedQty_mat <- FulfillMissingCallAmount(allocatedQty_mat,idxCall,i,missingAmount,callAmount,thisAlloc_mat,resourceQty_vec,quantityUsed_vec,
+                                                 minUnitValue_mat,haircut_mat,eli_mat)
         }
         
         # Update thisAlloc_mat, quantityUsed_vec
@@ -145,21 +153,21 @@ AdjustQuantityLimitViolation <- function(result_mat,resourceQty_vec,callAmount_v
         } else{
           thisAlloc_mat[2,k] <- newQuantity
         }
-        quantityUsed_vec <- apply(result_mat,2,sum)
+        quantityUsed_vec <- apply(allocatedQty_mat,2,sum)
       }
     }
   }
-  return(result_mat)
+  return(allocatedQty_mat)
 }
 
-AdjustCallRequirementViolation <- function(result_mat,quantityTotal_vec,minUnitValue_mat,haircut_mat,callAmount_vec,eli_mat){
+AdjustCallRequirementViolation <- function(allocatedQty_mat,resourceQty_vec,minUnitValue_mat,haircut_mat,callAmount_vec,eli_mat){
   # Adjust the allocation result to meet the margin call requirement
   # if the margin call is not fully fulfilled
   #
   # Variables:
   #   idxCallMissing_vec: indexes of the calls which are not fully fulfilled
   
-  callFulfilled_vec <- CalculateAllocatedCallAmount(result_mat,minUnitValue_mat,haircut_mat,1:dim(result_mat)[1])
+  callFulfilled_vec <- CalculateAllocatedCallAmount(allocatedQty_mat,minUnitValue_mat,haircut_mat,1:dim(allocatedQty_mat)[1])
   callMissingAmount_vec <- callAmount_vec - callFulfilled_vec
   idxCallMissing_vec <- which(callMissingAmount_vec > 0)
   
@@ -167,17 +175,18 @@ AdjustCallRequirementViolation <- function(result_mat,quantityTotal_vec,minUnitV
     
     for(idxCall in idxCallMissing_vec){
       
-      thisAlloc_mat <- matrix(c(which(result_mat[idxCall,]>0),result_mat[idxCall,which(result_mat[idxCall,]>0)]),nrow=2,byrow=T)
+      thisAlloc_mat <- matrix(c(which(allocatedQty_mat[idxCall,]>0),allocatedQty_mat[idxCall,which(allocatedQty_mat[idxCall,]>0)]),nrow=2,byrow=T)
       
       missingAmount <- callMissingAmount_vec[idxCall]
       
-      quantityUsed_vec <- apply(result_mat,2,sum)
-      result_mat <- FulfillMissingCallAmount(missingAmount,result_mat,thisAlloc_mat,quantityTotal_vec,quantityUsed_vec,idxCall,callAmount,idxCall,minUnitValue_mat,haircut_mat,eli_mat)
+      quantityUsed_vec <- apply(allocatedQty_mat,2,sum)
+      allocatedQty_mat <- FulfillMissingCallAmount(allocatedQty_mat,idxCall,idxOldResource,missingAmount,callAmount,thisAlloc_mat,resourceQty_vec,quantityUsed_vec,
+                                             minUnitValue_mat,haircut_mat,eli_mat)
       
-      quantityUsed_vec <- apply(result_mat,2,sum)
+      quantityUsed_vec <- apply(allocatedQty_mat,2,sum)
     }
   }
-  return(result_mat)
+  return(allocatedQty_mat)
 }
 
 CalculateAllocatedCallAmount <- function(allocatedQty_mat,minUnitValue_mat,haircut_mat,callIdx){
@@ -189,6 +198,17 @@ CalculateAllocatedCallAmount <- function(allocatedQty_mat,minUnitValue_mat,hairc
 }
 
 DetermineNewQuantityToUseOfExcessResourceForCall <- function(quantityUsedForCall,quantityTotal,quantityUsed){
+  # Calculate the new quantity of a resource to allocate to a call in the case that the resource is overused:
+  #   quantityUsed > quantityTotal
+  # If the excess quantity is larger than the quantity used in the call, then we remove this resource from the allocation in this call
+  # If not, we deduct the excess quantity of this resource from the allocation in this call
+  # 
+  # Args:
+  #   quantityUsedForCall: the quantity of the resource already allocated to the call
+  #
+  # Returns:
+  #   the new quanity of the resource to allocate to the call
+  
   if(quantityUsedForCall < quantityUsed - quantityTotal){
     # current allocated quantity < excess quanity
     # which indicates that even we adjust the quantity used in this call to 0,
@@ -201,35 +221,63 @@ DetermineNewQuantityToUseOfExcessResourceForCall <- function(quantityUsedForCall
   return(newQuantity)
 }
 
-CalculateMissingCallAmount <- function(result_mat,minUnitValue_mat,haircut_mat,idxCall,callAmount,idxOldResource,oldResourceNewQuantity){
-  # Calculate the call amount absent after changing an allocated resource quantity
-  newResult_mat <- result_mat
-  newResult_mat[idxCall,idxOldResource] <- oldResourceNewQuantity
-  allocatedAmountAfterDeduct <- CalculateAllocatedCallAmount(newResult_mat,minUnitValue_mat,haircut_mat,idxCall)
+CalculateMissingCallAmount <- function(allocatedQty_mat,idxCall,callAmount,idxOldResource,oldResourceNewQuantity,minUnitValue_mat,haircut_mat){
+  # Calculate the call amount absent after changing an allocated resource quantity, which means if the new quantity is
+  # less than the old quantity, missing amount will be larger than 0
+  #
+  # Args:
+  #   allocatedQty_mat: current allocation matrix, allocatedQty_mat[i,j] denotes the minUnit quantity of resource j allocated to call i
+  #   idxCall: the margin call index in allocatedQty_mat
+  #   callAmount: the amount of this call requirement
+  #   idxOldResource: the resource index in allocatedQty_mat
+  #   oldResourceNewQuantity: the new quantity of this resource to use
+  #
+  # Returns:
+  #   the missing amount
+  newAllocatedQty_mat <- allocatedQty_mat
+  newAllocatedQty_mat[idxCall,idxOldResource] <- oldResourceNewQuantity
+  allocatedAmountAfterDeduct <- CalculateAllocatedCallAmount(newAllocatedQty_mat,minUnitValue_mat,haircut_mat,idxCall)
   missingAmount <- callAmount - allocatedAmountAfterDeduct
   return(missingAmount)
 }
 
-FulfillMissingCallAmount <- function(missingAmount,result_mat,thisAlloc_mat,quantityTotal_vec,quantityUsed_vec,idxCall,callAmount,idxOldResource,minUnitValue_mat,haircut_mat,eli_mat){
-  
+FulfillMissingCallAmount <- function(allocatedQty_mat,idxCall,idxOldResource,missingAmount,callAmount,thisAlloc_mat,resourceQty_vec,quantityUsed_vec,
+                                     minUnitValue_mat,haircut_mat,eli_mat){
+  # Adjust the quantity of resources allocated to the call which is partially fulfilled
+  #
+  # Args:
+  #   allocatedQty_mat: current allocation matrix, allocatedQty_mat[i,j] denotes the minUnit quantity of resource j allocated to call i
+  #   idxCall: the margin call index in allocatedQty_mat
+  #   idxOldResource: the resource index in allocatedQty_mat
+  #   missingAmount: the part of this call requirement hasn't been fulfilled
+  #   callAmount: the amount of this call requirement
+  #   thisAlloc_mat: current allocation of this resource, thisAlloc_mat[1,i] and thisAlloc_mat[2,i] denote the 
+  #                  call index this resource allocated to and the minUnit quanity allocated
+  #   resourceQty_vec: a vector of the total minUnit quantity of each resource
+  #   quantityUsed_vec: a vector of the used minUnit quantity of each resource
+  #   minUnitValue_mat,haircut_mat,eli_mat
+  #
   # Variables:
   #   missingQuantity: the quantity needed to meet a missing amount of a call
   # 	idxSuff_vec: the resource indexes which are sufficient to fulfill the missingAmount 
   #		idxSuffAlloc_vec: the allocated resource indexes which are sufficient to fulfill the missingAmount
   #   newResourceQuantity: the new allocation quantity of the resource to substitute the old resource
+  #
+  # Returns:
+  #   new allocation result matrix
   
   missingQuantity_vec <- CalculateIntegralUnit(missingAmount,minUnitValue_mat[idxCall,],1-haircut_mat[idxCall,])
-  idxSuff_vec <- intersect(which(quantityTotal_vec - quantityUsed_vec >= missingQuantity_vec),which(eli_mat[idxCall,]==1))
+  idxSuff_vec <- intersect(which(resourceQty_vec - quantityUsed_vec >= missingQuantity_vec),which(eli_mat[idxCall,]==1))
   if(length(idxSuff_vec) > 0){
-    idxSuffAlloc_vec <- intersect(which(result_mat[idxCall,] > 0),idxSuff_vec)
+    idxSuffAlloc_vec <- intersect(which(allocatedQty_mat[idxCall,] > 0),idxSuff_vec)
     if(length(idxSuffAlloc_vec) >= 1){
       idxNewResource <- idxSuffAlloc_vec[1]
     }else{
       idxNewResource <- idxSuff_vec[1]
     }
-    newResourceQuantity <- missingQuantity_vec[idxNewResource] + result_mat[idxCall,idxNewResource]
-    result_mat[idxCall,idxNewResource] <- newResourceQuantity
-    return(result_mat)
+    newResourceQuantity <- missingQuantity_vec[idxNewResource] + allocatedQty_mat[idxCall,idxNewResource]
+    allocatedQty_mat[idxCall,idxNewResource] <- newResourceQuantity
+    return(allocatedQty_mat)
   } else{
     # which means none of the asset itself is enough to to fulfill the left amount of the margin call
     # This should be a very extreme case, and it's more complicated to develop for this case
@@ -238,6 +286,6 @@ FulfillMissingCallAmount <- function(missingAmount,result_mat,thisAlloc_mat,quan
     
     # None of resources have sufficient quantity left to fulfill the missing call amount
     # In this scenario, we will exit the manual adjustment
-    stop(Paste("Exit the adjustment due to insufficient for assets call",rownames(result_mat)[idxCall]))
+    stop(Paste("Exit the adjustment due to insufficient for assets call",rownames(allocatedQty_mat)[idxCall]))
   }
 }
