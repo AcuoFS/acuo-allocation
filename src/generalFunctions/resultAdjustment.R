@@ -103,7 +103,8 @@ AdjustQuantityLimitViolation <- function(allocatedQty_mat,resourceQty_vec,callAm
   # 
   # Variables:
   #   idxExcess_vec: the indexes of the resources violate the quantity limit
-  
+  resource_vec <- colnames(allocatedQty_mat)
+  callId_vec <- rownames(allocatedQty_mat)
   quantityUsed_vec <- apply(allocatedQty_mat,2,sum)
   idxExcess_vec <- which(quantityUsed_vec > resourceQty_vec)
   if(length(idxExcess_vec) > 0){
@@ -143,17 +144,23 @@ AdjustQuantityLimitViolation <- function(allocatedQty_mat,resourceQty_vec,callAm
           break
         } else{
           allocatedQty_mat[idxCall,i] <- newQuantity
-          allocatedQty_mat <- FulfillMissingCallAmount(allocatedQty_mat,idxCall,i,missingAmount,callAmount,thisAlloc_mat,resourceQty_vec,quantityUsed_vec,
+          allocatedQty_mat <- FulfillMissingCallAmount(allocatedQty_mat,idxCall,missingAmount,callAmount,thisAlloc_mat,resourceQty_vec,quantityUsed_vec,
                                                  minUnitValue_mat,haircut_mat,eli_mat)
         }
         
-        # Update thisAlloc_mat, quantityUsed_vec
+        ## Update thisAlloc_mat, quantityUsed_vec
         if(newQuantity==thisAlloc_mat[2,k]){
           thisAlloc_mat <- thisAlloc_mat[,-k]
         } else{
           thisAlloc_mat[2,k] <- newQuantity
         }
-        quantityUsed_vec <- apply(allocatedQty_mat,2,sum)
+        temp <- apply(allocatedQty_mat,2,sum)
+        idxNewReource <- which(temp - quantityUsed_vec > 0)
+        quantityUsed_vec <- temp
+        
+        ## warning
+        warning(paste("Adjusted excessive quantity use of resource",resource_vec[i],"in margin call",callId_vec[idxCall],"to",newQuantity,
+                      "and replace using another resource",resource_vec[idxNewReource]))
       }
     }
   }
@@ -166,7 +173,8 @@ AdjustCallRequirementViolation <- function(allocatedQty_mat,resourceQty_vec,minU
   #
   # Variables:
   #   idxCallMissing_vec: indexes of the calls which are not fully fulfilled
-  
+  resource_vec <- colnames(allocatedQty_mat)
+  callId_vec <- rownames(allocatedQty_mat)
   callFulfilled_vec <- CalculateAllocatedCallAmount(allocatedQty_mat,minUnitValue_mat,haircut_mat,1:dim(allocatedQty_mat)[1])
   callMissingAmount_vec <- callAmount_vec - callFulfilled_vec
   idxCallMissing_vec <- which(callMissingAmount_vec > 0)
@@ -180,10 +188,16 @@ AdjustCallRequirementViolation <- function(allocatedQty_mat,resourceQty_vec,minU
       missingAmount <- callMissingAmount_vec[idxCall]
       
       quantityUsed_vec <- apply(allocatedQty_mat,2,sum)
-      allocatedQty_mat <- FulfillMissingCallAmount(allocatedQty_mat,idxCall,idxOldResource,missingAmount,callAmount,thisAlloc_mat,resourceQty_vec,quantityUsed_vec,
+      allocatedQty_mat <- FulfillMissingCallAmount(allocatedQty_mat,idxCall,missingAmount,callAmount,thisAlloc_mat,resourceQty_vec,quantityUsed_vec,
                                              minUnitValue_mat,haircut_mat,eli_mat)
       
-      quantityUsed_vec <- apply(allocatedQty_mat,2,sum)
+      temp <- apply(allocatedQty_mat,2,sum)
+      idxNewReource <- which(temp - quantityUsed_vec > 0)
+      quantityUsed_vec <- temp
+      
+      ## warning
+      warning(paste("Fulfilled the incompleted the call",callId_vec[idxCall],
+                    "with resource",resource_vec[idxNewReource]))
     }
   }
   return(allocatedQty_mat)
@@ -241,14 +255,13 @@ CalculateMissingCallAmount <- function(allocatedQty_mat,idxCall,callAmount,idxOl
   return(missingAmount)
 }
 
-FulfillMissingCallAmount <- function(allocatedQty_mat,idxCall,idxOldResource,missingAmount,callAmount,thisAlloc_mat,resourceQty_vec,quantityUsed_vec,
+FulfillMissingCallAmount <- function(allocatedQty_mat,idxCall,missingAmount,callAmount,thisAlloc_mat,resourceQty_vec,quantityUsed_vec,
                                      minUnitValue_mat,haircut_mat,eli_mat){
   # Adjust the quantity of resources allocated to the call which is partially fulfilled
   #
   # Args:
   #   allocatedQty_mat: current allocation matrix, allocatedQty_mat[i,j] denotes the minUnit quantity of resource j allocated to call i
   #   idxCall: the margin call index in allocatedQty_mat
-  #   idxOldResource: the resource index in allocatedQty_mat
   #   missingAmount: the part of this call requirement hasn't been fulfilled
   #   callAmount: the amount of this call requirement
   #   thisAlloc_mat: current allocation of this resource, thisAlloc_mat[1,i] and thisAlloc_mat[2,i] denote the 
