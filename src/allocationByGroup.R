@@ -22,6 +22,8 @@ AllocateByGroups <- function(callInfo_df,availAsset_df,resource_df,
   groupCallId_list <- GroupCallIdByMs(maxCallNum,maxMsNum,callInfo_df,callOrderMethod)
   #### Initiate the Returned Variables #########
   callOutput_list <- list()
+  result_mat <- matrix(0,nrow = length(callInfo_df$id),ncol = length(resource_df$id),
+                       dimnames = list(callInfo_df$id,resource_df$id))
   #### Iterate the Groups, Run Algo ####
   for(i in 1:length(groupCallId_list)){
     callIdGroup_vec <- groupCallId_list[[i]]
@@ -73,16 +75,19 @@ AllocateByGroups <- function(callInfo_df,availAsset_df,resource_df,
     }
     
     #### Store the Result #######
-    callOutput_list[callIdGroup_vec] <- groupResult$callOutput_list[callIdGroup_vec]
-    
+    #callOutput_list[callIdGroup_vec] <- groupResult$callOutput_list[callIdGroup_vec]
+    result_mat[match(callIdGroup_vec,rownames(result_mat)),
+               match(resourceGroup_df$id,resource_df$id)] <- groupResult$result_mat
     #### Update the Quantity in resource_df ##########
     # update the resource_df quantity, rounding
-    quantityUsed_vec <- UsedQtyFromResultList(groupResult$callOutput_list,resource_df$id,callInfo_df$id)
+    #quantityUsed_vec <- UsedQtyFromResultList(groupResult$callOutput_list,resource_df$id,callInfo_df$id)
+    quantityUsed_vec <- apply(result_mat, 2, sum)
     resource_df$qtyMin <- round(resource_df$qtyMin - quantityUsed_vec/resource_df$minUnit,4)
   }
   
   #### Return Allocation Result #################
-  return(list(callOutput_list=callOutput_list,objValue=groupResult$objValue))
+  #return(list(callOutput_list=callOutput_list,objValue=groupResult$objValue))
+  return(result_mat)
 }
 
 PreAllocation <- function(callInfo_df,availAsset_df,resource_df,
@@ -93,6 +98,8 @@ PreAllocation <- function(callInfo_df,availAsset_df,resource_df,
   # The approach is to derive allocation per statement by calling CoreAlgo and then aggregate the result. 
   
   callOutput_list <- list()
+  result_mat <- matrix(0,nrow = length(callInfo_df$id),ncol = length(resource_df$id),
+                       dimnames = list(callInfo_df$id,resource_df$id))
   objValue <- 0
   
   msId_vec <- unique(callInfo_df$marginStatement)
@@ -113,23 +120,27 @@ PreAllocation <- function(callInfo_df,availAsset_df,resource_df,
     
     #### Call CoreAlgo ###########
     if(algoVersion==1){
-      resultGroup <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue)
+      groupResult <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue)
     } else if(algoVersion==2){
-      resultGroup <- CoreAlgoV2(callInfoGroup_df,availAssetGroup_df, resourceGroup_df, 
+      groupResult <- CoreAlgoV2(callInfoGroup_df,availAssetGroup_df, resourceGroup_df, 
                                      pref_vec,operLimitMs,fungible,
                                      ifNewAlloc,list(),allocatedGroup_list,
                                      minMoveValue,timeLimit)
     }
     #### Store the Result #######
-    callOutput_list[callInThisMs_vec] <- resultGroup$callOutput_list[callInThisMs_vec]
-    objValue <- objValue + resultGroup$objValue
+    #callOutput_list[callInThisMs_vec] <- groupResult$callOutput_list[callInThisMs_vec]
+    result_mat[match(callInThisMs_vec,rownames(result_mat)),
+               match(resourceGroup_df$id,resource_df$id)] <- groupResult$result_mat
+    objValue <- objValue + groupResult$objValue
     
     #### Update the Quantity in resource_df ######
-    quantityUsed_vec <- UsedQtyFromResultList(resultGroup$callOutput_list,resource_df$id,callId_vec)
+    #quantityUsed_vec <- UsedQtyFromResultList(groupResult$callOutput_list,resource_df$id,callId_vec)
+    quantityUsed_vec <- apply(result_mat, 2, sum)
     resource_df$qtyMin <- resource_df$qtyMin - quantityUsed_vec/resource_df$minUnit
   }
   
-  return(list(callOutput_list=callOutput_list,objValue=objValue))
+  #return(list(callOutput_list=callOutput_list,objValue=objValue))
+  return(list(result_mat=result_mat,objValue=groupResult$objValue))
 }
 
 OrderCallId <- function(callOrderMethod,callInfo_df){

@@ -63,7 +63,7 @@ CoreAlgoV2 <- function(callInfo_df,availAsset_df,resource_df,
   #### Convert the Result from Matrix to List ####
   callOutput_list <- ResultMat2CallList(result_mat,callInfo_df,availAsset_df,resource_df)
   
-  return(list(callOutput_list=callOutput_list,objValue=objValue))
+  return(list(result_mat=result_mat,objValue=objValue))
 }
 
 renjinFix <- function(frame, name) {

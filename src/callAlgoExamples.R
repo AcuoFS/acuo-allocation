@@ -117,13 +117,14 @@ startPoints <- 1
 controls <- list(preAllocateEnable=preAllocateEnable,compareEnable=compareEnable, startPoints=startPoints)
 
 # scenario 1: Algo Suggestion
-output1 <- AllocationScenario1(callInfo_df,availAsset_df,resource_df,pref_vec,operLimitMs,fungible,
+result_mat <- AllocationScenario1(callInfo_df,availAsset_df,resource_df,pref_vec,operLimitMs,fungible,
                     algoVersion,controls,ifNewAlloc=T)
-msOutput1 <- CallList2MsList(output1$callOutput_list,callInfo_df)
-resultAnalysis1 <- DeriveResultAnalytics(availAsset_df,resource_df,callInfo_df,output1$callOutput)
-resultS1 <- list(callOutput=output1$callOutput_list,msOutput=msOutput1,resultAnalysis=resultAnalysis1)
+callOutput_list <- ResultMat2CallList(result_mat,callInfo_df,availAsset_df,resource_df)
+msOutput_list <- CallList2MsList(callOutput_list,callInfo_df)
+resultAnalysis1 <- DeriveResultAnalytics(availAsset_df,resource_df,callInfo_df,callOutput_list)
+resultS1 <- list(callOutput=callOutput_list,msOutput=msOutput_list,resultAnalysis=resultAnalysis1)
 
-ResultList2Df(output1$callOutput_list,callInfo_df$id)
+ResultList2Df(callOutput_list,callInfo_df$id)
 
 # scenario 2: Post Settlement Currency
 # output2 <- AllocationScenario2(callInfo_df,availAsset_df,resource_df,pref_vec,operLimitMs,fungible,
