@@ -141,6 +141,8 @@ AdjustQuantityLimitViolation <- function(allocatedQty_mat,resourceQty_vec,callAm
         
         if(missingAmount <= 0){
           allocatedQty_mat[idxCall,i] <- newQuantity
+          ## warning
+          warning(paste("Adjusted excessive quantity use of resource",resource_vec[i],"in margin call",callId_vec[idxCall],"to",newQuantity))
           break
         } else{
           allocatedQty_mat[idxCall,i] <- newQuantity
@@ -196,7 +198,7 @@ AdjustCallRequirementViolation <- function(allocatedQty_mat,resourceQty_vec,minU
       quantityUsed_vec <- temp
       
       ## warning
-      warning(paste("Fulfilled the incompleted the call",callId_vec[idxCall],
+      warning(paste("Fulfilled the incompleted call",callId_vec[idxCall],
                     "with resource",resource_vec[idxNewReource]))
     }
   }
