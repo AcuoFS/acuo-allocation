@@ -59,7 +59,7 @@ RemoveResourcesNotSufficientForBothCallsFromAvailAsset <- function(availAsset_df
   twoCallAmounts <- callInfo_df$callAmount[match(twoCallIds,callInfo_df$id)]
   suffResource_vec <- FindSufficientResourcesForBothCalls(availAsset_df,resource_df,twoCallIds,twoCallAmounts)
   if(length(suffResource_vec)>0){
-    rmIdx_vec <- which(availAsset_df$callId %in% twoCallIds && !(availAsset_df$assetCustacId %in% suffResource_vec)) 
+    rmIdx_vec <- which(availAsset_df$callId %in% twoCallIds && !(availAsset_df$resource %in% suffResource_vec)) 
     
     availAsset_df <- RemoveRowsInAvailAsset(availAsset_df,rmIdx_vec)
     return(availAsset_df)
@@ -74,7 +74,7 @@ RemoveResourcesNotEligibleForBothCallsFromAvailAsset <- function(availAsset_df,t
   #
   # Args:  
   #   availAsset_df: margin calls' available resources info   
-  #     columns will be used: callId, assetCustacId
+  #     columns will be used: callId, resource
   #   twoCallIds: the two margin calls 
   #   msId: the margin statement of the two margin calls 
   # 
@@ -86,8 +86,8 @@ RemoveResourcesNotEligibleForBothCallsFromAvailAsset <- function(availAsset_df,t
   idxEliCall2_vec <- which(availAsset_df$callId==twoCallIds[2]) 
   
   # the corresponding resource ids and common resource ids
-  resourceEliCall1_vec <- availAsset_df$assetCustacId[idxEliCall1_vec]
-  resourceEliCall2_vec <- availAsset_df$assetCustacId[idxEliCall2_vec]
+  resourceEliCall1_vec <- availAsset_df$resource[idxEliCall1_vec]
+  resourceEliCall2_vec <- availAsset_df$resource[idxEliCall2_vec]
   commonResource_vec <- intersect(resourceEliCall1_vec,resourceEliCall2_vec) 
   
   # remove the rows with those resoures
@@ -121,7 +121,7 @@ FindSufficientResourcesForBothCalls <- function(availAsset_df,resource_df,twoCal
   # eligible resources indexes for call1 and call2 in availAsset_df
   idxEliCall1_vec <- which(availAsset_df$callId==twoCallIds[1]) 
   idxEliCall2_vec <- which(availAsset_df$callId==twoCallIds[2]) 
-  commonResource_vec <- availAsset_df$assetCustacId[idxEliCall1_vec]
+  commonResource_vec <- availAsset_df$resource[idxEliCall1_vec]
   
   # the corresponding resource ids for call1 and call2 and common resource ids
   idxResource_vec <- match(commonResource_vec,resource_df$id)

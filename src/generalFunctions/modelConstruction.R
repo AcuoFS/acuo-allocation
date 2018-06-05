@@ -425,7 +425,7 @@ DeriveOptimalAssetsV1 <- function(minUnitQuantity_mat,eli_mat,callAmount_mat,hai
   optimal_mat <- normOperation_mat*pref_vec[3]+normLiquidity_mat*pref_vec[2]+normCost_mat*pref_vec[1]
   colnames(optimal_mat) <- resource_vec; rownames(optimal_mat)<-callId_vec
   
-  optimalAsset_mat <- matrix(c(callId_vec,rep('', callNum)),nrow=callNum,ncol=2,dimnames = list(callId_vec,c('callId','assetCustacId')))
+  optimalAsset_mat <- matrix(c(callId_vec,rep('', callNum)),nrow=callNum,ncol=2,dimnames = list(callId_vec,c('callId','resource')))
   
   tempMinUnitQuantity_mat <- minUnitQuantity_mat
   for(i in 1:callNum){
@@ -504,7 +504,7 @@ DeriveVarName <- function(callInfo_df, availAsset_df){
   dummyName_vec <- vector()
   
   for(i in 1:dim(availAsset_df)[1]){
-    resource <- availAsset_df$assetCustacId[i]
+    resource <- availAsset_df$resource[i]
     callId <- availAsset_df$callId[i]
     msId <- callInfo_df$marginStatement[match(callId, callInfo_df$id)]
     quantityName_vec[i] <- PasteVarName(msId,callId,resource)
@@ -530,19 +530,20 @@ GetQtyVarNum <- function(varName_vec){
   return(qtyVarNum)
 }
 
-EliMat <- function(availAsset_df,callId_vec,resource_vec){
+EliMat <- function(CRMap_df,callId_vec,resource_vec){
   # Construct eligibility matrix with call ids and resource ids as two dimensions
   #
-  # Args: availAsset_df
-  #         columns to be used: callId, assetCustacId
+  # Args:
+  #   CRMap_df: callId, resourceId availability mapping
+  #
   # Returns:
   #   haircut matrix
   
   eli_mat <- matrix(0,nrow=length(callId_vec),ncol=length(resource_vec),
                     dimnames = list(callId_vec,resource_vec))
   
-  idxCallId_vec <- match(availAsset_df$callId,callId_vec)
-  idxResource_vec <- match(availAsset_df$assetCustacId,resource_vec)
+  idxCallId_vec <- match(CRMap_df$callId,callId_vec)
+  idxResource_vec <- match(CRMap_df$resource,resource_vec)
   
   eli_mat[cbind(idxCallId_vec,idxResource_vec)] <- 1
   return(eli_mat)
@@ -551,7 +552,7 @@ EliMat <- function(availAsset_df,callId_vec,resource_vec){
 HaircutCVec2Mat <- function(haircutC_vec,availAsset_df,callId_vec,resource_vec){
   # Construct Collateral haircut matrix with call ids and resource ids as two dimensions
   #
-  # Args: availAsset_df(columns to be used: haircut, callId, assetCustacId)
+  # Args: availAsset_df(columns to be used: haircut, callId, resource)
   #
   # Returns:
   #   haircut matrix
@@ -560,7 +561,7 @@ HaircutCVec2Mat <- function(haircutC_vec,availAsset_df,callId_vec,resource_vec){
                          dimnames = list(callId_vec,resource_vec))
   
   idxCallId_vec <- match(availAsset_df$callId,callId_vec)
-  idxResource_vec <- match(availAsset_df$assetCustacId,resource_vec)
+  idxResource_vec <- match(availAsset_df$resource,resource_vec)
   
   haircutC_mat[cbind(idxCallId_vec,idxResource_vec)] <- haircutC_vec
   return(haircutC_mat)
@@ -570,7 +571,7 @@ HaircutFXVec2Mat <- function(haircutFX_vec,availAsset_df,callId_vec,resource_vec
   # Construct FX haircut matrix with call ids and resource ids as two dimensions
   #
   # Args: availAsset_df
-  #         columns to be used: haircutFX, callId, assetCustacId
+  #         columns to be used: callId, resource
   # Returns:
   #   haircut matrix
   
@@ -578,7 +579,7 @@ HaircutFXVec2Mat <- function(haircutFX_vec,availAsset_df,callId_vec,resource_vec
                           dimnames = list(callId_vec,resource_vec))
   
   idxCallId_vec <- match(availAsset_df$callId,callId_vec)
-  idxResource_vec <- match(availAsset_df$assetCustacId,resource_vec)
+  idxResource_vec <- match(availAsset_df$resource,resource_vec)
   
   haircutFX_mat[cbind(idxCallId_vec,idxResource_vec)] <- haircutFX_vec
   return(haircutFX_mat)
@@ -587,7 +588,7 @@ HaircutFXVec2Mat <- function(haircutFX_vec,availAsset_df,callId_vec,resource_vec
 HaircutVec2Mat <- function(haircut_vec,availAsset_df,callId_vec,resource_vec){
   # Construct total haircut matrix with call ids and resource ids as two dimensions
   #
-  # Args: availAsset_df(columns to be used: haircutC, haircutFX, callId, assetCustacId)
+  # Args: availAsset_df(columns to be used: haircutC, haircutFX, callId, resource)
   #
   # Returns:
   #   haircut matrix
@@ -596,7 +597,7 @@ HaircutVec2Mat <- function(haircut_vec,availAsset_df,callId_vec,resource_vec){
                         dimnames = list(callId_vec,resource_vec))
   
   idxCallId_vec <- match(availAsset_df$callId,callId_vec)
-  idxResource_vec <- match(availAsset_df$assetCustacId,resource_vec)
+  idxResource_vec <- match(availAsset_df$resource,resource_vec)
   
   haircut_mat[cbind(idxCallId_vec,idxResource_vec)] <- haircut_vec
   return(haircut_mat)
@@ -615,7 +616,7 @@ CostVec2Mat <- function(cost_vec,availAsset_df,callId_vec,resource_vec){
                      dimnames = list(callId_vec,resource_vec))
   
   idxCallId_vec <- match(availAsset_df$callId,callId_vec)
-  idxResource_vec <- match(availAsset_df$assetCustacId,resource_vec)
+  idxResource_vec <- match(availAsset_df$resource,resource_vec)
   
   cost_mat[cbind(idxCallId_vec,idxResource_vec)] <- cost_vec
   return(cost_mat)

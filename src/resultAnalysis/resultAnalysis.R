@@ -11,7 +11,7 @@ DeriveResultAnalytics <- function(availAsset_df,resource_df,callInfo_df,callOutp
   #### Cost
   varName_vec <- PasteVarName(msId_vec = callInfo_df$marginStatement[match(availAsset_df$callId,callInfo_df$id)],
                               callId_vec = availAsset_df$callId,
-                              resource_vec = availAsset_df$assetCustacId)
+                              resource_vec = availAsset_df$resource)
   varAmount_vec <- ResultList2AmountVec(callOutput_list,callId_vec,varName_vec)
   cost_vec <- DefineCost(availAsset_df,resource_df)
   
@@ -127,7 +127,7 @@ DefineCost <- function(availAsset_df,resource_df){
   #   A vector of cost per each row of availAsset_df
   
   ## Derive Noncash idx in availAsset_df
-  assetId_vec <- SplitResource(availAsset_df$assetCustacId,"asset")
+  assetId_vec <- SplitResource(availAsset_df$resource,"asset")
   noncashId_vec <-  resource_df$assetId[which(resource_df$assetId!=resource_df$currency)]
   noncashIdx_vec <- which(assetId_vec %in% noncashId_vec)
   
@@ -159,7 +159,7 @@ DefineLiquidity <- function(availAsset_df,resource_df){
   haircut_mat <- base_mat
   
   idxCallId_vec <- match(availAsset_df$callId,callId_vec)
-  idxResource_vec <- match(availAsset_df$assetCustacId,resource_vec)
+  idxResource_vec <- match(availAsset_df$resource,resource_vec)
   
   eli_mat[cbind(idxCallId_vec,idxResource_vec)]<- 1
   haircut_mat[cbind(idxCallId_vec,idxResource_vec)] <- availAsset_df$haircut + availAsset_df$FXHaircut

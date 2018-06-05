@@ -14,7 +14,7 @@ EstimateAssetSufficiency <- function(availAsset_df,callInfo_df,resource_df){
   #   false - asset inventory is likely to be insufficient
   
   ## Eligibility Matrix
-  eli_mat <- EliMat(availAsset_df,callInfo_df$id,resource_df$id)
+  eli_mat <- EliMat(availAsset_df[c('callId','resource')],callInfo_df$id,resource_df$id)
   ## Haircut Matrix
   haircut_mat <- HaircutVec2Mat(haircut_vec = availAsset_df$haircut + availAsset_df$FXHaircut,
                                 availAsset_df,callInfo_df$id,resource_df$id)

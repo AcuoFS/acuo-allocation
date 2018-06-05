@@ -25,7 +25,7 @@ AllocateUnderSufficientOptimalAssets <- function(optimalResource_vec,callInfo_df
 AllocateUnderInsufficientOptimalAssets <- function(costScore_mat,liquidityScore_mat,pref_vec,
                                                    callInfo_df,resource_df,availAsset_df,
                                                    minMoveValue,operLimitMs,fungible,timeLimit,
-                                                   ifNewAlloc,allocated_list,initAllocation_list){
+                                                   ifNewAlloc,allocated_list,initAllocation_mat){
   # Allocate all calls at a time by solving an optimization model with objectives and constraints.
   # 
   # * The decision variables are in the order of call Ids, and then resource Ids
@@ -101,9 +101,9 @@ AllocateUnderInsufficientOptimalAssets <- function(costScore_mat,liquidityScore_
   
   #### Initial Guess Basis in Solver ########
   lpGuessBasis_vec <- rep(0,totalVarNum)
-  if(!missing(initAllocation_list)){
+  if(!missing(initAllocation_mat)){
     # the initial guess must be a feasible point
-    lpGuessBasis_vec <- ResultList2Vec(initAllocation_list,callInfo_df$id,minUnitVar_vec,varName_vec)
+	lpGuessBasis_vec[1:qtyVarNum] <- initAllocation_mat[idxEli_vec]
   }
   
   #### Build the Optimization Model End ##########
@@ -153,7 +153,7 @@ AllocateUnderInsufficientOptimalAssets <- function(costScore_mat,liquidityScore_
 
   #### Adjust Solver Result ###########
   result_mat <- AdjustSolverResult(result_mat,resource_df$qtyMin,callInfo_df$callAmount,haircut_mat,minUnitValue_mat,
-                                   eli_mat=EliMat(availAsset_df,callInfo_df$id,resource_df$id))
+                                   eli_mat=EliMat(availAsset_df[c('callId','resource')],callInfo_df$id,resource_df$id))
   
   return(result_mat)
 }

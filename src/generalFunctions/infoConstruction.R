@@ -5,8 +5,8 @@ ResourceInfoAndAvailAsset <- function(assetInfo_df,availAsset_df){
   # remove assets with negative amount
   availAsset_df$quantity[which(availAsset_df$quantity<0)] <- 0 # avoid negative amount
   # construct the resourceId
-  availAsset_df$assetCustacId <- PasteResource(availAsset_df$assetId,availAsset_df$CustodianAccount)
-  resource_vec <- unique(availAsset_df$assetCustacId)
+  availAsset_df$resource <- PasteResource(availAsset_df$assetId,availAsset_df$CustodianAccount)
+  resource_vec <- unique(availAsset_df$resource)
   
   ## construct resource_df
   assetId_vec <- SplitResource(resource_vec,'asset')
@@ -17,7 +17,7 @@ ResourceInfoAndAvailAsset <- function(assetInfo_df,availAsset_df){
   
   ## add 5 columns: resource id, custodianAccount id, quantity, minQty, qtyRes
   resource_df <- cbind(id=resource_vec,resource_df,custodianAccount_vec)
-  idx2_vec <- match(resource_vec, availAsset_df$assetCustacId)
+  idx2_vec <- match(resource_vec, availAsset_df$resource)
   venue_vec <- availAsset_df$venue[idx2_vec] 
   qtyOri_vec <- availAsset_df$quantity[idx2_vec]
   qtyMin_vec <- floor(qtyOri_vec/resource_df$minUnit) # interal minUnit quantity
@@ -31,11 +31,11 @@ ResourceInfoAndAvailAsset <- function(assetInfo_df,availAsset_df){
   
   ## clean up availAsset_df
   ## keep 8 columns
-  idx_vec <- match(c("callId","assetCustacId","internalCost", "opptCost", "haircut","FXHaircut","externalCost","interestRate"),names(availAsset_df))
+  idx_vec <- match(c("callId","resource","internalCost", "opptCost", "haircut","FXHaircut","externalCost","interestRate"),names(availAsset_df))
   newAvailAsset_df <- availAsset_df[,idx_vec]
   
   # add 1 column for the simplicity of calculation later: yield
-  newAvailAsset_df$yield <- resource_df$yield[match(newAvailAsset_df$assetCustacId,resource_df$id)]
+  newAvailAsset_df$yield <- resource_df$yield[match(newAvailAsset_df$resource,resource_df$id)]
   
   return(list(resource_df=resource_df,availAsset_df=newAvailAsset_df))
 }

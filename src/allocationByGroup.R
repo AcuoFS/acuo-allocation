@@ -31,7 +31,7 @@ AllocateByGroups <- function(callInfo_df,availAsset_df,resource_df,
     #### Derive the Input for One Group ######
     callInfoGroup_df <- callInfo_df[match(callIdGroup_vec,callInfo_df$id),]
     availAssetGroup_df <- availAsset_df[which(availAsset_df$callId %in% callIdGroup_vec),]
-    resourceGroup_df <- resource_df[which(resource_df$id %in% availAssetGroup_df$assetCustacId),]
+    resourceGroup_df <- resource_df[which(resource_df$id %in% availAssetGroup_df$resource),]
     
     ## Exclude Resources with Few Units Left
     updatedInfo <- ExcludeInsufficientResourceFromAllocation(resource_df,availAssetGroup_df,length(callIdGroup_vec))
@@ -51,18 +51,19 @@ AllocateByGroups <- function(callInfo_df,availAsset_df,resource_df,
       preAllocateResult <- PreAllocation(callInfoGroup_df,availAssetGroup_df,resourceGroup_df,
                                          pref_vec,operLimitMs,fungible,
                                          algoVersion,ifNewAlloc,list(),minMoveValue,timeLimit)
-      initAllocation_list <- preAllocateResult$callOutput_list
+      initAllocation_mat <- preAllocateResult$result_mat
     } else{
-      initAllocation_list <- list()
+      initAllocation_mat <- matrix(0,nrow = length(callInfoGroup_df$id),ncol = length(resource_df$id),
+                       dimnames = list(callInfo_df$id,resource_df$id))
     }
     
     ## Call CoreAlgo
     if(algoVersion==1){
-      groupResult <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue)#,initAllocation_list)
+      groupResult <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue)#,initAllocation_mat)
     } else if(algoVersion==2){
       coreAlgoResult <- CoreAlgoV2(callInfoGroup_df,availAssetGroup_df,resourceGroup_df,
                                 pref_vec,operLimitMs,fungible,
-                                ifNewAlloc,initAllocation_list,allocatedGroup_list,
+                                ifNewAlloc,initAllocation_mat,allocatedGroup_list,
                                 minMoveValue,timeLimit)
     }
     
@@ -109,7 +110,7 @@ PreAllocation <- function(callInfo_df,availAsset_df,resource_df,
     #### Derive the Input for One Statement ######
     callInfoGroup_df <- callInfo_df[match(callInThisMs_vec,callInfo_df$id),]
     availAssetGroup_df <- availAsset_df[which(availAsset_df$callId %in% callInThisMs_vec),]
-    resourceGroup_df <- resource_df[which(resource_df$id %in% availAssetGroup_df$assetCustacId),]
+    resourceGroup_df <- resource_df[which(resource_df$id %in% availAssetGroup_df$resource),]
     
     ## Exclude Resources with Few Units Left
     updatedInfo <- ExcludeInsufficientResourceFromAllocation(resourceGroup_df,availAssetGroup_df,length(callInThisMs_vec))
@@ -122,9 +123,11 @@ PreAllocation <- function(callInfo_df,availAsset_df,resource_df,
     if(algoVersion==1){
       groupResult <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue)
     } else if(algoVersion==2){
+      initAllocation_mat <- matrix(0,nrow = length(callInfo_df$id),ncol = length(resource_df$id),
+                                   dimnames = list(callInfo_df$id,resource_df$id))
       groupResult <- CoreAlgoV2(callInfoGroup_df,availAssetGroup_df, resourceGroup_df, 
                                      pref_vec,operLimitMs,fungible,
-                                     ifNewAlloc,list(),allocatedGroup_list,
+                                     ifNewAlloc,initAllocation_mat,allocatedGroup_list,
                                      minMoveValue,timeLimit)
     }
     #### Store the Result #######
@@ -251,7 +254,7 @@ ExcludeInsufficientResourceFromAllocation <- function(resource_df,availAsset_df,
     rmResource_vec <- resource_df$id[rmResourceIdx]
     resource_df <- resource_df[-rmResourceIdx,]
   }
-  rmIdxAvail <- which(is.na(match(availAsset_df$assetCustacId,resource_df$id)))
+  rmIdxAvail <- which(is.na(match(availAsset_df$resource,resource_df$id)))
   if(length(rmIdxAvail)>0){
     availAsset_df <- availAsset_df[-rmIdxAvail,]
   }

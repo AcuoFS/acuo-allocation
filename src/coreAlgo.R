@@ -1,7 +1,7 @@
 
 CoreAlgoV2 <- function(callInfo_df,availAsset_df,resource_df,
                        pref_vec,operLimitMs,fungible,
-                       ifNewAlloc,initAllocation_list,allocated_list,
+                       ifNewAlloc,initAllocation_mat,allocated_list,
                        minMoveValue,timeLimit){
   # Handle extreme scenarios
   # Calculated the objectives parameters
@@ -30,7 +30,7 @@ CoreAlgoV2 <- function(callInfo_df,availAsset_df,resource_df,
   }
   
   #### Derive Eligibility and Haircut Matrix ###################
-  eli_mat <- EliMat(availAsset_df,callInfo_df$id,resource_df$id)
+  eli_mat <- EliMat(availAsset_df[c('callId','resource')],callInfo_df$id,resource_df$id)
   haircut_mat <- HaircutVec2Mat(haircut_vec = availAsset_df$haircut + availAsset_df$FXHaircut,
                                 availAsset_df,callInfo_df$id,resource_df$id)
 
@@ -54,7 +54,7 @@ CoreAlgoV2 <- function(callInfo_df,availAsset_df,resource_df,
     result_mat <- AllocateUnderInsufficientOptimalAssets(costScore_mat,liquidityScore_mat,pref_vec,
                                                     callInfo_df,resource_df,availAsset_df,
                                                     minMoveValue,operLimitMs,fungible,timeLimit,
-                                                    ifNewAlloc,allocated_list,initAllocation_list)
+                                                    ifNewAlloc,allocated_list,initAllocation_mat)
   }
   #### Calculate Objective Value ########
   minUnitValue_mat <- matrix(rep(resource_df$minUnitValue, length(callInfo_df$id)),nrow=length(callInfo_df$id),byrow = T)

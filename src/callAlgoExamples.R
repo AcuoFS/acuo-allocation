@@ -97,6 +97,11 @@ info_list <- ResourceInfoAndAvailAsset(assetInfo_df,oriAvailAsset_df)
 resource_df <- info_list$resource_df
 availAsset_df <- info_list$availAsset_df
 
+## CRMap_df: the available resource for each margin call
+# CRMap_df[i,1] = 'call1', CRMap_df[i,2] = 'resource1' means 'resource1' is available for 'call1'  
+# C stands for call id, R stands for resource id
+CRMap_df <- availAsset_df[c('callId','resource')]
+
 #if(is.na(all(assetInfo_df$FXRate))){
 #  warning('FXRate contains NA! Use Static FX rates for this test!')
 #  ccy_vec <- c('USD', 'EUR', 'GBP', 'SGD', 'JPY', 'HKD', 'AUD', 'CNY', 'KRW', 'CAD', 'NOK', 'SEK', 'NZD')

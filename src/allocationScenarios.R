@@ -26,7 +26,7 @@ AllocationScenario2 <- function(callInfo_df,availAsset_df,resource_df,pref_vec,o
   for(i in 1:length(callInfo_df$id)){
     thisCallId <- callInfo_df$id[i]
     thisCallCcy <- callInfo_df$currency[i]
-    idxAssetCallCcy_vec <- which(availAsset_df$callId==thisCallId & SplitResource(availAsset_df$assetCustacId,'asset')==thisCallCcy)
+    idxAssetCallCcy_vec <- which(availAsset_df$callId==thisCallId & SplitResource(availAsset_df$resource,'asset')==thisCallCcy)
     if(length(idxAssetCallCcy_vec)>0){
       idxAssetKeep_vec <- append(idxAssetKeep_vec,idxAssetCallCcy_vec)
     } else{
@@ -35,7 +35,7 @@ AllocationScenario2 <- function(callInfo_df,availAsset_df,resource_df,pref_vec,o
   }
   ## Usable Resources
   availAsset_df <- availAsset_df[idxAssetKeep_vec,]
-  resource_df <- resource_df[match(unique(availAsset_df$assetCustacId),resource_df$id),]
+  resource_df <- resource_df[match(unique(availAsset_df$resource),resource_df$id),]
   
   #### Allocate Calls by Groups ##################
   result <- AllocateByGroups(callInfo_df,availAsset_df,resource_df,
