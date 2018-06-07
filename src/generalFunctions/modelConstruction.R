@@ -349,7 +349,7 @@ ConstructModelObjV2 <- function(integerCallAmount_mat,costBasis_mat,resourceLiqu
 DeriveOptimalAssetsV2 <- function(resource_vec,resourceQty_vec,callId_vec,callAmount_vec,minUnitValue_vec,eli_mat,haircut_mat,
                                   costScore_mat,liquidityScore_mat,pref_vec,round = 2){
   # Calculate the coefficient of decision variables
-  rankScore_mat <- CalculateObjParams(costScore_mat,liquidityScore_mat,pref_vec,"amount")
+  score_mat <- CalculateObjParams(costScore_mat,liquidityScore_mat,pref_vec,"amount")
   
   # Score the optimal resource for each call
   optimalResource_vec <- vector()
@@ -358,7 +358,7 @@ DeriveOptimalAssetsV2 <- function(resource_vec,resourceQty_vec,callId_vec,callAm
   for(i in 1:length(callId_vec)){
     # find the eligible resources, and sort by ranking score, ascending
     idxInit_vec <- which(eli_mat[i,]!=0)  # eligible resources idx
-    scoreInit_vec <- rankScore_mat[i,idxInit_vec] # eligible resources corresponding ranking score
+    scoreInit_vec <- score_mat[i,idxInit_vec] # eligible resources corresponding ranking score
     
     # sort scoreInit_vec and idxInit_vec by ascending order
     score_vec <- scoreInit_vec[order(scoreInit_vec)]
@@ -389,73 +389,6 @@ DeriveOptimalAssetsV2 <- function(resource_vec,resourceQty_vec,callId_vec,callAm
     optimalResource_vec[i] <- resource_vec[idxMinScoreLargestAmount]
   }
   return(optimalResource_vec)
-}
-DeriveOptimalAssetsV3 <- function(quantity_vec,callAmount_vec,minUnitValue_vec,eli_mat,haircut_mat,
-                                  costScore_mat,liquidityScore_mat,pref_vec,callId_vec,resource_vec){
-  # Calculate the coefficient of decision variables
-  objCoef_mat <- CalculateObjParams(costScore_mat,liquidityScore_mat,pref_vec,"amount")
-  
-  callNum <- length(callId_vec)
-  resourceNum <- length(resource_vec)
-  
-  optimal_mat <- objCoef_mat
-  colnames(optimal_mat) <- resource_vec
-  rownames(optimal_mat) <- callId_vec
-  
-  optimalAsset_mat <- matrix(c(callId_vec,rep('', callNum)),nrow=callNum,ncol=2,dimnames = list(callId_vec,c('callId','resource')))
-  
-  minUnitValue_mat <- matrix(rep(minUnitValue_vec,callNum),nrow=callNum,byrow=T)
-  minUnitQuantity_mat <- matrix(rep(quantity_vec,callNum),nrow=callNum,byrow=T)
-  
-  for(i in 1:callNum){
-    idx1 <- which(eli_mat[i,]!=0)  # return elegible asset idx for mc[i]
-    temp_mat <- matrix(c(optimal_mat[i,idx1],idx1),nrow=2,byrow = T) # combine the asset score and index together
-    # sort the asset per call by score
-    if(length(temp_mat[1,])==1){       # if there's only one eligible asset, no need to sort.
-      sortOptimal_mat=temp_mat
-    }else{
-      sortOptimal_mat<-temp_mat[,order(temp_mat[1,])] # sort the score, return the cost and asset idx in matrix
-    }
-    # if there are more than one assets have the same score, we cannot simply select the first one
-    # because this may cause the case that there are 3 assets have the same score for 3 calls
-    # if we just select the first asset, then it's possible this single asset is not sufficient to fulfill 
-    # all these 3 calls, but these three assets can fulfill one of the call respectively
-    
-    # selecting order:
-    # select the one which hasn't been selected to the previous call
-    # unless, they are from the same margin statment (deal with that in OW-379)
-    # Best approach, allocate the most sufficient asset to the largest call amount, deal with that later
-    # better to deal with that now
-    idxMinScore_vec <- sortOptimal_mat[2,which(round(sortOptimal_mat[1,],2)==round(min(sortOptimal_mat[1,]),2))]
-    # if idxMinScore_vec contains only one element, don't need to sort
-    if(length(idxMinScore_vec) > 1){
-      optimalResource_vec <- resource_vec[idxMinScore_vec]
-      
-      # temp.largestAmount.asset: the least score assets score and index(>=1)
-      largestAmountResource_vec <- matrix(c(tempMinUnitQuantity_mat[i,idxMinScore_vec]*minUnitValue_mat[i,idxMinScore_vec],idxMinScore_vec),nrow=2,byrow=T)
-      if(length(largestAmountResource_vec[1,])>1){  
-        largestAmountResource_vec <- largestAmountResource_vec[,order(largestAmountResource_vec[1,],decreasing=T)]
-        # substitute in sortOptimal_mat
-        sortOptimal_mat[,1:length(largestAmountResource_vec[1,])]<- largestAmountResource_vec
-        colnames(sortOptimal_mat)[1:length(largestAmountResource_vec[1,])] <- colnames(largestAmountResource_vec)
-      }
-    }
-    optimalAsset_mat[i,2] <- resource_vec[sortOptimal_mat[2,1]]
-    minUnitQuantity <- minUnitQuantity_mat[,sortOptimal_mat[2,1]]
-    minUnitQuantity_mat[,sortOptimal_mat[2,1]]<- minUnitQuantity-callAmount_vec[i]/(1-haircut_mat[i,1])/minUnitValue_mat[,sortOptimal_mat[2,1]]
-    #for(m in 1:length(idxMinScore_vec)){
-    #  if(!is.element(temp.optimal.asset[m],optimalAsset_mat[,2])){
-    #    optimalAsset_mat[i,2] <- temp.optimal.asset[m]
-    #    break
-    #  }
-    #}
-    # if all possible assets have been selected as optimal of previous margin calls
-    # then, select the first asset
-    if(optimalAsset_mat[i,2]==''){
-      optimalAsset_mat[i,2] <- optimalResource_vec[1]
-    }
-  }
-  return(optimalAsset_mat[,2])
 }
 
 DeriveOptimalAssetsV1 <- function(minUnitQuantity_mat,eli_mat,callAmount_mat,haircut_mat,minUnitValue_mat,
