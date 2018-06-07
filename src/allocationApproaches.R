@@ -6,8 +6,7 @@ AllocateUnderSufficientOptimalAssets <- function(optimalResource_vec,callInfo_df
   #   A matrix of the allocated quantity by each call and each resource
   
   ## Haircut Matrix
-  haircut_mat <- HaircutVec2Mat(haircutVar_vec = availAsset_df$haircut + availAsset_df$FXHaircut,
-                                availAsset_df,callInfo_df$id,resource_df$id)
+  haircut_mat <- HaircutVec2Mat(availAsset_df,callInfo_df$id,resource_df$id)
   ## Sufficient Resource Quantities for Calls Matrix
   resourceSuffQty_mat <- CalculateIntegralUnit(amount = rep(callInfo_df$callAmount,length(resource_df$id)),
                                                valuePerUnit = matrix(rep(resource_df$minUnitValue, length(callInfo_df$id)),nrow=length(callInfo_df$id),byrow=T),
@@ -58,7 +57,9 @@ AllocateUnderInsufficientOptimalAssets <- function(costScore_mat,liquidityScore_
   minUnitVar_vec <- matrix(rep(resource_df$minUnit, callNum),nrow=callNum,byrow=T)[idxEli_vec]
   minUnitValueVar_vec <- matrix(rep(resource_df$minUnitValue, callNum),nrow=callNum,byrow = T)[idxEli_vec]
   haircutVar_vec <- availAsset_df$haircut + availAsset_df$FXHaircut
-
+  
+  minUnitValue_mat <- matrix(rep(resource_df$minUnitValue, callNum),nrow=callNum,byrow = T)
+  
   #### Build the Optimization Model Start #######
   #### Objective Function ######
   objCoef_vec <- CalculateObjParams(costScore_mat[idxEli_vec],liquidityScore_mat[idxEli_vec],pref_vec,"quantity",minUnitValueVar_vec)
@@ -118,18 +119,14 @@ AllocateUnderInsufficientOptimalAssets <- function(costScore_mat,liquidityScore_
   
   #### Solver Exception Handling ####
   errStatus <- c(2,5,6,7,10,13)
+  
   if(solverStatus==2){
     errormsg <- paste("ALERR2005: The model constructed by margin calls",paste(callInfo_df$id,collapse = " "),"is infeasible")
     stop(errormsg)
   } else if(is.element(solverStatus,errStatus)){
     # should stop and use another approach to solve the problem
-    if(callNum==1){
-      rank_vec <- CalculateObjParams(costScore_mat[idxEli_vec],liquidityScore_mat[idxEli_vec],pref_vec,"amount",minUnitValueVar_vec)
-      solverSolution_vec <- AllocateByRank(resource_df$id,callInfo_df$id,rank_vec,callInfo_df$callAmount,quantityVar_vec,minUnitValueVar_vec,haircutVar_vec,operLimit)
-    } else{ # Solver time out
-      ## choose the best alternative
-      solverSolution_vec <- lpGuessBasis_vec
-    }
+    result_mat <- AllocateByRank(costScore_mat,liquidityScore_mat,pref_vec,callInfo_df,resource_df,availAsset_df,
+                                 operLimitMs,fungible)
   }
   
   #### Restore Quantity in resource_df ####
@@ -146,8 +143,7 @@ AllocateUnderInsufficientOptimalAssets <- function(costScore_mat,liquidityScore_
   result_mat <- ResultVec2Mat(solution_vec,callInfo_df$id,resource_df$id,varName_vec)
   
   # Checking
-  minUnitValue_mat <- matrix(rep(resource_df$minUnitValue, callNum),nrow=callNum,byrow = T)
-  haircut_mat <- HaircutVec2Mat(haircutVar_vec,availAsset_df,callInfo_df$id,resource_df$id)
+  haircut_mat <- HaircutVec2Mat(availAsset_df,callInfo_df$id,resource_df$id)
   CheckSolverResult(solution_vec,result_mat,varName_vec,callInfo_df,resource_df$qtyMin,minUnitValue_mat,haircut_mat,
                                 lpLowerBound_vec,lpUpperBound_vec,operLimitMs,fungible)
 
@@ -158,58 +154,3 @@ AllocateUnderInsufficientOptimalAssets <- function(costScore_mat,liquidityScore_
   return(result_mat)
 }
 
-AllocateByRank <- function(resource_vec,callId,rank_vec,callAmount,quantity_vec,minUnitValue_vec,haircut_vec,operLimit){
-  ## rank_mat(scores assume using purely each asset)
-  ## names(rank_mat)=resources, value: score
-  
-  # process
-  # find the optimal resources within number of (operLimit) which are sufficient for the call
-  solution_vec <- rep(0,length(resource_vec))
-  leftCallAmount <- callAmount
-  integralSuffQty_vec <- ceiling(callAmount/(1-haircut_vec)/minUnitValue_vec)
-  suffIdx_vec <- which(quantity_vec >= integralSuffQty_vec)
-  if(length(suffIdx_vec)>=1){
-    suffResource_vec <- resource_vec[suffIdx_vec]
-    tempIdx <- which.max(rank_vec[suffIdx_vec])
-    optimalResource <- suffResource_vec[tempIdx]
-    optimalIdx <- which(resource_vec==optimalResource)
-    quantity <- integralSuffQty_vec[optimalIdx]
-    solution_vec[optimalIdx] <- quantity
-  } else{
-    if(operLimit<=1){ # operLimit=1
-      errormsg <- paste('ALERR2004: It is not sufficient to allocate',floor(operLimit),'assets for',callId)
-      stop(errormsg)
-    } else{
-      for(i in 1:operLimit){
-        amount_vec <- floor(quantity_vec)*(1-haircut_vec)*minUnitValue_vec
-        suffIdx_vec <- which(amount_vec >= callAmount)
-        if(length(suffIdx_vec)==0){
-          oriIdx_vec <- which(amount_vec==amount_vec[which.max(amount_vec)])
-          tempIdx <- which.max(rank_vec[oriIdx_vec])
-          optimalResource <- resource_vec[oriIdx_vec[tempIdx]]
-          optimalIdx <- which(resource_vec==optimalResource)
-          adjAmount <- quantity_vec[optimalIdx]*minUnitValue_vec[optimalIdx]*(1-haircut_vec[optimalIdx])
-          if(leftCallAmount>adjAmount){
-            quantity <- quantity_vec[optimalIdx]
-            solution_vec[optimalIdx] <- quantity
-            quantity_vec[optimalIdx] <- 0
-            amount_vec <- floor(quantity_vec)*(1-haircut_vec)*minUnitValue_vec
-            leftCallAmount <- leftCallAmount-adjAmount
-          } else{
-            quantity <- ceiling(leftCallAmount/(1-haircut_vec[optimalIdx])/minUnitValue_vec[optimalIdx])
-            solution_vec[optimalIdx] <- quantity
-            quantity_vec[optimalIdx] <- quantity_vec[optimalIdx] - quantity
-            amount_vec <- floor(quantity_vec)*(1-haircut_vec)*minUnitValue_vec
-            leftCallAmount <- leftCallAmount-adjAmount
-            break
-          }
-        }
-      }
-      if(leftCallAmount > 0){
-        errormsg <- paste('ALERR2004: It is not sufficient to allocate',floor(operLimit),'assets for',callId)
-        stop(errormsg)
-      }
-    }
-  }
-  return(solution_vec)
-}

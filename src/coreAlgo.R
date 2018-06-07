@@ -31,8 +31,7 @@ CoreAlgoV2 <- function(callInfo_df,availAsset_df,resource_df,
   
   #### Derive Eligibility and Haircut Matrix ###################
   eli_mat <- EliMat(availAsset_df[c('callId','resource')],callInfo_df$id,resource_df$id)
-  haircut_mat <- HaircutVec2Mat(haircut_vec = availAsset_df$haircut + availAsset_df$FXHaircut,
-                                availAsset_df,callInfo_df$id,resource_df$id)
+  haircut_mat <- HaircutVec2Mat(availAsset_df,callInfo_df$id,resource_df$id)
 
   #### Generate Standardized Cost and Liquidity #######
   costScore_mat <- GenerateStandardizedCostMat(cost_mat = CostVec2Mat(cost_vec = DefineCost(availAsset_df,resource_df),
@@ -42,20 +41,22 @@ CoreAlgoV2 <- function(callInfo_df,availAsset_df,resource_df,
                                                          callInfo_df$id,resource_df$id)
   
   #### Derive the Optimal Assets and Check Sufficiency #######  
-  optimalResource_vec <- DeriveOptimalAssetsV2(resource_df$qtyMin,callInfo_df$callAmount,resource_df$minUnitValue,eli_mat,haircut_mat,
-                                            costScore_mat,liquidityScore_mat,pref_vec,callInfo_df$id,resource_df$id)
+  optimalResource_vec <- DeriveOptimalAssetsV2(resource_df$id,resource_df$qtyMin,callInfo_df$id,callInfo_df$callAmount,resource_df$minUnitValue,eli_mat,haircut_mat,
+                                            costScore_mat,liquidityScore_mat,pref_vec)
   
-  #optimalResourcesAreSufficient <- CheckOptimalAssetSufficiency(optimalResource_vec,callInfo_df,availAsset_df,resource_df)
-  optimalResourcesAreSufficient <- F
+  optimalResourcesAreSufficient <- CheckOptimalAssetSufficiency(optimalResource_vec,callInfo_df,availAsset_df,resource_df)
+  #optimalResourcesAreSufficient <- F
+  
   #### Allocate ###############
   if(optimalResourcesAreSufficient){
     result_mat <- AllocateUnderSufficientOptimalAssets(optimalResource_vec,callInfo_df,availAsset_df,resource_df)
   } else {
     result_mat <- AllocateUnderInsufficientOptimalAssets(costScore_mat,liquidityScore_mat,pref_vec,
-                                                    callInfo_df,resource_df,availAsset_df,
-                                                    minMoveValue,operLimitMs,fungible,timeLimit,
-                                                    ifNewAlloc,allocated_list,initAllocation_mat)
+                                                         callInfo_df,resource_df,availAsset_df,
+                                                         minMoveValue,operLimitMs,fungible,timeLimit,
+                                                         ifNewAlloc,allocated_list,initAllocation_mat)
   }
+
   #### Calculate Objective Value ########
   minUnitValue_mat <- matrix(rep(resource_df$minUnitValue, length(callInfo_df$id)),nrow=length(callInfo_df$id),byrow = T)
   objValue <- sum((pref_vec[1]*costScore_mat + pref_vec[2]*liquidityScore_mat)*result_mat*minUnitValue_mat*eli_mat)

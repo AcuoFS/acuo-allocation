@@ -22,6 +22,7 @@ source("src/allocationScenarios.R")
 source("src/allocationByGroup.R")
 source("src/coreAlgo.R")
 source("src/allocationApproaches.R")
+source("src/allocationByRank.R")
 source("src/generalFunctions/infoConstruction.R")
 source("src/generalFunctions/nameConstruction.R")
 source("src/generalFunctions/modelConstruction.R")
@@ -46,8 +47,8 @@ msId_vec <- c(    "7d866f21",
 callId_vec <- unlist(CallIdByMsId(msId_vec))
 #agreementId_vec <- c('a1','a34')
 #callId_vec <- unname(unlist(callIdByAgreementId(agreementId_vec)))
-clientId = '999';
-pref_vec = c(5.4,3.5);
+clientId = '999'
+pref_vec = c(5.4,3.5)
 operLimitMs <- 2
 fungible <- FALSE
 
@@ -116,7 +117,7 @@ CRMap_df <- availAsset_df[c('callId','resource')]
 
 #### Scenario Analysis Output Start #####################
 algoVersion <- 2
-preAllocateEnable <- T
+preAllocateEnable <- F
 compareEnable <- F
 startPoints <- 1
 controls <- list(preAllocateEnable=preAllocateEnable,compareEnable=compareEnable, startPoints=startPoints)
