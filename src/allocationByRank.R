@@ -101,7 +101,7 @@ AllocateAnotherCall <- function(result_mat,score_vec,movementLimit,idxCall,idxCa
                                   haircut_vec,minUnitValue_vec,idx_vec,idxAllocated_vec)
   
   if(list$leftCallAmount > 0){
-    errormsg <- paste('ALERR2004: It is not sufficient to allocate',movementLeft,'assets for',rownames(result_mat)[idxCall])
+    errormsg <- paste('ALERR2004: It is not sufficient to allocate',movementLimit,'assets for',rownames(result_mat)[idxCall])
     stop(errormsg)
   }
   return(list$result_mat)
@@ -149,7 +149,7 @@ AllocateWithinMovements <- function(result_mat,idxCall,leftCallAmount,movementLe
   # Returns:
   #   A list contains the result matrix and the call amount hasn't been fulfilled
   
-  while((length(idx_vec) > 0 & movementLeft > 0) | (length(idxAllocated_vec) > 0 & movementLeft == 0)){
+  while((length(idx_vec) > 0 & movementLeft > 0) | (length(idx0Move_vec) > 0 & movementLeft == 0)){
 
     optimalResource <- DetermineOptimalResourceByRank(resource_vec[idx_vec],score_vec[idx_vec],resourceQty_vec[idx_vec],haircut_vec[idx_vec],minUnitValue_vec[idx_vec],
                                                       dominator = "score")
@@ -157,8 +157,8 @@ AllocateWithinMovements <- function(result_mat,idxCall,leftCallAmount,movementLe
     idxResource <- match(optimalResource,resource_vec)
     
     idx_vec <- idx_vec[-match(idxResource,idx_vec)]
-    if(idxResource %in% idxAllocated_vec){
-      idxAllocated_vec <- idxAllocated_vec[-match(idxResource,idxAllocated_vec)]
+    if(idxResource %in% idx0Move_vec){
+      idx0Move_vec <- idx0Move_vec[-match(idxResource,idx0Move_vec)]
     } else{
       movementLeft <- movementLeft - 1
     }

@@ -347,7 +347,7 @@ ConstructModelObjV2 <- function(integerCallAmount_mat,costBasis_mat,resourceLiqu
 }
 
 DeriveOptimalAssetsV2 <- function(resource_vec,resourceQty_vec,callId_vec,callAmount_vec,minUnitValue_vec,eli_mat,haircut_mat,
-                                  costScore_mat,liquidityScore_mat,pref_vec,round = 2){
+                                  costScore_mat,liquidityScore_mat,pref_vec,rounding = 2){
   # Calculate the coefficient of decision variables
   score_mat <- CalculateObjParams(costScore_mat,liquidityScore_mat,pref_vec,"amount")
   
