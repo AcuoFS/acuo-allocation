@@ -12,7 +12,6 @@ GenerateStandardizedCostMat <- function(cost_mat,callId_vec,resource_vec){
       normCost_mat[i,]<- normCost_mat[i,]+(-min(normCost_mat[i,])*2)
     }
   }
-  normCost_vec <- as.vector(t(normCost_mat))
   return(normCost_mat)
 }
 
@@ -29,8 +28,7 @@ GenerateStandardizedLiquidityMat <- function(resourceLiquidity_vec,callId_vec,re
       normLiquidity_mat[i,]<- normLiquidity_mat[i,]+(-min(normLiquidity_mat[i,])*2)
     }
   }
-  normLiquidity_vec <- as.vector(t(normLiquidity_mat))
-  return(normLiquidity_vec)
+  return(normLiquidity_mat)
 }
 
 
