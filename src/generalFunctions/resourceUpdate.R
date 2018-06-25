@@ -12,6 +12,6 @@ ResetQtyMinInResourceDf <- function(resource_df){
 }
 
 RemoveResourceNotInAvailAsset <- function(availAsset_df,resource_df){
-  resource_df <- resource_df[which(resource_df$id %in% availAsset_df$assetCustacId),]
+  resource_df <- resource_df[which(resource_df$id %in% availAsset_df$resource),]
   return(resource_df)
 }
