@@ -1,13 +1,3 @@
-PasteFun1 <- function(x1='',x2=''){
-  temp=paste(x1,x2,sep='_',collapse = '')
-  return(temp)
-}
-
-PasteFun2 <- function(x){
-  temp=paste(x,collapse='_')
-  return(temp)
-}
-
 PasteResource <- function(assetId_vec,custodianAccount_vec){
   temp <- paste(assetId_vec,custodianAccount_vec,sep='---')
   return(temp)
