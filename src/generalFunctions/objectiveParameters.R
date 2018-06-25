@@ -30,7 +30,7 @@ GenerateStandardizedLiquidityMat <- function(resourceLiquidity_vec,callId_vec,re
     }
   }
   normLiquidity_vec <- as.vector(t(normLiquidity_mat))
-  return(liquidity_mat)
+  return(normLiquidity_vec)
 }
 
 
