@@ -148,3 +148,9 @@ FindSufficientResourcesForBothCalls <- function(availAsset_df,resource_df,twoCal
   return(suffResource_vec)
 }
 
+RemoveRowsInAvailAsset <- function(availAsset_df,rmIdx_vec){
+  if(length(rmIdx_vec)>0){
+    availAsset_df <- availAsset_df[-rmIdx_vec,]
+  }
+  return(availAsset_df)
+}
