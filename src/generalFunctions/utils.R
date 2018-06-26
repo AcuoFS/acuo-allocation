@@ -24,3 +24,12 @@ UsedQtyFromResultList <- function(result_list,resource_vec,callId_vec){
   return(quantityUsed_vec)
 }
 
+PrintCallAllocatedAmount <- function(callAmount_vec,callId_vec,callSelect_list){
+  # print the call amount and the allocated amount in a matrix
+  # no return
+  callAllocated_mat<- matrix(c(callInfo_df$callAmount,rep(0, callNum)),nrow=callNum,ncol=2,dimnames = list(callId_vec,c('callAmount','allocatedAmount')))
+  for(i in 1:callNum){
+    callAllocated_mat[i,2] <- sum(callSelect_list[[callId_vec[i]]]$`NetAmount(USD)`)
+  }
+  print(callAllocated_mat)
+}

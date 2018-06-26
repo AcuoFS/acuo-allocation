@@ -15,6 +15,25 @@ GenerateStandardizedCostMat <- function(cost_mat,callId_vec,resource_vec){
   return(normCost_mat)
 }
 
+CostVec2Mat <- function(cost_vec,availAsset_df,callId_vec,resource_vec){
+  # Construct haircut matrix with call ids and resource ids as two dimensions
+  #
+  # Args: availAsset_df(columns to be used: all)
+  #       resource_df(columns to be used: all)
+  #         
+  # Returns:
+  #   haircut matrix
+  
+  cost_mat <- matrix(0,nrow=length(callId_vec),ncol=length(resource_vec),
+                     dimnames = list(callId_vec,resource_vec))
+  
+  idxCallId_vec <- match(availAsset_df$callId,callId_vec)
+  idxResource_vec <- match(availAsset_df$resource,resource_vec)
+  
+  cost_mat[cbind(idxCallId_vec,idxResource_vec)] <- cost_vec
+  return(cost_mat)
+}
+
 GenerateStandardizedLiquidityMat <- function(resourceLiquidity_vec,callId_vec,resource_vec){
   #### liquidity
   callNum <- length(callId_vec)
