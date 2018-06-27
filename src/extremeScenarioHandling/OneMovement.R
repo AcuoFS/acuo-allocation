@@ -119,19 +119,21 @@ FindSufficientResourcesForBothCalls <- function(availAsset_df,resource_df,twoCal
   #   The sufficient resource ids.  
   
   # eligible resources indexes for call1 and call2 in availAsset_df
-  idxEliCall1_vec <- which(availAsset_df$callId==twoCallIds[1]) 
-  idxEliCall2_vec <- which(availAsset_df$callId==twoCallIds[2]) 
-  commonResource_vec <- availAsset_df$resource[idxEliCall1_vec]
-  
+  eliResource1_vec <- availAsset_df$resource[which(availAsset_df$callId==twoCallIds[1])]
+  eliResource2_vec <- availAsset_df$resource[which(availAsset_df$callId==twoCallIds[2])]
+  commonResource_vec <- intersect(eliResource1_vec,eliResource2_vec)
+  idxKeepCall1_vec <- which(availAsset_df$callId==twoCallIds[1] & availAsset_df$resource %in% commonResource_vec)
+  idxKeepCall2_vec <- which(availAsset_df$callId==twoCallIds[2] & availAsset_df$resource %in% commonResource_vec)
+
   # the corresponding resource ids for call1 and call2 and common resource ids
   idxResource_vec <- match(commonResource_vec,resource_df$id)
   minUnitValue_vec <- resource_df$minUnitValue[idxResource_vec]
   quantity_vec <- resource_df$qtyMin[idxResource_vec]
   
   # the haircut of the resources for call1 and call2 
-  haircut1_vec <- availAsset_df$haircut[idxEliCall1_vec]+availAsset_df$FXHaircut[idxEliCall1_vec]
-  haircut2_vec <- availAsset_df$haircut[idxEliCall2_vec]+availAsset_df$FXHaircut[idxEliCall2_vec]
-  
+  haircut1_vec <- availAsset_df$haircut[idxKeepCall1_vec]+availAsset_df$FXHaircut[idxKeepCall1_vec]
+  haircut2_vec <- availAsset_df$haircut[idxKeepCall1_vec]+availAsset_df$FXHaircut[idxKeepCall1_vec]
+
   # the integral sufficient quantity of common resources to fulfill call1 and call2
   integralSuffQty1_vec <- CalculateIntegralUnit(amount = twoCallAmounts[1],
                                                 valuePerUnit = minUnitValue_vec,
