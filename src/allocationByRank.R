@@ -14,7 +14,7 @@ AllocateByRank <- function(costScore_mat,liquidityScore_mat,pref_vec,callInfo_df
   ##### Static Variables ####
   score_mat <- CalculateObjParams(costScore_mat,liquidityScore_mat,pref_vec,"amount")
   eli_mat <- EliMat(availAsset_df[c('callId','resource')],callInfo_df$id,resource_df$id)
-  haircut_mat <- HaircutVec2Mat(availAsset_df,callInfo_df$id,resource_df$id)
+  haircut_mat <- HaircutMat(availAsset_df,callInfo_df$id,resource_df$id)
   
   #### Dynamic Variables ####
   # Store the Latest Quantity of Each Resource

@@ -16,7 +16,7 @@ EstimateAssetSufficiency <- function(availAsset_df,callInfo_df,resource_df){
   ## Eligibility Matrix
   eli_mat <- EliMat(availAsset_df[c('callId','resource')],callInfo_df$id,resource_df$id)
   ## Haircut Matrix
-  haircut_mat <- HaircutVec2Mat(availAsset_df,callInfo_df$id,resource_df$id)
+  haircut_mat <- HaircutMat(availAsset_df,callInfo_df$id,resource_df$id)
   #### Check Whether Assets Are Sufficient Per Each Call #####
   suffPerCall <- all((eli_mat*(1-haircut_mat)) %*% (resource_df$qtyMin*resource_df$minUnitValue) > callInfo_df$callAmount)
   
@@ -38,7 +38,7 @@ CheckOptimalAssetSufficiency <- function(optimalResource_vec,callInfo_df,availAs
   #   true or false
   
   ## Haircut Matrix
-  haircut_mat <- HaircutVec2Mat(availAsset_df,callInfo_df$id,resource_df$id)
+  haircut_mat <- HaircutMat(availAsset_df,callInfo_df$id,resource_df$id)
   ## Sufficient Resource Units for Calls Matrix
   resourceSuffQty_mat <- CalculateIntegralUnit(amount = rep(callInfo_df$callAmount,length(resource_df$id)),
                                                valuePerUnit = matrix(rep(resource_df$minUnitValue, length(callInfo_df$id)),nrow=length(callInfo_df$id),byrow=T),

@@ -35,7 +35,7 @@ HaircutFXVec2Mat <- function(haircutFX_vec,availAsset_df,callId_vec,resource_vec
   return(haircutFX_mat)
 }
 
-HaircutVec2Mat <- function(availAsset_df,callId_vec,resource_vec){
+HaircutMat <- function(availAsset_df,callId_vec,resource_vec){
   # Construct total haircut matrix with call ids and resource ids as two dimensions
   #
   # Args: availAsset_df(columns to be used: haircutC, haircutFX, callId, resource)

@@ -6,7 +6,7 @@ AllocateUnderSufficientOptimalAssets <- function(optimalResource_vec,callInfo_df
   #   A matrix of the allocated quantity by each call and each resource
   
   ## Haircut Matrix
-  haircut_mat <- HaircutVec2Mat(availAsset_df,callInfo_df$id,resource_df$id)
+  haircut_mat <- HaircutMat(availAsset_df,callInfo_df$id,resource_df$id)
   ## Sufficient Resource Quantities for Calls Matrix
   resourceSuffQty_mat <- CalculateIntegralUnit(amount = rep(callInfo_df$callAmount,length(resource_df$id)),
                                                valuePerUnit = matrix(rep(resource_df$minUnitValue, length(callInfo_df$id)),nrow=length(callInfo_df$id),byrow=T),
@@ -143,7 +143,7 @@ AllocateUnderInsufficientOptimalAssets <- function(costScore_mat,liquidityScore_
   result_mat <- ResultVec2Mat(solution_vec,callInfo_df$id,resource_df$id,varName_vec)
   
   # Checking
-  haircut_mat <- HaircutVec2Mat(availAsset_df,callInfo_df$id,resource_df$id)
+  haircut_mat <- HaircutMat(availAsset_df,callInfo_df$id,resource_df$id)
   CheckSolverResult(solution_vec,result_mat,varName_vec,callInfo_df,resource_df$qtyMin,minUnitValue_mat,haircut_mat,
                                 lpLowerBound_vec,lpUpperBound_vec,operLimitMs,fungible)
 
