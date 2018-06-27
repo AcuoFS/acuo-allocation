@@ -1,5 +1,5 @@
 
-CoreAlgoV2 <- function(callInfo_df,availAsset_df,resource_df,
+CoreAlgoV2 <- function(configurations,callInfo_df,availAsset_df,resource_df,
                        pref_vec,operLimitMs,fungible,
                        ifNewAlloc,initAllocation_mat,allocated_list,
                        minMoveValue,timeLimit){
@@ -51,7 +51,7 @@ CoreAlgoV2 <- function(callInfo_df,availAsset_df,resource_df,
   if(optimalResourcesAreSufficient){
     result_mat <- AllocateUnderSufficientOptimalAssets(optimalResource_vec,callInfo_df,availAsset_df,resource_df)
   } else {
-    result_mat <- AllocateUnderInsufficientOptimalAssets(costScore_mat,liquidityScore_mat,pref_vec,
+    result_mat <- AllocateUnderInsufficientOptimalAssets(configurations,costScore_mat,liquidityScore_mat,pref_vec,
                                                          callInfo_df,resource_df,availAsset_df,
                                                          minMoveValue,operLimitMs,fungible,timeLimit,
                                                          ifNewAlloc,allocated_list,initAllocation_mat)

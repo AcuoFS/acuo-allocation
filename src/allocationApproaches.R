@@ -21,7 +21,7 @@ AllocateUnderSufficientOptimalAssets <- function(optimalResource_vec,callInfo_df
   return(result_mat)
 }
 
-AllocateUnderInsufficientOptimalAssets <- function(costScore_mat,liquidityScore_mat,pref_vec,
+AllocateUnderInsufficientOptimalAssets <- function(configurations,costScore_mat,liquidityScore_mat,pref_vec,
                                                    callInfo_df,resource_df,availAsset_df,
                                                    minMoveValue,operLimitMs,fungible,timeLimit,
                                                    ifNewAlloc,allocated_list,initAllocation_mat){
@@ -109,7 +109,7 @@ AllocateUnderInsufficientOptimalAssets <- function(costScore_mat,liquidityScore_
   
   #### Build the Optimization Model End ##########
   #### Call Solver to Solve the Model ###############
-  solverOutput_list <- CallLpSolve(lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
+  solverOutput_list <- CallLpSolve(configurations, lpObj_vec,lpCon_mat,lpDir_vec,lpRhs_vec,
                                    lpType_vec=lpType_vec,lpKind_vec=lpKind_vec,lpLowerBound_vec=lpLowerBound_vec,lpUpperBound_vec=lpUpperBound_vec,lpBranchMode_vec=lpBranchMode_vec,
                                    lpGuessBasis_vec=lpGuessBasis_vec, 
                                    presolve=lpPresolve,timeout=lpTimeout)
