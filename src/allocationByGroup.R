@@ -1,4 +1,4 @@
-AllocateByGroups <- function(callInfo_df,availAsset_df,resource_df,
+AllocateByGroups <- function(configurations,callInfo_df,availAsset_df,resource_df,
                              pref_vec,operLimitMs,fungible,
                              algoVersion,controls,ifNewAlloc,allocated_list,
                              minMoveValue,timeLimit,maxCallNum,maxMsNum,callOrderMethod){  
@@ -48,7 +48,7 @@ AllocateByGroups <- function(callInfo_df,availAsset_df,resource_df,
     
     ## Derive solver starting point
     if(controls$preAllocateEnable){
-      preAllocateResult <- PreAllocation(callInfoGroup_df,availAssetGroup_df,resourceGroup_df,
+      preAllocateResult <- PreAllocation(configurations,callInfoGroup_df,availAssetGroup_df,resourceGroup_df,
                                          pref_vec,operLimitMs,fungible,
                                          algoVersion,ifNewAlloc,list(),minMoveValue,timeLimit)
       initAllocation_mat <- preAllocateResult$result_mat
@@ -61,7 +61,7 @@ AllocateByGroups <- function(callInfo_df,availAsset_df,resource_df,
     if(algoVersion==1){
       groupResult <- CoreAlgoV1(coreInput_list,availAssetGroup_df,timeLimit,pref_vec,minMoveValue)#,initAllocation_mat)
     } else if(algoVersion==2){
-      coreAlgoResult <- CoreAlgoV2(callInfoGroup_df,availAssetGroup_df,resourceGroup_df,
+      coreAlgoResult <- CoreAlgoV2(configurations,callInfoGroup_df,availAssetGroup_df,resourceGroup_df,
                                 pref_vec,operLimitMs,fungible,
                                 ifNewAlloc,initAllocation_mat,allocatedGroup_list,
                                 minMoveValue,timeLimit)
@@ -91,7 +91,7 @@ AllocateByGroups <- function(callInfo_df,availAsset_df,resource_df,
   return(result_mat)
 }
 
-PreAllocation <- function(callInfo_df,availAsset_df,resource_df,
+PreAllocation <- function(configurations,callInfo_df,availAsset_df,resource_df,
                           pref_vec,operLimitMs,fungible,
                           algoVersion,ifNewAlloc,allocated_list,
                           minMoveValue,timeLimit){
@@ -125,7 +125,7 @@ PreAllocation <- function(callInfo_df,availAsset_df,resource_df,
     } else if(algoVersion==2){
       initAllocation_mat <- matrix(0,nrow = length(callInfo_df$id),ncol = length(resource_df$id),
                                    dimnames = list(callInfo_df$id,resource_df$id))
-      groupResult <- CoreAlgoV2(callInfoGroup_df,availAssetGroup_df, resourceGroup_df, 
+      groupResult <- CoreAlgoV2(configurations,callInfoGroup_df,availAssetGroup_df, resourceGroup_df,
                                      pref_vec,operLimitMs,fungible,
                                      ifNewAlloc,initAllocation_mat,allocatedGroup_list,
                                      minMoveValue,timeLimit)
@@ -151,9 +151,12 @@ OrderCallId <- function(callOrderMethod,callInfo_df){
   ## method 1: By margin call amount, decreasing
   ## method 2: By margin type, VM then IM; sub order by call amount
   ## method 3: By total call amount in margin statement, decreasing
+  ## method 4: By total call amount in margin statement, increasing
   
   #### Assign Default Values
-  callOrderMethod <- 3
+  if(missing(callOrderMethod)){
+    callOrderMethod <- 3
+  }
   
   #### Order Calls
   if(callOrderMethod==0){ # keep original
@@ -183,7 +186,7 @@ OrderCallId <- function(callOrderMethod,callInfo_df){
       idxCurrent <- idxCurrent+length(idxTemp_vec)
     }
     callInfo_df<- newCallInfo_df
-  }else if(callOrderMethod==4){ # by margin statement, call amount in margin statement, increasing
+  }else if(callOrderMethod==4){
     msAggrCall_df <- aggregate(callAmount~marginStatement,data=callInfo_df,sum)
     msAggrCall_df <- msAggrCall_df[order(msAggrCall_df$callAmount,decreasing=F),]
     tempMs_vec <- msAggrCall_df$marginStatement
