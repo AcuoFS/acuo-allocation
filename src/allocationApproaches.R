@@ -119,7 +119,6 @@ AllocateUnderInsufficientOptimalAssets <- function(configurations,costScore_mat,
   
   #### Solver Exception Handling ####
   errStatus <- c(2,5,6,7,10,13)
-  solverStatus <- 5
   if(solverStatus==2){
     errormsg <- paste("ALERR2005: The model constructed by margin calls",paste(callInfo_df$id,collapse = " "),"is infeasible")
     stop(errormsg)
