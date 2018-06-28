@@ -61,9 +61,6 @@ CoreAlgoV2 <- function(configurations,callInfo_df,availAsset_df,resource_df,
   minUnitValue_mat <- matrix(rep(resource_df$minUnitValue, length(callInfo_df$id)),nrow=length(callInfo_df$id),byrow = T)
   objValue <- sum((pref_vec[1]*costScore_mat + pref_vec[2]*liquidityScore_mat)*result_mat*minUnitValue_mat*eli_mat)
   
-  #### Convert the Result from Matrix to List ####
-  callOutput_list <- ResultMat2CallList(result_mat,callInfo_df,availAsset_df,resource_df)
-  
   return(list(result_mat=result_mat,objValue=objValue))
 }
 
