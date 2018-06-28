@@ -143,7 +143,7 @@ PreAllocation <- function(configurations,callInfo_df,availAsset_df,resource_df,
   }
   
   #return(list(callOutput_list=callOutput_list,objValue=objValue))
-  return(list(result_mat=result_mat,objValue=groupResult$objValue))
+  return(list(result_mat=result_mat,objValue=objValue))
 }
 
 OrderCallId <- function(callOrderMethod,callInfo_df){
