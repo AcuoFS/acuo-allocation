@@ -1,0 +1,6 @@
+Initial setting:
+internal cost of cash > noncash
+external cost of cash > noncash
+
+
+Changing external cost of all assets proportionally doesn't change the selection of assets by Algo. That is because noncash assets have lower internal cost than cash as the initial status and what we want to test is the changes of external of all assets, so for initial margin, lower or increase noncash and cash together the selected assets will always come from the noncash assets, regardless the external cost. 

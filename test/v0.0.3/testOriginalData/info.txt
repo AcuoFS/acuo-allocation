@@ -1,0 +1,5 @@
+external cost:
+
+1. range from 25 to 125 bps per annual,which is 0.0694 to 0.3472bps per day if divided by 360. 
+
+2. normally external cost of cash is higher than non-cash, so we use this assumption to set the benchmark data and later change it to test. 

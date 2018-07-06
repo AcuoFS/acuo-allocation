@@ -1,0 +1,1 @@
+1. Lower the internal cost of SGD,JPY,USD,EUR,and GBP from 0.5 bps to 0.3 bps. 

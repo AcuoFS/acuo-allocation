@@ -1,0 +1,3 @@
+1. Lower the internal cost of some noncash assets GB0030883150,DE0001108603,DE0001141661,SG31A1000000,SG7Y76964295 from 0.3 bps to 0.1 bps
+
+
